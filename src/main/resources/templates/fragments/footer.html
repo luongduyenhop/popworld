@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Footer Fragment</title>
+</head>
+<body>
+
+<footer th:fragment="footer" class="pop-footer">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Cột 1: Giới thiệu thương hiệu -->
+            <div class="col-lg-4 col-md-6">
+                <div class="mb-3">
+                    <img th:src="@{/images/logo-popworld-footer.svg}" alt="POPWORLD" height="40" style="display:inline-block;">
+                </div>
+                <p class="text-secondary small leading-relaxed">
+                    PopWorld là sàn thương mại điện tử chuyên cung cấp Art Toy, Hộp Mù (Blind Box) và Mô hình thiết kế chính hãng hàng đầu Việt Nam. Nơi thỏa mãn niềm đam mê săn lùng Secret và sưu tập nghệ thuật đương đại.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-white fs-5"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="bi bi-tiktok"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+
+            <!-- Cột 2: Khám phá thế giới Blind Box -->
+            <div class="col-lg-2 col-md-6 col-6">
+                <h5>Khám Phá</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a th:href="@{/categories/blind-box}">Hộp Mù Blind Box</a></li>
+                    <li class="mb-2"><a th:href="@{/categories/mega-collection}">Mega Collection 400%</a></li>
+                    <li class="mb-2"><a th:href="@{/categories/plush-doll}">Búp Bê & Vinyl Plush</a></li>
+                    <li class="mb-2"><a th:href="@{/categories/accessories}">Phụ Kiện Trưng Bày</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 3: Chính sách đập hộp -->
+            <div class="col-lg-3 col-md-6 col-6">
+                <h5>Chính Sách Blind Box</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#">Quy định xé seal hộp mù</a></li>
+                    <li class="mb-2"><a href="#">Chính sách bảo hành lỗi NSX</a></li>
+                    <li class="mb-2"><a href="#">Cam kết tỷ lệ Secret chuẩn</a></li>
+                    <li class="mb-2"><a href="#">Đóng gói chống sốc 4 lớp</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Đồ án môn học & Hỗ trợ -->
+            <div class="col-lg-3 col-md-6">
+                <h5>Đồ Án Mã Nguồn Mở</h5>
+                <p class="text-secondary small mb-2">
+                    <i class="bi bi-code-slash text-danger me-2"></i> <strong>Công nghệ:</strong> Java 21, Spring Boot 3, JPA, MySQL 8, Thymeleaf, Bootstrap 5.
+                </p>
+                <p class="text-secondary small mb-2">
+                    <i class="bi bi-envelope text-danger me-2"></i> <strong>Email:</strong> support@popworld.com
+                </p>
+                <p class="text-secondary small">
+                    <i class="bi bi-geo-alt text-danger me-2"></i> <strong>Hà Nội:</strong> Tràng Thi, Hoàn Kiếm, Hà Nội
+                </p>
+            </div>
+        </div>
+
+        <!-- Bản quyền & ghi chú -->
+        <div class="pop-footer-bottom text-center text-secondary">
+            <p class="mb-1">© 2026 PopWorld Art Toy Store. Dự án Bài Tập Lớn Phát Triển Phần Mềm Mã Nguồn Mở.</p>
+            <p class="mb-0 text-muted small">Tất cả hình ảnh và bản quyền nhân vật Labubu, Molly, Skullpanda, Hirono thuộc về POP MART và các nghệ sĩ sáng tạo.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

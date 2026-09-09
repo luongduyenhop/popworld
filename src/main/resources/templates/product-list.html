@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - PopWorld Art Toy'">Danh Sách Sản Phẩm - PopWorld</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${pageTitle}">Danh Mục</li>
+            </ol>
+        </nav>
+
+        <!-- Page Header Banner -->
+        <div class="bg-white rounded-4 p-4 p-lg-5 mb-4 border shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div th:if="${currentCharacter != null}">
+                    <img th:src="${currentCharacter.avatarUrl}" class="rounded-circle border border-3 border-danger shadow-sm" 
+                         width="80" height="80" style="object-fit: cover;">
+                </div>
+                <div>
+                    <h1 class="fw-black text-uppercase mb-2" th:text="${pageTitle}">Danh Mục Sản Phẩm</h1>
+                    <p class="text-secondary mb-0" th:text="${pageDescription}">Khám phá toàn bộ thế giới Art Toy chính hãng</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Sidebar Bộ Lọc -->
+            <aside class="col-lg-3">
+                <div class="bg-white rounded-4 p-4 border shadow-sm sticky-top" style="top: 100px;">
+                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Danh Mục</h5>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2" th:each="cat : ${categories}">
+                            <a th:href="@{'/categories/' + ${cat.slug}}" 
+                               class="d-flex justify-content-between align-items-center text-decoration-none fw-semibold py-1 px-2 rounded-2"
+                               th:classappend="${currentCategory != null && currentCategory.id == cat.id} ? 'bg-danger text-white' : 'text-dark hover-bg-light'">
+                                <span th:text="${cat.name}">Hộp Mù Blind Box</span>
+                                <i class="bi bi-chevron-right small"></i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Nhân Vật IP</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:each="ip : ${characterIps}" th:href="@{'/characters/' + ${ip.id}}"
+                           class="badge text-decoration-none py-2 px-3 rounded-pill fw-bold"
+                           th:classappend="${currentCharacter != null && currentCharacter.id == ip.id} ? 'bg-danger text-white' : 'bg-light text-dark border'">
+                            <span th:text="${ip.name}">Labubu</span>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Lưới Sản Phẩm -->
+            <section class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold small">
+                        Hiển thị <span th:text="${products.size()}">0</span> sản phẩm
+                    </span>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${products.isEmpty()}" class="bg-white rounded-4 p-5 text-center border">
+                    <div class="display-1 text-muted mb-3"><i class="bi bi-box2"></i></div>
+                    <h4 class="fw-bold">Chưa tìm thấy sản phẩm phù hợp</h4>
+                    <p class="text-muted">Rất tiếc, hiện tại danh mục này chưa có sản phẩm hoặc từ khóa không khớp.</p>
+                    <a th:href="@{/}" class="btn btn-pop-primary mt-2">Quay Lại Trang Chủ</a>
+                </div>
+
+                <!-- Grid Cards -->
+                <div class="row g-4" th:if="${!products.isEmpty()}">
+                    <div class="col-6 col-md-4" th:each="p : ${products}">
+                        <div class="pop-product-card">
+                            <div class="pop-product-img-box">
+                                <a th:href="@{'/products/' + ${p.slug}}">
+                                    <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
+                                </a>
+                                <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
+                                    <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
+                                </span>
+                                <span class="badge-new-drop" th:if="${p.isNewRelease}">NEW</span>
+                            </div>
+
+                            <div class="p-3 d-flex flex-column flex-grow-1">
+                                <span class="badge-category-tag mb-1" 
+                                      th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld')}">Series</span>
+                                <h6 class="fw-bold my-1 text-truncate">
+                                    <a th:href="@{'/products/' + ${p.slug}}" class="text-dark text-decoration-none" th:text="${p.name}">
+                                        Tên sản phẩm
+                                    </a>
+                                </h6>
+
+                                <div class="mt-auto pt-2">
+                                    <div class="d-flex justify-content-between align-items-baseline">
+                                        <small class="text-muted">Hộp lẻ:</small>
+                                        <span class="fs-6 fw-bold text-danger"
+                                              th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-baseline" th:if="${p.wholeSetPrice != null}">
+                                        <small class="text-muted">Cả set:</small>
+                                        <span class="small fw-semibold text-secondary"
+                                              th:text="${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">2.100.000 đ</span>
+                                    </div>
+
+                                    <div class="d-grid mt-3">
+                                        <a th:href="@{'/products/' + ${p.slug}}" class="btn btn-sm btn-pop-primary">
+                                            <i class="bi bi-box-seam me-1"></i> Xem Chi Tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

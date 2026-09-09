@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ Hàng Art Toy - PopWorld</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Giỏ Hàng</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Thành công</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <h1 class="fw-black text-uppercase mb-4">
+            Giỏ Hàng Của Bạn (<span th:text="${cartCount}">0</span> món)
+        </h1>
+
+        <!-- Empty Cart State -->
+        <div th:if="${cartItems == null || cartItems.isEmpty()}" class="bg-white rounded-4 p-5 text-center border shadow-sm my-5">
+            <div class="display-1 text-muted mb-3"><i class="bi bi-cart-x"></i></div>
+            <h3 class="fw-bold">Giỏ hàng của bạn đang trống!</h3>
+            <p class="text-muted">Hãy lướt xem các bộ sưu tập Hộp Mù mới nhất để săn các nhân vật hiếm nhé.</p>
+            <a th:href="@{/categories/blind-box}" class="btn btn-pop-red mt-3 px-4 py-2">Khám Phá Ngay</a>
+        </div>
+
+        <!-- Cart Has Items -->
+        <div class="row g-4" th:if="${cartItems != null && !cartItems.isEmpty()}">
+            <!-- Danh sách món đồ trong giỏ -->
+            <div class="col-lg-8">
+                <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr class="text-uppercase small fw-bold text-muted">
+                                    <th class="py-3 ps-4" style="width: 45%;">Sản Phẩm</th>
+                                    <th class="py-3 text-center" style="width: 20%;">Số Lượng</th>
+                                    <th class="py-3 text-end" style="width: 20%;">Tạm Tính</th>
+                                    <th class="py-3 text-center pe-4" style="width: 15%;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${cartItems}">
+                                    <!-- Sản phẩm -->
+                                    <td class="py-4 ps-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-3 overflow-hidden border flex-shrink-0" style="width: 75px; height: 75px;">
+                                                <img th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}" class="w-100 h-100 object-fit-cover">
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1">
+                                                    <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none" th:text="${item.product.name}">
+                                                        Tên sản phẩm
+                                                    </a>
+                                                </h6>
+                                                <span class="badge" 
+                                                      th:classappend="${item.purchaseType == 'WHOLE_SET'} ? 'bg-warning text-dark' : 'bg-light text-dark border'"
+                                                      th:text="${item.purchaseType == 'WHOLE_SET' ? '📦 NGUYÊN THÙNG' : '🎲 HỘP LẺ'}">
+                                                    Hộp Lẻ
+                                                </span>
+                                                <div class="small text-danger fw-bold mt-1"
+                                                     th:text="${#numbers.formatDecimal(item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    350.000 đ
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Số lượng -->
+                                    <td class="text-center">
+                                        <form th:action="@{/cart/update}" method="post" class="d-inline-flex align-items-center">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <div class="input-group input-group-sm" style="width: 110px;">
+                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity - 1}">-</button>
+                                                <input type="text" class="form-control text-center fw-bold bg-white" readonly th:value="${item.quantity}">
+                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity + 1}">+</button>
+                                            </div>
+                                        </form>
+                                    </td>
+
+                                    <!-- Tạm tính món -->
+                                    <td class="text-end fw-bold fs-6 text-dark"
+                                        th:with="unitPrice=${item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice}"
+                                        th:text="${#numbers.formatDecimal(unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                        700.000 đ
+                                    </td>
+
+                                    <!-- Xóa món -->
+                                    <td class="text-center pe-4">
+                                        <form th:action="@{'/cart/delete/' + ${item.id}}" method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Xóa món">
+                                                <i class="bi bi-trash3-fill fs-6"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Nút quay lại mua tiếp -->
+                <div class="mt-3">
+                    <a th:href="@{/}" class="text-decoration-none text-dark fw-bold small">
+                        <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua sắm Art Toy
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cột phải: Tổng kết đơn hàng -->
+            <div class="col-lg-4">
+                <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top: 100px;">
+                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom">Tóm Tắt Đơn Hàng</h5>
+
+                    <!-- Tiền tạm tính -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tổng tiền hàng:</span>
+                        <span class="fw-bold fs-6" 
+                              th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            0 đ
+                        </span>
+                    </div>
+
+                    <!-- Phí vận chuyển -->
+                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span class="fw-bold" 
+                              th:classappend="${totalAmount >= 500000} ? 'text-success' : 'text-dark'"
+                              th:text="${totalAmount >= 500000 ? 'MIỄN PHÍ' : '30.000 đ'}">
+                            MIỄN PHÍ
+                        </span>
+                    </div>
+
+                    <!-- Nhập mã giảm giá -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Mã Ưu Đãi / Coupon:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="POPWELCOME / FREESHIP" id="couponCode">
+                            <button class="btn btn-dark fw-bold" type="button" onclick="applyCoupon()">Áp Dụng</button>
+                        </div>
+                        <small class="text-success d-block mt-1" id="couponMsg" style="display:none !important;">
+                            <i class="bi bi-check-circle"></i> Đã kích hoạt mã giảm giá!
+                        </small>
+                    </div>
+
+                    <!-- Tổng cộng -->
+                    <div class="d-flex justify-content-between align-items-baseline mt-4 mb-4">
+                        <span class="fw-black text-uppercase">Tổng Thanh Toán:</span>
+                        <span class="display-6 fw-black text-danger"
+                              th:text="${#numbers.formatDecimal(totalAmount >= 500000 ? totalAmount : totalAmount + 30000, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            0 đ
+                        </span>
+                    </div>
+
+                    <!-- Nút Đặt Hàng -->
+                    <div class="d-grid">
+                        <button class="btn btn-pop-red py-3 fw-bold fs-6 shadow-sm" onclick="checkoutAlert()">
+                            TIẾN HÀNH THANH TOÁN (15 PHÚT)
+                        </button>
+                    </div>
+
+                    <div class="text-center text-muted small mt-3">
+                        <i class="bi bi-shield-lock-fill text-warning me-1"></i> Thanh toán an toàn 100% bảo mật
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            const msg = document.getElementById('couponMsg');
+            if (code === 'POPWELCOME' || code === 'FREESHIP' || code === 'MEGAPOP500') {
+                msg.style.display = 'block';
+                msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Áp dụng thành công mã ' + code + '!';
+            } else {
+                alert('Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng!');
+            }
+        }
+
+        function checkoutAlert() {
+            alert('Đơn hàng đã được khởi tạo thành công! Bạn có 15 phút để hoàn tất thanh toán trước khi hệ thống tự động hoàn kho.');
+        }
+    </script>
+</body>
+</html>
