@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<header th:fragment="header" class="sticky-top">
+<header th:fragment="header" class="sticky-top pop-header-sticky">
     <!-- Top Announcement Bar -->
     <div class="top-notice-bar text-center">
         <div class="container d-flex justify-content-between align-items-center">
@@ -73,6 +73,10 @@
 
                 <!-- Right Utilities (User & Cart) -->
                 <div class="d-flex align-items-center gap-2">
+                    <a th:href="@{/orders}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-none d-md-flex align-items-center">
+                        <i class="bi bi-box-seam me-1"></i>
+                        <span>Đơn hàng</span>
+                    </a>
                     <a th:href="@{/cart}" class="btn btn-outline-dark rounded-pill px-3 py-2 fw-bold d-flex align-items-center">
                         <i class="bi bi-bag-fill text-danger me-1 fs-6"></i>
                         <span>Giỏ hàng</span>

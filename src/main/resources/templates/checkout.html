@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Đơn Hàng - PopWorld</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+</head>
+<body>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/cart}" class="text-decoration-none text-dark fw-bold">Giỏ Hàng</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Thanh Toán</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <h1 class="fw-black text-uppercase mb-4">
+            <i class="bi bi-credit-card-2-front text-danger me-2"></i> Xác Nhận Đơn Hàng & Thanh Toán
+        </h1>
+
+        <form th:action="@{/checkout/place-order}" method="post">
+            <div class="row g-4">
+                <!-- Cột trái: Thông tin nhận hàng & Hình thức thanh toán -->
+                <div class="col-lg-7">
+                    <!-- Khối 1: Thông tin người nhận -->
+                    <div class="card border rounded-4 p-4 shadow-sm mb-4">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bi bi-geo-alt-fill text-danger me-2"></i> 1. Địa Chỉ Nhận Hàng
+                        </h4>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Họ và tên người nhận <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="recipientName" 
+                                       th:value="${user != null ? user.fullName : ''}" placeholder="Ví dụ: Nguyễn Văn A" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control rounded-3" name="recipientPhone" 
+                                       th:value="${user != null ? user.phone : ''}" placeholder="Ví dụ: 0987654321" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="provinceCity" 
+                                       placeholder="Hà Nội / TP.HCM" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="district" 
+                                       placeholder="Cầu Giấy / Quận 1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Phường / Xã</label>
+                                <input type="text" class="form-control rounded-3" name="ward" 
+                                       placeholder="Dịch Vọng / Bến Nghé">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small">Địa chỉ số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="detailedAddress" 
+                                       placeholder="Số 123 đường Cầu Giấy, Tòa nhà PopWorld" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Khối 2: Phương thức thanh toán -->
+                    <div class="card border rounded-4 p-4 shadow-sm mb-4">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bi bi-wallet2 text-danger me-2"></i> 2. Phương Thức Thanh Toán
+                        </h4>
+
+                        <div class="form-check p-3 border rounded-3 mb-3 bg-light d-flex align-items-center">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="paySepay" value="SEPAY" checked>
+                            <label class="form-check-label flex-grow-1 cursor-pointer" for="paySepay">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">
+                                        <i class="bi bi-qr-code-scan text-danger me-1"></i> Chuyển khoản VietQR Tự Động (SePay)
+                                    </span>
+                                    <span class="badge bg-danger text-white">Khuyên dùng</span>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    Quét mã QR qua app Ngân hàng bất kỳ (MB, Vietcombank, Techcombank, Momo...). Tự động xác nhận tức thì trong 3 giây.
+                                </small>
+                            </label>
+                        </div>
+
+                        <div class="form-check p-3 border rounded-3 d-flex align-items-center">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="payCod" value="COD">
+                            <label class="form-check-label flex-grow-1 cursor-pointer" for="payCod">
+                                <span class="fw-bold">
+                                    <i class="bi bi-truck text-dark me-1"></i> Thanh toán khi nhận hàng (COD)
+                                </span>
+                                <small class="text-muted d-block mt-1">
+                                    Thanh toán tiền mặt trực tiếp cho nhân viên bưu tá khi nhận kiện hàng.
+                                </small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Khối 3: Mã giảm giá -->
+                    <div class="card border rounded-4 p-4 shadow-sm">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bi bi-tag-fill text-danger me-2"></i> 3. Mã Giảm Giá / Coupon
+                        </h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control text-uppercase" name="couponCode" id="couponInput" placeholder="POPWELCOME / FREESHIP">
+                            <button class="btn btn-dark fw-bold px-4" type="button" onclick="checkCoupon()">Kiểm Tra</button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">Nhập mã ưu đãi của bạn nếu có để được giảm trực tiếp trên tổng đơn.</small>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Tóm tắt đơn hàng -->
+                <div class="col-lg-5" style="align-self: flex-start;">
+                    <div class="card border rounded-4 p-4 shadow-sm bg-white sticky-top" style="top: 105px;">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bi bi-bag-check-fill text-danger me-2"></i> Đơn Hàng Của Bạn
+                        </h4>
+
+                        <!-- Danh sách sản phẩm -->
+                        <div class="order-items-list mb-3" style="max-height: 280px; overflow-y: auto;">
+                            <div th:each="item : ${cartItems}" class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                <img th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}" 
+                                     class="rounded-3 border me-3 object-fit-cover" style="width: 60px; height: 60px;">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small text-truncate" style="max-width: 200px;" th:text="${item.product.name}">Tên sản phẩm</div>
+                                    <div class="text-muted small">
+                                        Quy cách: <span class="badge bg-light text-dark border" th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Lẻ' : 'Nguyên Thùng'}">Hộp Lẻ</span>
+                                        x <span class="fw-bold" th:text="${item.quantity}">1</span>
+                                    </div>
+                                </div>
+                                <div class="text-end fw-bold">
+                                    <span th:text="${#numbers.formatDecimal(
+                                        (item.purchaseType == 'SINGLE_BOX' ? item.product.singlePrice : item.product.wholeSetPrice) * item.quantity, 
+                                        0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                        0 đ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tóm tắt chi phí -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tiền hàng tạm tính:</span>
+                            <span class="fw-bold" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển tiêu chuẩn:</span>
+                            <span class="fw-bold" 
+                                  th:classappend="${shippingFee == 0 ? 'text-success' : ''}"
+                                  th:text="${shippingFee == 0 ? 'FREESHIP (0 đ)' : #numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                0 đ
+                            </span>
+                        </div>
+
+                        <div class="border-top pt-3 mt-2 d-flex justify-content-between align-items-baseline">
+                            <span class="fw-black text-uppercase fs-5">Tổng Thanh Toán:</span>
+                            <span class="display-6 fw-black text-danger" 
+                                  th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                0 đ
+                            </span>
+                        </div>
+
+                        <!-- Nút Xác Nhận Đặt Hàng -->
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-pop-red py-3 fw-bold fs-5 shadow">
+                                XÁC NHẬN ĐẶT HÀNG <i class="bi bi-arrow-right-circle ms-2"></i>
+                            </button>
+                        </div>
+
+                        <div class="text-center text-muted small mt-3">
+                            <i class="bi bi-shield-check text-success me-1"></i> Cam kết 100% chính hãng từ POP MART & Nghệ sĩ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function checkCoupon() {
+            const input = document.getElementById('couponInput').value.trim().toUpperCase();
+            if (!input) {
+                alert('Vui lòng nhập mã ưu đãi.');
+                return;
+            }
+            alert('Mã ' + input + ' sẽ được áp dụng và trừ tiền trực tiếp vào đơn hàng khi bấm Xác nhận đặt hàng!');
+        }
+    </script>
+</body>
+</html>

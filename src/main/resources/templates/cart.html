@@ -129,8 +129,8 @@
             </div>
 
             <!-- Cột phải: Tổng kết đơn hàng -->
-            <div class="col-lg-4">
-                <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top: 100px;">
+            <div class="col-lg-4" style="align-self: flex-start;">
+                <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top: 105px;">
                     <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom">Tóm Tắt Đơn Hàng</h5>
 
                     <!-- Tiền tạm tính -->
@@ -175,9 +175,9 @@
 
                     <!-- Nút Đặt Hàng -->
                     <div class="d-grid">
-                        <button class="btn btn-pop-red py-3 fw-bold fs-6 shadow-sm" onclick="checkoutAlert()">
-                            TIẾN HÀNH THANH TOÁN (15 PHÚT)
-                        </button>
+                        <a th:href="@{/checkout}" class="btn btn-pop-red py-3 fw-bold fs-6 shadow-sm text-center">
+                            TIẾN HÀNH THANH TOÁN (15 PHÚT) <i class="bi bi-arrow-right-short fs-5"></i>
+                        </a>
                     </div>
 
                     <div class="text-center text-muted small mt-3">
