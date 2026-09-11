@@ -39,6 +39,32 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* STICKY HEADER & NAVBAR */
+header.sticky-top,
+.pop-header-sticky {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+    background-color: #ffffff !important;
+    width: 100%;
+}
+
+/* STICKY SIDEBAR DANH MỤC TRANG SẢN PHẨM */
+.category-sidebar-col {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 145px !important;
+    align-self: flex-start !important;
+    z-index: 100 !important;
+}
+
+.category-sticky-box {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 145px !important;
+}
+
 /* NAVBAR */
 .pop-navbar {
     background-color: #ffffff;
@@ -157,11 +183,38 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
+    transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), filter 0.3s ease;
 }
 
 .pop-product-card:hover .pop-product-img-box img {
-    transform: scale(1.05);
+    transform: scale(1.12);
+    filter: brightness(1.02);
+}
+
+/* POP MART HOVER ZOOM INTERACTION (PRODUCT DETAIL) */
+.product-zoom-container {
+    cursor: zoom-in;
+    background-color: #ffffff;
+}
+
+.zoom-hint-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(17, 17, 17, 0.75);
+    backdrop-filter: blur(6px);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 2;
+}
+
+.product-zoom-container:hover .zoom-hint-badge {
+    opacity: 0;
 }
 
 /* BADGES */
