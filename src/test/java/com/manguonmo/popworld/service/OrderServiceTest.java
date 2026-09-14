@@ -49,6 +49,9 @@ class OrderServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private ProductRepository productRepository;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -58,6 +61,9 @@ class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Mặc định tồn kho đủ cho các test case thông thường
+        lenient().when(productRepository.updateStock(anyLong(), anyInt())).thenReturn(1);
+
         sampleUser = User.builder()
                 .id(1L)
                 .fullName("Nguyen Van A")
@@ -346,4 +352,35 @@ class OrderServiceTest {
         assertEquals("PW-001", orders.get(1).getOrderCode());
         verify(orderRepository, times(1)).findByUserIdOrderByCreatedAtDesc(1L);
     }
+
+    // =========================================================================
+    // TEST CASE 8: Thất bại khi hết hàng (updateStock trả về 0)
+    // =========================================================================
+    @Test
+    @DisplayName("Thất bại khi hết hàng: updateStock trả về 0 sẽ ném IllegalStateException và không tạo đơn")
+    void createOrder_Fail_OutOfStock_ThrowsException() {
+        CartItem cartItem = CartItem.builder()
+                .id(1L)
+                .user(sampleUser)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(3)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(cartItem));
+        when(productRepository.updateStock(eq(sampleProductSingle.getId()), eq(3))).thenReturn(0); // Kho không đủ
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+                orderService.createOrder(
+                        1L, "Nguyen Van A", "0987654321",
+                        "Hà Nội", "Cầu Giấy", "Dịch Vọng",
+                        "Số 123 Đường Cầu Giấy", "COD", null
+                )
+        );
+
+        assertTrue(ex.getMessage().contains("đã hết hàng hoặc không đủ số lượng tồn kho"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
+

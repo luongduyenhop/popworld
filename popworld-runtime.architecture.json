@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PopWorld High-Level Runtime Architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "popworld-runtime-architecture.html",
+    "views": [
+      {
+        "id": "primary-checkout",
+        "label": "Primary checkout & payment path",
+        "focus": ["client", "checkout-web", "order-service", "jpa-layer", "mysql-db", "sepay-gateway", "webhook-api", "payment-service"],
+        "note": "Follow the end-to-end customer order placement and automated SePay VietQR settlement flow."
+      },
+      {
+        "id": "ingress-security",
+        "label": "Ingress & Trust Boundaries",
+        "focus": ["client", "checkout-web", "webhook-api", "sepay-gateway"],
+        "note": "Examine the public client zone and authenticated DMZ ingress endpoints."
+      },
+      {
+        "id": "persistence-lifecycle",
+        "label": "Persistence & 15m TTL Cleanup",
+        "focus": ["order-service", "cleanup-scheduler", "jpa-layer", "mysql-db"],
+        "note": "Audit durable state persistence and background expiration daemon."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "sepay-gateway",
+      "type": "external",
+      "label": "SePay Gateway",
+      "sublabel": "NAPAS 24/7 & VietQR",
+      "pos": [40, 70],
+      "size": [140, 60]
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Storefront Client",
+      "sublabel": "Thymeleaf DOM & Polling",
+      "pos": [40, 180],
+      "size": [140, 60]
+    },
+    {
+      "id": "webhook-api",
+      "type": "security",
+      "label": "SePay Webhook API",
+      "sublabel": "REST Ingress :8080",
+      "pos": [260, 70],
+      "size": [150, 60],
+      "tag": "Bearer Auth"
+    },
+    {
+      "id": "checkout-web",
+      "type": "backend",
+      "label": "Checkout Controller",
+      "sublabel": "Spring MVC :8080",
+      "pos": [260, 180],
+      "size": [150, 60]
+    },
+    {
+      "id": "payment-service",
+      "type": "backend",
+      "label": "Payment Engine",
+      "sublabel": "Reconciliation & Regex",
+      "pos": [490, 70],
+      "size": [140, 60],
+      "tag": "Anti-Fraud"
+    },
+    {
+      "id": "order-service",
+      "type": "backend",
+      "label": "Order Service",
+      "sublabel": "Core Ordering Rules",
+      "pos": [490, 180],
+      "size": [140, 60],
+      "tag": "@Transactional"
+    },
+    {
+      "id": "cart-service",
+      "type": "backend",
+      "label": "Cart Service",
+      "sublabel": "Cart State Domain",
+      "pos": [490, 290],
+      "size": [140, 60]
+    },
+    {
+      "id": "cleanup-scheduler",
+      "type": "backend",
+      "label": "Cleanup Scheduler",
+      "sublabel": "15-min TTL Daemon",
+      "pos": [710, 70],
+      "size": [150, 60],
+      "tag": "@Scheduled"
+    },
+    {
+      "id": "jpa-layer",
+      "type": "database",
+      "label": "JPA Repositories",
+      "sublabel": "Hibernate & HikariCP",
+      "pos": [710, 180],
+      "size": [150, 60]
+    },
+    {
+      "id": "mysql-db",
+      "type": "database",
+      "label": "MySQL Database",
+      "sublabel": "popworld_db :3306",
+      "pos": [940, 180],
+      "size": [140, 60],
+      "tag": "ACID Store"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Spring Boot 4 Application Runtime",
+      "wraps": ["webhook-api", "checkout-web", "payment-service", "order-service", "cart-service", "cleanup-scheduler", "jpa-layer"]
+    },
+    {
+      "kind": "security-group",
+      "label": "DMZ Ingress Boundary",
+      "wraps": ["webhook-api", "checkout-web"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Isolated Persistence Zone",
+      "wraps": ["jpa-layer", "mysql-db"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-to-checkout",
+      "from": "client",
+      "to": "checkout-web",
+      "label": "submit order",
+      "variant": "emphasis"
+    },
+    {
+      "id": "checkout-to-order",
+      "from": "checkout-web",
+      "to": "order-service",
+      "label": "createOrder",
+      "variant": "emphasis"
+    },
+    {
+      "id": "order-to-jpa",
+      "from": "order-service",
+      "to": "jpa-layer",
+      "label": "save TO_PAY",
+      "variant": "emphasis"
+    },
+    {
+      "id": "jpa-to-mysql",
+      "from": "jpa-layer",
+      "to": "mysql-db",
+      "label": "SQL INSERT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "client-to-sepay",
+      "from": "client",
+      "to": "sepay-gateway",
+      "label": "scan VietQR",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "sepay-to-webhook",
+      "from": "sepay-gateway",
+      "to": "webhook-api",
+      "label": "HTTP POST",
+      "variant": "security"
+    },
+    {
+      "id": "webhook-to-payment",
+      "from": "webhook-api",
+      "to": "payment-service",
+      "label": "reconcile",
+      "variant": "emphasis"
+    },
+    {
+      "id": "payment-to-order",
+      "from": "payment-service",
+      "to": "order-service",
+      "label": "mark paid",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [560, 155]
+    },
+    {
+      "id": "order-to-cart",
+      "from": "order-service",
+      "to": "cart-service",
+      "label": "clear cart",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [560, 265]
+    },
+    {
+      "id": "scheduler-to-jpa",
+      "from": "cleanup-scheduler",
+      "to": "jpa-layer",
+      "label": "expire 15m",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [785, 155]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Trust Boundaries & Ingress",
+      "items": [
+        "Storefront: Untrusted browser client running Thymeleaf DOM and payment status polling",
+        "DMZ Ingress: Spring MVC Checkout & SePay Webhook (:8080) authenticated via Bearer token"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Primary Path & Settlement",
+      "items": [
+        "Checkout: @Transactional creates Order (TO_PAY), binds items, and renders dynamic VietQR",
+        "Settlement: SePay HTTP POST validates payment, reconciles amount, and marks PROCESSING"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Domain & Persistence",
+      "items": [
+        "Core Logic: Order pricing & coupon rules; daemon cleans unconfirmed orders after 15m",
+        "Storage: Spring Data JPA repositories with HikariCP pool persisting to MySQL 8.0"
+      ]
+    }
+  ]
+}

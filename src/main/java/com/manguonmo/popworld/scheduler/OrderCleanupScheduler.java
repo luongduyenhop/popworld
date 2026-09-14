@@ -1,7 +1,11 @@
 package com.manguonmo.popworld.scheduler;
 
 import com.manguonmo.popworld.entity.Order;
+import com.manguonmo.popworld.entity.OrderItem;
+import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
+import com.manguonmo.popworld.repository.ProductRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,9 +24,12 @@ public class OrderCleanupScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(OrderCleanupScheduler.class);
     private final OrderRepository orderRepository;
-
-    public OrderCleanupScheduler(OrderRepository orderRepository) {
+    private final ProductRepository productRepository;
+    private final OrderItemRepository orderItemRepository;
+    public OrderCleanupScheduler(OrderRepository orderRepository, ProductRepository productRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     /**
@@ -40,6 +47,16 @@ public class OrderCleanupScheduler {
             for (Order order : expiredOrders) {
                 order.setStatus("CANCELLED");
                 order.setNote("Đơn hàng tự động hủy do quá hạn 15 phút chưa hoàn tất thanh toán.");
+                List<OrderItem> orderList = orderItemRepository.findByOrderId(order.getId());
+                for (OrderItem item : orderList){
+                    Integer quantity = 0;
+                    if (item.getPurchaseType().equalsIgnoreCase("SINGLE_BOX") ){
+                        quantity = item.getQuantity();
+                    } else {
+                        quantity = item.getQuantity()*12;
+                    }
+                    productRepository.addStock(item.getProduct().getId(),quantity);
+                }
             }
 
             orderRepository.saveAll(expiredOrders);

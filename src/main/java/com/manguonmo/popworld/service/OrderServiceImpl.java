@@ -19,18 +19,20 @@ public class OrderServiceImpl implements OrderService {
     private final CouponRepository couponRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     // [CHÚ THÍCH]: Constructor Injection chuẩn Spring Boot (dọn dẹp các tham số thừa)
     public OrderServiceImpl(OrderRepository orderRepository,
                             CartItemRepository cartItemRepository,
                             CouponRepository couponRepository,
                             OrderItemRepository orderItemRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.couponRepository = couponRepository;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -75,15 +77,23 @@ public class OrderServiceImpl implements OrderService {
         // 3. Getter giá hộp lẻ trong Product.java là getSinglePrice().
         // =========================================================================
         BigDecimal subtotal = BigDecimal.ZERO;
+        Integer quantity = 0;
         for (CartItem cart : cartItems) {
             BigDecimal unitPrice;
             if ("SINGLE_BOX".equalsIgnoreCase(cart.getPurchaseType())) {
                 unitPrice = cart.getProduct().getSinglePrice();
+                quantity = cart.getQuantity();
             } else {
                 unitPrice = cart.getProduct().getWholeSetPrice();
+                quantity = cart.getQuantity() * 12;
             }
             // Cộng dồn tiền: subtotal = subtotal.add(...) vì BigDecimal là Immutable (bất biến)
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
+            int updateRows = productRepository.updateStock(cart.getProduct().getId(),quantity);
+
+            if (updateRows == 0){
+                throw new IllegalStateException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
+            }
         }
 
         // =========================================================================

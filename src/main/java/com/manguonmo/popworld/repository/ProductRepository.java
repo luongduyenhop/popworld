@@ -2,6 +2,9 @@ package com.manguonmo.popworld.repository;
 
 import com.manguonmo.popworld.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -33,4 +36,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Lọc theo Character IP
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Product p WHERE p.series.characterIp.id = :characterIpId AND p.active = true")
     List<Product> findByCharacterIpIdAndActiveTrue(@org.springframework.data.repository.query.Param("characterIpId") Long characterIpId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Product p \n" +
+            "SET p.stockQuantity = p.stockQuantity - :quantity \n" +
+            "WHERE p.id = :productId AND p.stockQuantity >= :quantity")
+    int updateStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Product p SET p.stockQuantity = p.stockQuantity + :quantity WHERE p.id = :productId")
+    void addStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
+
 }
