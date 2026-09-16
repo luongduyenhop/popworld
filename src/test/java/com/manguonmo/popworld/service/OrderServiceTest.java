@@ -1,6 +1,9 @@
 package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.entity.*;
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.OutOfStockException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -255,15 +258,15 @@ class OrderServiceTest {
     }
 
     // =========================================================================
-    // TEST CASE 4: Không tìm thấy User với ID truyền vào -> Ném IllegalArgumentException
+    // TEST CASE 4: Không tìm thấy User -> Ném ResourceNotFoundException
     // =========================================================================
     @Test
-    @DisplayName("Ném IllegalArgumentException khi không tìm thấy User")
+    @DisplayName("Ném ResourceNotFoundException khi không tìm thấy User")
     void createOrder_ThrowsException_WhenUserNotFound() {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> orderService.createOrder(
                         999L, "Nguyen Van A", "0987654321",
                         "Hà Nội", "Cầu Giấy", "Dịch Vọng",
@@ -280,16 +283,16 @@ class OrderServiceTest {
     }
 
     // =========================================================================
-    // TEST CASE 5: Giỏ hàng rỗng -> Ném IllegalStateException
+    // TEST CASE 5: Giỏ hàng rỗng -> Ném BadRequestException
     // =========================================================================
     @Test
-    @DisplayName("Ném IllegalStateException khi giỏ hàng của User đang rỗng")
+    @DisplayName("Ném BadRequestException khi giỏ hàng của User đang rỗng")
     void createOrder_ThrowsException_WhenCartIsEmpty() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
         when(cartItemRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
 
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
                 () -> orderService.createOrder(
                         1L, "Nguyen Van A", "0987654321",
                         "Hà Nội", "Cầu Giấy", "Dịch Vọng",
@@ -357,7 +360,7 @@ class OrderServiceTest {
     // TEST CASE 8: Thất bại khi hết hàng (updateStock trả về 0)
     // =========================================================================
     @Test
-    @DisplayName("Thất bại khi hết hàng: updateStock trả về 0 sẽ ném IllegalStateException và không tạo đơn")
+    @DisplayName("Thất bại khi hết hàng: updateStock trả về 0 sẽ ném OutOfStockException và không tạo đơn")
     void createOrder_Fail_OutOfStock_ThrowsException() {
         CartItem cartItem = CartItem.builder()
                 .id(1L)
@@ -371,7 +374,7 @@ class OrderServiceTest {
         when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(cartItem));
         when(productRepository.updateStock(eq(sampleProductSingle.getId()), eq(3))).thenReturn(0); // Kho không đủ
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+        OutOfStockException ex = assertThrows(OutOfStockException.class, () ->
                 orderService.createOrder(
                         1L, "Nguyen Van A", "0987654321",
                         "Hà Nội", "Cầu Giấy", "Dịch Vọng",

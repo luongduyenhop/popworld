@@ -181,7 +181,8 @@
         function checkOrderStatus(isManual) {
             fetch(`/api/orders/${orderCode}/status`)
                 .then(res => res.json())
-                .then(data => {
+                .then(response => {
+                    const data = response.data || response;
                     if (data.isPaid || data.status === 'PROCESSING' || data.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         clearInterval(timer);

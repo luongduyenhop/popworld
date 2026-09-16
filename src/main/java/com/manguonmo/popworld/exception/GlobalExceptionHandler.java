@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>>exception(Exception ex){
 
-        log.info("Lỗi hệ thống bất ngờ:", ex);
+        log.error("Lỗi hệ thống bất ngờ: ", ex);
         return new ResponseEntity<>(ApiResponse.error("Đã xảy ra lỗi nội bộ từ hệ thống. Vui lòng thử lại sau!"),HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

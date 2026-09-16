@@ -1,6 +1,9 @@
 package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.entity.*;
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.OutOfStockException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         // để tầng Controller biết chính xác nguyên nhân lỗi.
         // =========================================================================
         User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId)
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
         );
 
         // =========================================================================
@@ -65,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
         if (cartItems.isEmpty()) {
-            throw new IllegalStateException("Giỏ hàng của bạn đang trống, không thể đặt hàng!");
+            throw new BadRequestException("Giỏ hàng của bạn đang trống, không thể đặt hàng!");
         }
 
         // =========================================================================
@@ -92,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
             int updateRows = productRepository.updateStock(cart.getProduct().getId(),quantity);
 
             if (updateRows == 0){
-                throw new IllegalStateException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
+                throw new OutOfStockException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
             }
         }
 

@@ -1,6 +1,7 @@
 package com.manguonmo.popworld.controller;
 
 import com.manguonmo.popworld.dto.SePayWebhookRequest;
+import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,23 +28,19 @@ public class SePayWebhookController {
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<?> handleSePayWebhook(
+    public ResponseEntity<ApiResponse<Void>> handleSePayWebhook(
             @RequestBody SePayWebhookRequest request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (paymentService == null) {
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "PaymentServiceImpl đang chờ bạn lập trình nghiệp vụ cốt lõi!"
-                    ));
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(ApiResponse.error("PaymentServiceImpl chưa được cấu hình!"));
         }
 
         boolean success = paymentService.processSePayWebhook(request, authHeader);
         if (success) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "Xử lý webhook SePay thành công."));
+            return ResponseEntity.ok(ApiResponse.success("Xử lý webhook SePay thành công.",null));
         } else {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Dữ liệu webhook không hợp lệ hoặc xử lý thất bại."));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Dữ liệu webhook không hợp lệ hoặc xử lý thất bại."));
         }
     }
 }
