@@ -1,9 +1,11 @@
 package com.manguonmo.popworld.controller;
 
+import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.entity.CartItem;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
@@ -205,25 +207,5 @@ public class CheckoutWebController {
         model.addAttribute("orders", orders);
 
         return "my-orders";
-    }
-
-    /**
-     * API Polling để Javascript trên giao diện check xem đơn hàng đã được Webhook SePay đổi trạng thái chưa
-     */
-    @GetMapping("/api/orders/{orderCode}/status")
-    @ResponseBody
-    public ResponseEntity<?> checkOrderStatus(@PathVariable String orderCode) {
-        Order order = orderService.getOrderByCode(orderCode);
-        if (order == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        boolean isPaid = !"TO_PAY".equalsIgnoreCase(order.getStatus()) && !"CANCELLED".equalsIgnoreCase(order.getStatus());
-
-        return ResponseEntity.ok(Map.of(
-                "orderCode", order.getOrderCode(),
-                "status", order.getStatus(),
-                "isPaid", isPaid
-        ));
     }
 }
