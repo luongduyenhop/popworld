@@ -121,8 +121,10 @@
                         </h4>
                         <div class="input-group">
                             <input type="text" class="form-control text-uppercase" name="couponCode" id="couponInput" placeholder="POPWELCOME / FREESHIP">
-                            <button class="btn btn-dark fw-bold px-4" type="button" onclick="checkCoupon()">Kiểm Tra</button>
+                            <button class="btn btn-dark fw-bold px-4" type="button" id="btnApplyCoupon" onclick="checkCoupon()">Kiểm Tra</button>
                         </div>
+                        <!-- Vùng hiển thị thông báo kết quả kiểm tra mã -->
+                        <div id="couponMessage" class="mt-2" style="display: none;"></div>
                         <small class="text-muted mt-2 d-block">Nhập mã ưu đãi của bạn nếu có để được giảm trực tiếp trên tổng đơn.</small>
                     </div>
                 </div>
@@ -171,9 +173,15 @@
                             </span>
                         </div>
 
+                        <!-- Dòng Giảm giá ưu đãi (mặc định ẩn, hiển thị khi áp dụng mã thành công) -->
+                        <div id="discountRow" class="d-flex justify-content-between mb-2 text-success" style="display: none !important;">
+                            <span><i class="bi bi-tag-fill me-1"></i> Giảm giá ưu đãi:</span>
+                            <span class="fw-bold" id="discountText">-0 đ</span>
+                        </div>
+
                         <div class="border-top pt-3 mt-2 d-flex justify-content-between align-items-baseline">
                             <span class="fw-black text-uppercase fs-5">Tổng Thanh Toán:</span>
-                            <span class="display-6 fw-black text-danger" 
+                            <span class="display-6 fw-black text-danger" id="totalAmountText"
                                   th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                 0 đ
                             </span>
@@ -199,15 +207,90 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function checkCoupon() {
-            const input = document.getElementById('couponInput').value.trim().toUpperCase();
-            if (!input) {
-                alert('Vui lòng nhập mã ưu đãi.');
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const originalSubtotal = /*[[${subtotal}]]*/ 0;
+        const shippingFee = /*[[${shippingFee}]]*/ 0;
+
+        async function checkCoupon() {
+            const couponInput = document.getElementById('couponInput');
+            const couponCode = couponInput.value.trim().toUpperCase();
+            const messageBox = document.getElementById('couponMessage');
+            const discountRow = document.getElementById('discountRow');
+            const discountText = document.getElementById('discountText');
+            const totalAmountText = document.getElementById('totalAmountText');
+            const btn = document.getElementById('btnApplyCoupon');
+
+            if (!couponCode) {
+                messageBox.style.display = 'block';
+                messageBox.className = 'alert alert-warning py-2 px-3 small mt-2';
+                messageBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Vui lòng nhập mã giảm giá!';
                 return;
             }
-            alert('Mã ' + input + ' sẽ được áp dụng và trừ tiền trực tiếp vào đơn hàng khi bấm Xác nhận đặt hàng!');
+
+            // Hiệu ứng Loading nút bấm
+            const originalBtnText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...';
+
+            try {
+                const response = await fetch('/api/coupons/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        couponCode: couponCode,
+                        subtotal: originalSubtotal
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    const data = result.data;
+                    // 1. Hiển thị thông báo thành công màu xanh
+                    messageBox.style.display = 'block';
+                    messageBox.className = 'alert alert-success py-2 px-3 small mt-2';
+                    messageBox.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${data.message || result.message || 'Áp dụng mã thành công!'}`;
+
+                    // 2. Cập nhật dòng giảm giá
+                    discountRow.setAttribute("style", "display: flex !important;");
+                    discountText.innerText = '-' + Number(data.discountAmount).toLocaleString('vi-VN') + ' đ';
+
+                    // 3. Cập nhật Tổng tiền mới = (subtotal - discountAmount) + shippingFee
+                    const finalTotal = Math.max(0, (Number(data.newTotal) + Number(shippingFee)));
+                    totalAmountText.innerText = Number(finalTotal).toLocaleString('vi-VN') + ' đ';
+
+                } else {
+                    // Hiển thị lỗi từ backend (hết hạn, hết lượt, chưa đủ tiền tối thiểu...)
+                    messageBox.style.display = 'block';
+                    messageBox.className = 'alert alert-danger py-2 px-3 small mt-2';
+                    messageBox.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> ${result.message || 'Mã giảm giá không hợp lệ!'}`;
+
+                    // Reset lại giao diện tiền về ban đầu
+                    discountRow.setAttribute("style", "display: none !important;");
+                    const resetTotal = Number(originalSubtotal) + Number(shippingFee);
+                    totalAmountText.innerText = Number(resetTotal).toLocaleString('vi-VN') + ' đ';
+                }
+            } catch (err) {
+                messageBox.style.display = 'block';
+                messageBox.className = 'alert alert-danger py-2 px-3 small mt-2';
+                messageBox.innerHTML = '<i class="bi bi-wifi-off me-1"></i> Lỗi kết nối mạng, vui lòng thử lại sau!';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+            }
         }
+
+        // Tự động kích hoạt kiểm tra mã khi người dùng nhấn phím Enter trong ô coupon
+        document.getElementById('couponInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkCoupon();
+            }
+        });
+        /*]]>*/
     </script>
 </body>
 </html>

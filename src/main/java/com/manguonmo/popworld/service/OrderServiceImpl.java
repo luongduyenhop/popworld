@@ -1,5 +1,6 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
@@ -19,7 +20,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
-    private final CouponRepository couponRepository;
+    private final CouponService couponService;
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -27,12 +28,12 @@ public class OrderServiceImpl implements OrderService {
     // [CHÚ THÍCH]: Constructor Injection chuẩn Spring Boot (dọn dẹp các tham số thừa)
     public OrderServiceImpl(OrderRepository orderRepository,
                             CartItemRepository cartItemRepository,
-                            CouponRepository couponRepository,
+                            CouponService couponService,
                             OrderItemRepository orderItemRepository,
                             UserRepository userRepository, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
-        this.couponRepository = couponRepository;
+        this.couponService = couponService;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
@@ -119,35 +120,9 @@ public class OrderServiceImpl implements OrderService {
         Coupon appliedCoupon = null;
 
         if (couponCode != null && !couponCode.trim().isEmpty()) {
-            Optional<Coupon> couponOpt = couponRepository.findByCodeAndActiveTrue(couponCode.trim());
-            if (couponOpt.isPresent()) {
-                Coupon coupon = couponOpt.get();
-                // Kiểm tra hạn sử dụng
-                boolean isExpired = coupon.getEndDate() != null && LocalDate.now().isAfter(coupon.getEndDate());
-                // Kiểm tra giá trị đơn tối thiểu
-                boolean isEligible = coupon.getMinOrderAmount() == null || subtotal.compareTo(coupon.getMinOrderAmount()) >= 0;
-
-                if (!isExpired && isEligible) {
-                    // Tính số tiền giảm giá
-                    if ("PERCENT".equalsIgnoreCase(coupon.getDiscountType())) {
-                        // Nếu discountValue > 1 (ví dụ 10%), chia cho 100
-                        BigDecimal rate = coupon.getDiscountValue().compareTo(BigDecimal.ONE) > 0
-                                ? coupon.getDiscountValue().divide(BigDecimal.valueOf(100))
-                                : coupon.getDiscountValue();
-                        discount = subtotal.multiply(rate);
-                    } else {
-                        // Giảm giá cố định theo số tiền (FIXED)
-                        discount = coupon.getDiscountValue();
-                    }
-
-                    // Giới hạn số tiền giảm tối đa (nếu có maxDiscountAmount)
-                    if (coupon.getMaxDiscountAmount() != null && discount.compareTo(coupon.getMaxDiscountAmount()) > 0) {
-                        discount = coupon.getMaxDiscountAmount();
-                    }
-
-                    appliedCoupon = coupon;
-                }
-            }
+           CouponDiscountResponse couponDiscountResponse = couponService.calculateDiscount(couponCode,userId,subtotal);
+           discount = couponDiscountResponse.getDiscountAmount();
+           appliedCoupon = couponService.applyCoupon(couponCode,userId,subtotal);
         }
 
         // =========================================================================

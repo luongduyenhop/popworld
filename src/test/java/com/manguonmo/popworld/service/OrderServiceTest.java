@@ -1,5 +1,6 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
@@ -44,7 +45,7 @@ class OrderServiceTest {
     private CartItemRepository cartItemRepository;
 
     @Mock
-    private CouponRepository couponRepository;
+    private CouponService couponService;
 
     @Mock
     private OrderItemRepository orderItemRepository;
@@ -177,7 +178,13 @@ class OrderServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
         when(cartItemRepository.findByUserId(1L)).thenReturn(cartList);
-        when(couponRepository.findByCodeAndActiveTrue("POP10")).thenReturn(Optional.of(coupon));
+        when(couponService.calculateDiscount(eq("POP10"), eq(1L), any(BigDecimal.class)))
+                .thenReturn(CouponDiscountResponse.builder()
+                        .couponCode("POP10")
+                        .discountAmount(new BigDecimal("60000"))
+                        .build());
+        when(couponService.applyCoupon(eq("POP10"), eq(1L), any(BigDecimal.class)))
+                .thenReturn(coupon);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // --- 2. ACT ---
@@ -218,8 +225,8 @@ class OrderServiceTest {
     // TEST CASE 3: Coupon hết hạn hoặc không đủ điều kiện đơn hàng tối thiểu
     // =========================================================================
     @Test
-    @DisplayName("Tạo đơn hàng: Coupon đã hết hạn thì không được giảm giá (discount = 0)")
-    void createOrder_Success_CouponExpired_NoDiscount() {
+    @DisplayName("Tạo đơn hàng: Ném BadRequestException khi mã giảm giá không hợp lệ hoặc hết hạn")
+    void createOrder_ThrowsBadRequestException_WhenCouponInvalid() {
         // --- 1. ARRANGE ---
         CartItem cartItem = CartItem.builder()
                 .id(3L)
@@ -229,32 +236,17 @@ class OrderServiceTest {
                 .quantity(1) // 200.000đ
                 .build();
 
-        Coupon expiredCoupon = Coupon.builder()
-                .code("EXPIRED")
-                .discountType("FIXED")
-                .discountValue(new BigDecimal("50000"))
-                .endDate(LocalDate.now().minusDays(1)) // Đã hết hạn hôm qua
-                .active(true)
-                .build();
-
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
         when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(cartItem));
-        when(couponRepository.findByCodeAndActiveTrue("EXPIRED")).thenReturn(Optional.of(expiredCoupon));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(couponService.calculateDiscount(eq("EXPIRED"), eq(1L), any(BigDecimal.class)))
+                .thenThrow(new BadRequestException("Mã giảm giá đã hết hạn sử dụng!"));
 
-        // --- 2. ACT ---
-        Order order = orderService.createOrder(
+        // --- 2. ACT & ASSERT ---
+        assertThrows(BadRequestException.class, () -> orderService.createOrder(
                 1L, "Nguyen Van A", "0987654321",
                 "Đà Nẵng", "Hải Châu", "Thạch Thang",
                 "12 Bạch Đằng", "COD", "EXPIRED"
-        );
-
-        // --- 3. ASSERT ---
-        assertBigDecimalEquals("200000", order.getSubtotalAmount());
-        assertBigDecimalEquals("30000", order.getShippingFee());
-        assertBigDecimalEquals("0", order.getDiscountAmount()); // Không được giảm
-        assertBigDecimalEquals("230000", order.getTotalAmount());
-        assertNull(order.getCoupon()); // Không được gắn coupon
+        ));
     }
 
     // =========================================================================

@@ -7,11 +7,13 @@ import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.CouponRepository;
 import com.manguonmo.popworld.repository.UserCouponRepository;
+import com.manguonmo.popworld.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -19,16 +21,83 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+    private final UserRepository userRepository;
 
-    public CouponServiceImpl(CouponRepository couponRepository, UserCouponRepository userCouponRepository) {
+    public CouponServiceImpl(CouponRepository couponRepository, UserCouponRepository userCouponRepository, UserRepository userRepository) {
         this.couponRepository = couponRepository;
         this.userCouponRepository = userCouponRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     public CouponDiscountResponse calculateDiscount(String couponCode, Long userId, BigDecimal subtotal) {
-        // Tầng 1: Kiểm tra mã rỗng
+        Coupon coupon = validateAndGetCoupon(couponCode, userId, subtotal);
+        BigDecimal discountAmount = calculateDiscountAmount(coupon, subtotal);
+        BigDecimal newTotal = subtotal.subtract(discountAmount);
+
+        return CouponDiscountResponse.builder()
+                .couponCode(coupon.getCode())
+                .discountType(coupon.getDiscountType())
+                .discountValue(coupon.getDiscountValue())
+                .discountAmount(discountAmount)
+                .subtotal(subtotal)
+                .newTotal(newTotal)
+                .message("Áp dụng mã giảm giá '" + coupon.getCode() + "' thành công!")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public Coupon applyCoupon(String couponCode, Long userId, BigDecimal subtotal) {
+        Coupon coupon = validateAndGetCoupon(couponCode, userId, subtotal);
+
+        int updateRows = couponRepository.increaseUsedCount(coupon.getId());
+        if (updateRows == 0) {
+            throw new BadRequestException("Mã giảm giá vừa hết lượt sử dụng!");
+        }
+
+        if (userId != null) {
+            UserCoupon userCoupon = userCouponRepository.findByUserIdAndCouponId(userId, coupon.getId())
+                    .orElseGet(() -> UserCoupon.builder()
+                            .coupon(coupon)
+                            .user(userRepository.getReferenceById(userId))
+                            .claimedAt(LocalDateTime.now())
+                            .build());
+
+            userCoupon.setIsUsed(true);
+            userCoupon.setUsedAt(LocalDateTime.now());
+            userCouponRepository.save(userCoupon);
+        }
+
+        return coupon;
+    }
+
+    @Override
+    @Transactional
+    public void releaseCoupon(Long couponId, Long userId) {
+        if (couponId == null) {
+            return;
+        }
+        couponRepository.decreaseUsedCount(couponId);
+        if (userId != null) {
+            userCouponRepository.findByUserIdAndCouponId(userId, couponId).ifPresent(userCoupon -> {
+                userCoupon.setIsUsed(false);
+                userCoupon.setUsedAt(null);
+                userCouponRepository.save(userCoupon);
+            });
+        }
+    }
+
+    // =========================================================================
+    // HELPER METHODS: Tách bạch trách nhiệm (SRP & DRY)
+    // =========================================================================
+
+    /**
+     * Xác thực tính hợp lệ của mã giảm giá qua 6 tầng phòng thủ nghiêm ngặt
+     */
+    private Coupon validateAndGetCoupon(String couponCode, Long userId, BigDecimal subtotal) {
+        // Tầng 1: Kiểm tra mã rỗng & tổng tiền hợp lệ
         if (couponCode == null || couponCode.trim().isEmpty()) {
             throw new BadRequestException("Vui lòng nhập mã giảm giá!");
         }
@@ -71,7 +140,13 @@ public class CouponServiceImpl implements CouponService {
             }
         }
 
-        // Tầng 7: Tính toán số tiền được giảm
+        return coupon;
+    }
+
+    /**
+     * Tính toán số tiền được giảm theo loại PERCENT hoặc FIXED
+     */
+    private BigDecimal calculateDiscountAmount(Coupon coupon, BigDecimal subtotal) {
         BigDecimal discountAmount;
         if ("PERCENT".equalsIgnoreCase(coupon.getDiscountType()) || "PERCENTAGE".equalsIgnoreCase(coupon.getDiscountType())) {
             BigDecimal rate = coupon.getDiscountValue().compareTo(BigDecimal.ONE) > 0
@@ -93,26 +168,6 @@ public class CouponServiceImpl implements CouponService {
             discountAmount = subtotal;
         }
 
-        BigDecimal newTotal = subtotal.subtract(discountAmount);
-
-        return CouponDiscountResponse.builder()
-                .couponCode(coupon.getCode())
-                .discountType(coupon.getDiscountType())
-                .discountValue(coupon.getDiscountValue())
-                .discountAmount(discountAmount)
-                .subtotal(subtotal)
-                .newTotal(newTotal)
-                .message("Áp dụng mã giảm giá '" + coupon.getCode() + "' thành công!")
-                .build();
-    }
-
-    @Override
-    public Coupon applyCoupon(String couponCode, Long userId, BigDecimal subtotal) {
-        return null;
-    }
-
-    @Override
-    public void releaseCoupon(Long couponId, Long userId) {
-
+        return discountAmount;
     }
 }

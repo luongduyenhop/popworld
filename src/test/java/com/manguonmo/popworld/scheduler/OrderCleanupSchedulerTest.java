@@ -1,11 +1,14 @@
 package com.manguonmo.popworld.scheduler;
 
+import com.manguonmo.popworld.entity.Coupon;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.Product;
+import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.service.CouponService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,9 @@ class OrderCleanupSchedulerTest {
 
     @Mock
     private OrderItemRepository orderItemRepository;
+
+    @Mock
+    private CouponService couponService;
 
     @InjectMocks
     private OrderCleanupScheduler scheduler;
@@ -102,5 +108,64 @@ class OrderCleanupSchedulerTest {
         verify(orderItemRepository, never()).findByOrderId(anyLong());
         verify(productRepository, never()).addStock(anyLong(), anyInt());
         verify(orderRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Dọn dẹp: Đơn quá hạn có Coupon thì phải gọi releaseCoupon để hoàn lại lượt sử dụng")
+    void cleanupExpiredOrders_WithCoupon_ReleasesCouponSuccessfully() {
+        // --- 1. ARRANGE ---
+        User user = User.builder().id(99L).build();
+        Coupon coupon = Coupon.builder().id(50L).code("POP10").build();
+
+        Order expiredOrder = Order.builder()
+                .id(20L)
+                .orderCode("PW-1726000000020")
+                .status("TO_PAY")
+                .user(user)
+                .coupon(coupon)
+                .expiresAt(LocalDateTime.now().minusMinutes(16))
+                .build();
+
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(List.of(expiredOrder));
+        when(orderItemRepository.findByOrderId(20L))
+                .thenReturn(Collections.emptyList());
+
+        // --- 2. ACT ---
+        scheduler.cleanupExpiredOrders();
+
+        // --- 3. ASSERT ---
+        assertEquals("CANCELLED", expiredOrder.getStatus());
+        verify(couponService, times(1)).releaseCoupon(50L, 99L);
+        verify(orderRepository, times(1)).saveAll(List.of(expiredOrder));
+    }
+
+    @Test
+    @DisplayName("Dọn dẹp: Đơn quá hạn có Coupon nhưng user bị null thì releaseCoupon với userId = null (không bị NullPointerException)")
+    void cleanupExpiredOrders_WithCouponAndNullUser_ReleasesCouponSafely() {
+        // --- 1. ARRANGE ---
+        Coupon coupon = Coupon.builder().id(55L).code("FREESHIP").build();
+
+        Order expiredOrder = Order.builder()
+                .id(21L)
+                .orderCode("PW-1726000000021")
+                .status("TO_PAY")
+                .user(null) // Khách vãng lai / null user
+                .coupon(coupon)
+                .expiresAt(LocalDateTime.now().minusMinutes(20))
+                .build();
+
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(List.of(expiredOrder));
+        when(orderItemRepository.findByOrderId(21L))
+                .thenReturn(Collections.emptyList());
+
+        // --- 2. ACT ---
+        scheduler.cleanupExpiredOrders();
+
+        // --- 3. ASSERT ---
+        assertEquals("CANCELLED", expiredOrder.getStatus());
+        verify(couponService, times(1)).releaseCoupon(55L, null);
+        verify(orderRepository, times(1)).saveAll(List.of(expiredOrder));
     }
 }

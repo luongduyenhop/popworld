@@ -5,6 +5,7 @@ import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.service.CouponService;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,12 @@ public class OrderCleanupScheduler {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
-    public OrderCleanupScheduler(OrderRepository orderRepository, ProductRepository productRepository, OrderItemRepository orderItemRepository) {
+    private final CouponService couponService;
+    public OrderCleanupScheduler(OrderRepository orderRepository, ProductRepository productRepository, OrderItemRepository orderItemRepository, CouponService couponService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.orderItemRepository = orderItemRepository;
+        this.couponService = couponService;
     }
 
     /**
@@ -48,6 +51,10 @@ public class OrderCleanupScheduler {
                 order.setStatus("CANCELLED");
                 order.setNote("Đơn hàng tự động hủy do quá hạn 15 phút chưa hoàn tất thanh toán.");
                 List<OrderItem> orderList = orderItemRepository.findByOrderId(order.getId());
+                if (order.getCoupon() != null) {
+                    Long userId = order.getUser() != null ? order.getUser().getId() : null;
+                    couponService.releaseCoupon(order.getCoupon().getId(), userId);
+                }
                 for (OrderItem item : orderList){
                     Integer quantity = 0;
                     if (item.getPurchaseType().equalsIgnoreCase("SINGLE_BOX") ){
