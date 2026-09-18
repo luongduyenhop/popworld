@@ -8,30 +8,30 @@
 
 <header th:fragment="header" class="sticky-top pop-header-sticky">
     <!-- Top Announcement Bar -->
-    <div class="top-notice-bar text-center">
+    <div class="top-notice-bar">
         <div class="container d-flex justify-content-between align-items-center">
-            <span class="d-none d-md-inline"><i class="bi bi-shield-check text-warning me-1"></i> 100% ART TOY CHÍNH HÃNG POP MART</span>
-            <span>🔥 MIỄN PHÍ SHIP ĐƠN TỪ 500K - MÃ: <strong>FREESHIP</strong></span>
-            <span class="d-none d-md-inline">🎁 GIẢM 10% ĐƠN ĐẦU TIÊN - MÃ: <strong>POPWELCOME</strong></span>
+            <span class="d-none d-md-inline"><i class="bi bi-shield-check text-warning me-1"></i> 100% SẢN PHẨM NGUYÊN SEAL CHÍNH HÃNG POP MART</span>
+            <span><i class="bi bi-truck text-danger me-1"></i> MIỄN PHÍ VẬN CHUYỂN TỪ 500K - MÃ: <strong class="text-white">FREESHIP</strong></span>
+            <span class="d-none d-md-inline"><i class="bi bi-gift text-warning me-1"></i> GIẢM 10% ĐƠN ĐẦU TIÊN: <strong class="text-white">POPWELCOME</strong></span>
         </div>
     </div>
 
     <!-- Main Navigation Bar -->
-    <nav class="navbar navbar-expand-lg pop-navbar py-2 py-lg-3 shadow-sm">
+    <nav class="navbar navbar-expand-lg pop-navbar py-2 py-lg-3">
         <div class="container">
-            <!-- Brand Logo: POPWORLD phong cách POP MART có viền đỏ bao quanh -->
-            <a class="navbar-brand d-flex align-items-center me-3 text-decoration-none" th:href="@{/}">
-                <img th:src="@{/images/logo-popworld.svg}" alt="POPWORLD" height="38" style="display:inline-block;">
+            <!-- Brand Logo: POPWORLD phong cách POP MART -->
+            <a class="navbar-brand navbar-brand-logo me-4" th:href="@{/}">
+                POPWORLD <span class="logo-badge">STORE</span>
             </a>
 
             <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <!-- Navigation Links -->
             <div class="collapse navbar-collapse" id="navbarMain">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" th:href="@{/}">Trang Chủ</a>
                     </li>
@@ -50,11 +50,11 @@
                         <a class="nav-link nav-link-custom dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Nhân Vật IP
                         </a>
-                        <ul class="dropdown-menu shadow border-0 rounded-4 p-2">
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2 mt-2">
                             <li th:each="ip : ${characterIps}">
                                 <a class="dropdown-item py-2 px-3 fw-bold rounded-3 d-flex align-items-center"
                                    th:href="@{'/characters/' + ${ip.id}}">
-                                    <img th:src="${ip.avatarUrl}" class="rounded-circle me-2" width="28" height="28" style="object-fit:cover;">
+                                    <img th:src="${ip.avatarUrl}" class="rounded-circle me-2 border" width="28" height="28" style="object-fit:cover;">
                                     <span th:text="${ip.name}">Labubu</span>
                                 </a>
                             </li>
@@ -63,24 +63,24 @@
                 </ul>
 
                 <!-- Search Form -->
-                <form class="d-flex position-relative me-3 my-2 my-lg-0" th:action="@{/search}" method="get" style="min-width: 220px;">
-                    <input class="form-control pop-search-input pe-5" type="search" name="keyword" 
-                           placeholder="Tìm Labubu, Molly, Hirono..." th:value="${keyword}">
-                    <button class="btn position-absolute end-0 top-50 translate-middle-y border-0 text-muted" type="submit">
+                <form class="d-flex position-relative me-3 my-2 my-lg-0" th:action="@{/search}" method="get" style="min-width: 240px;">
+                    <input class="form-control pop-search-input" type="search" name="keyword" 
+                           placeholder="Tìm Labubu, Molly, Skullpanda..." th:value="${keyword}">
+                    <button class="btn position-absolute end-0 top-50 translate-middle-y border-0 text-secondary pe-3" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
 
                 <!-- Right Utilities (User & Cart) -->
                 <div class="d-flex align-items-center gap-2">
-                    <a th:href="@{/orders}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-none d-md-flex align-items-center">
-                        <i class="bi bi-box-seam me-1"></i>
+                    <a th:href="@{/orders}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-none d-md-inline-flex align-items-center text-dark border-0 bg-light">
+                        <i class="bi bi-box-seam me-1 text-danger"></i>
                         <span>Đơn hàng</span>
                     </a>
-                    <a th:href="@{/cart}" class="btn btn-outline-dark rounded-pill px-3 py-2 fw-bold d-flex align-items-center">
-                        <i class="bi bi-bag-fill text-danger me-1 fs-6"></i>
+                    <a th:href="@{/cart}" class="btn btn-dark rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center shadow-sm">
+                        <i class="bi bi-bag-fill text-danger me-1"></i>
                         <span>Giỏ hàng</span>
-                        <span class="badge rounded-pill bg-danger ms-2" th:text="${cartCount != null ? cartCount : 0}">0</span>
+                        <span class="badge rounded-pill bg-danger ms-2 px-2" th:text="${cartCount != null ? cartCount : 0}">0</span>
                     </a>
                 </div>
             </div>

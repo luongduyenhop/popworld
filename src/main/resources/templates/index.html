@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
     <!-- Custom POP MART Theme CSS -->
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
 </head>
 <body>
 
@@ -22,11 +22,12 @@
         <!-- 1. HERO CAROUSEL BANNER                    -->
         <!-- ========================================== -->
         <section class="container mt-3 mt-lg-4">
-            <div id="heroCarousel" class="carousel slide carousel-fade shadow-sm rounded-4 overflow-hidden" data-bs-ride="carousel">
+            <div id="heroCarousel" class="carousel slide carousel-fade shadow-sm overflow-hidden" 
+                 data-bs-ride="carousel" style="border-radius: var(--pop-radius-xl);">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active rounded-pill" style="width: 30px; height: 6px;"></button>
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" class="rounded-pill" style="width: 30px; height: 6px;"></button>
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" class="rounded-pill" style="width: 30px; height: 6px;"></button>
                 </div>
                 <div class="carousel-inner">
                     <!-- Slide 1: Labubu -->
@@ -34,13 +35,17 @@
                         <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" 
                              class="d-block w-100 h-100 object-fit-cover" alt="The Monsters Fall in Wild">
                         <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-danger text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start">Cơn Sốt Toàn Cầu</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase">THE MONSTERS<br>FALL IN WILD</h1>
-                            <p class="fs-5 text-light opacity-75 max-w-500 d-none d-md-block">Bộ sưu tập hộp mù Labubu phong cách dã ngoại phủ nỉ cao cấp. Săn lùng ngay mẫu Secret 1/72!</p>
-                            <div class="mt-3">
-                                <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="btn btn-pop-red me-2">Khám Phá Ngay</a>
-                                <a th:href="@{/categories/blind-box}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">Xem Tất Cả</a>
+                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
+                            <span class="badge bg-danger text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Hot Drop Toàn Cầu</span>
+                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">The Monsters<br><span class="text-danger">Fall In Wild</span></h1>
+                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Bộ sưu tập hộp mù Labubu phủ nỉ mịn cao cấp phong cách dã ngoại. Cơ hội săn trúng mẫu Secret tỷ lệ 1/72!</p>
+                            <div class="mt-3 d-flex gap-2">
+                                <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="btn btn-pop-red">
+                                    <i class="bi bi-stars me-1"></i> Khám Phá Ngay
+                                </a>
+                                <a th:href="@{/categories/blind-box}" class="btn btn-pop-outline text-white border-white">
+                                    Xem Tất Cả Hộp Mù
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -50,12 +55,14 @@
                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" 
                              class="d-block w-100 h-100 object-fit-cover" alt="Mega Space Molly">
                         <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-warning text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start">Mega Collection</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase">MEGA SPACE MOLLY<br>SERIES 2</h1>
-                            <p class="fs-5 text-light opacity-75 d-none d-md-block">Phi hành gia nhí Molly du hành qua các thiên hà cùng phụ kiện súng laser và bình dưỡng khí.</p>
+                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
+                            <span class="badge bg-warning text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Mega Collection</span>
+                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">Mega Space Molly<br><span class="text-warning">Series 2</span></h1>
+                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Phi hành gia nhí Molly du hành qua các thiên hà cùng phụ kiện súng laser và bình dưỡng khí tháo rời.</p>
                             <div class="mt-3">
-                                <a th:href="@{/categories/mega-collection}" class="btn btn-pop-red">Sưu Tập Ngay</a>
+                                <a th:href="@{/categories/mega-collection}" class="btn btn-pop-red">
+                                    <i class="bi bi-box-seam me-1"></i> Sưu Tập Ngay
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -65,12 +72,14 @@
                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" 
                              class="d-block w-100 h-100 object-fit-cover" alt="Skullpanda City of Night">
                         <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-info text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start">Cyberpunk Neon</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase">SKULLPANDA<br>CITY OF NIGHT</h1>
-                            <p class="fs-5 text-light opacity-75 d-none d-md-block">Tuyệt tác bóng đêm huyền bí tôn vinh vẻ đẹp nổi loạn và cá tính nghệ thuật tự do.</p>
+                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
+                            <span class="badge bg-info text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Cyberpunk Neon</span>
+                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">Skullpanda<br><span class="text-info">City Of Night</span></h1>
+                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Tuyệt tác bóng đêm huyền bí tôn vinh vẻ đẹp nổi loạn và cá tính nghệ thuật tự do.</p>
                             <div class="mt-3">
-                                <a th:href="@{/products/skullpanda-city-of-night-series}" class="btn btn-pop-red">Xem Chi Tiết</a>
+                                <a th:href="@{/products/skullpanda-city-of-night-series}" class="btn btn-pop-red">
+                                    <i class="bi bi-eye me-1"></i> Xem Chi Tiết
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -85,18 +94,21 @@
         </section>
 
         <!-- ========================================== -->
-        <!-- 2. CHARACTER IP CIRCLE NAVIGATION          -->
+        <!-- 2. CHARACTER IP UNIVERSE                   -->
         <!-- ========================================== -->
-        <section class="container mt-5">
-            <div class="section-title-wrap mb-4">
-                <h2 class="section-title">Vũ Trụ Nhân Vật IP</h2>
-                <div class="section-subtitle">Bấm vào nhân vật bạn yêu thích để xem trọn bộ sưu tập</div>
+        <section class="container mt-5 pt-2">
+            <div class="section-title-wrap">
+                <span class="section-kicker">Universe of Art Toys</span>
+                <h2 class="section-title">Vũ Trụ Nhân Vật Biểu Tượng</h2>
+                <div class="section-subtitle">Khám phá các nhân vật nghệ thuật đình đám của gia đình POP MART</div>
             </div>
 
-            <div class="row row-cols-3 row-cols-md-6 g-3 justify-content-center">
+            <div class="row row-cols-3 row-cols-md-6 g-4 justify-content-center">
                 <div class="col" th:each="ip : ${characterIps}">
                     <a th:href="@{'/characters/' + ${ip.id}}" class="ip-circle-wrapper">
-                        <img th:src="${ip.avatarUrl}" class="ip-circle-img" th:alt="${ip.name}">
+                        <div class="ip-circle-img-box">
+                            <img th:src="${ip.avatarUrl}" class="ip-circle-img" th:alt="${ip.name}">
+                        </div>
                         <div class="ip-circle-title" th:text="${ip.name}">Labubu</div>
                     </a>
                 </div>
@@ -106,61 +118,54 @@
         <!-- ========================================== -->
         <!-- 3. HOT DROPS / SẢN PHẨM NỔI BẬT            -->
         <!-- ========================================== -->
-        <section class="container mt-5 pt-3">
+        <section class="container mt-5 pt-4">
             <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
                 <div>
-                    <span class="badge bg-danger rounded-pill px-3 py-1 text-uppercase fw-bold mb-1">Hot Releases</span>
+                    <span class="section-kicker mb-1">Most Wanted Drops</span>
                     <h2 class="section-title mb-0">Hộp Mù Nổi Bật Nhất</h2>
                 </div>
-                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none">
+                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1">
                     Xem tất cả <i class="bi bi-arrow-right text-danger"></i>
                 </a>
             </div>
 
             <div class="row g-4">
                 <div class="col-6 col-md-4 col-lg-3" th:each="p : ${featuredProducts}">
-                    <div class="pop-product-card">
-                        <!-- Khung ảnh 1:1 -->
+                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
+                        <!-- Khung ảnh 1:1 Stage -->
                         <div class="pop-product-img-box">
-                            <a th:href="@{'/products/' + ${p.slug}}">
-                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            </a>
-                            <!-- Badge Secret Ratio -->
+                            <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
+                            
+                            <!-- Badge Secret Ratio Ánh Kim -->
                             <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
                             </span>
+                            
                             <!-- Badge Hot -->
                             <span class="badge-new-drop" th:if="${p.isFeatured}">HOT</span>
                         </div>
 
                         <!-- Thông tin sản phẩm -->
-                        <div class="p-3 d-flex flex-column flex-grow-1">
-                            <span class="badge-category-tag mb-1" 
-                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld')}">Series</span>
-                            <h6 class="fw-bold my-1 text-truncate">
-                                <a th:href="@{'/products/' + ${p.slug}}" class="text-dark text-decoration-none" th:text="${p.name}">
-                                    Tên sản phẩm
-                                </a>
-                            </h6>
+                        <div class="pop-card-body">
+                            <span class="badge-series-tag" 
+                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
+                            <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
 
-                            <!-- Phân khúc giá kép -->
-                            <div class="mt-auto pt-2">
-                                <div class="d-flex justify-content-between align-items-baseline">
-                                    <small class="text-muted">Hộp lẻ:</small>
-                                    <span class="fs-6 fw-bold text-danger"
-                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</span>
+                            <!-- Phân khúc giá kép (Hộp lẻ & Cả set) -->
+                            <div class="pop-pricing-box">
+                                <div>
+                                    <span class="single-box-price"
+                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-baseline" th:if="${p.wholeSetPrice != null}">
-                                    <small class="text-muted">Cả set:</small>
-                                    <span class="small fw-semibold text-secondary"
-                                          th:text="${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">2.100.000 đ</span>
+                                <div th:if="${p.wholeSetPrice != null}">
+                                    <span class="whole-set-pill"
+                                          th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
                                 </div>
+                            </div>
 
-                                <div class="d-grid mt-3">
-                                    <a th:href="@{'/products/' + ${p.slug}}" class="btn btn-sm btn-pop-primary">
-                                        <i class="bi bi-box-seam me-1"></i> Xem Chi Tiết
-                                    </a>
-                                </div>
+                            <!-- Nút Thao Tác Mềm Mại -->
+                            <div class="pop-quick-action">
+                                <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
                             </div>
                         </div>
                     </div>
@@ -171,56 +176,46 @@
         <!-- ========================================== -->
         <!-- 4. NEW RELEASES / HÀNG MỚI CẬP BẾN         -->
         <!-- ========================================== -->
-        <section class="container mt-5 pt-3">
+        <section class="container mt-5 pt-4">
             <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
                 <div>
-                    <span class="badge bg-dark rounded-pill px-3 py-1 text-uppercase fw-bold mb-1">New Arrivals</span>
+                    <span class="section-kicker mb-1">New Arrivals</span>
                     <h2 class="section-title mb-0">Hàng Mới Cập Bến</h2>
                 </div>
-                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none">
+                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1">
                     Xem tất cả <i class="bi bi-arrow-right text-danger"></i>
                 </a>
             </div>
 
             <div class="row g-4">
                 <div class="col-6 col-md-4 col-lg-3" th:each="p : ${newReleases}">
-                    <div class="pop-product-card">
+                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
                         <div class="pop-product-img-box">
-                            <a th:href="@{'/products/' + ${p.slug}}">
-                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            </a>
+                            <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
                             <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/72</span>
                             </span>
                             <span class="badge-new-drop bg-dark text-white">NEW</span>
                         </div>
 
-                        <div class="p-3 d-flex flex-column flex-grow-1">
-                            <span class="badge-category-tag mb-1" 
-                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld')}">Series</span>
-                            <h6 class="fw-bold my-1 text-truncate">
-                                <a th:href="@{'/products/' + ${p.slug}}" class="text-dark text-decoration-none" th:text="${p.name}">
-                                    Tên sản phẩm
-                                </a>
-                            </h6>
+                        <div class="pop-card-body">
+                            <span class="badge-series-tag" 
+                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
+                            <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
 
-                            <div class="mt-auto pt-2">
-                                <div class="d-flex justify-content-between align-items-baseline">
-                                    <small class="text-muted">Hộp lẻ:</small>
-                                    <span class="fs-6 fw-bold text-danger"
-                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</span>
+                            <div class="pop-pricing-box">
+                                <div>
+                                    <span class="single-box-price"
+                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-baseline" th:if="${p.wholeSetPrice != null}">
-                                    <small class="text-muted">Cả set:</small>
-                                    <span class="small fw-semibold text-secondary"
-                                          th:text="${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">2.100.000 đ</span>
+                                <div th:if="${p.wholeSetPrice != null}">
+                                    <span class="whole-set-pill"
+                                          th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
                                 </div>
+                            </div>
 
-                                <div class="d-grid mt-3">
-                                    <a th:href="@{'/products/' + ${p.slug}}" class="btn btn-sm btn-pop-primary">
-                                        <i class="bi bi-box-seam me-1"></i> Xem Chi Tiết
-                                    </a>
-                                </div>
+                            <div class="pop-quick-action">
+                                <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
                             </div>
                         </div>
                     </div>
@@ -232,34 +227,35 @@
         <!-- 5. VALUE PROPOSITIONS (CAM KẾT THƯƠNG HIỆU) -->
         <!-- ========================================== -->
         <section class="container mt-5 pt-4">
-            <div class="bg-white rounded-4 p-4 p-lg-5 border shadow-sm">
+            <div class="p-4 p-lg-5 border-0 shadow-sm" 
+                 style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
                 <div class="row g-4 text-center">
                     <div class="col-md-3 col-6">
                         <div class="p-2">
-                            <div class="display-6 text-danger mb-2"><i class="bi bi-patch-check-fill"></i></div>
+                            <div class="fs-1 text-danger mb-2"><i class="bi bi-patch-check-fill"></i></div>
                             <h6 class="fw-bold mb-1">100% Chính Hãng</h6>
-                            <p class="text-muted small mb-0">Hàng nhập khẩu trực tiếp từ POP MART, nguyên seal túi bạc.</p>
+                            <p class="text-secondary small mb-0">Nhập khẩu chính hãng POP MART, nguyên seal túi bạc 100%.</p>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-2">
-                            <div class="display-6 text-warning mb-2"><i class="bi bi-stars"></i></div>
+                            <div class="fs-1 text-warning mb-2"><i class="bi bi-stars"></i></div>
                             <h6 class="fw-bold mb-1">Tỷ Lệ Secret Chuẩn</h6>
-                            <p class="text-muted small mb-0">Tỷ lệ trúng Secret minh bạch 1/72 hoặc 1/144 theo quy cách hãng.</p>
+                            <p class="text-secondary small mb-0">Tỷ lệ mở trúng mẫu hiếm 1/72 hoặc 1/144 theo quy chuẩn hãng.</p>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-2">
-                            <div class="display-6 text-primary mb-2"><i class="bi bi-box-seam-fill"></i></div>
+                            <div class="fs-1 text-primary mb-2"><i class="bi bi-box-seam-fill"></i></div>
                             <h6 class="fw-bold mb-1">Đóng Gói 4 Lớp</h6>
-                            <p class="text-muted small mb-0">Bọc xốp chống sốc đa lớp, cam kết hộp nguyên vẹn tới tay nhà sưu tầm.</p>
+                            <p class="text-secondary small mb-0">Bọc xốp chống sốc đa tầng, cam kết hộp góc cạnh không móp méo.</p>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-2">
-                            <div class="display-6 text-success mb-2"><i class="bi bi-truck"></i></div>
-                            <h6 class="fw-bold mb-1">Freeship Đơn Từ 500K</h6>
-                            <p class="text-muted small mb-0">Giao hàng hỏa tốc nội thành và miễn phí vận chuyển toàn quốc.</p>
+                            <div class="fs-1 text-success mb-2"><i class="bi bi-truck"></i></div>
+                            <h6 class="fw-bold mb-1">Freeship Từ 500K</h6>
+                            <p class="text-secondary small mb-0">Giao hàng hỏa tốc và miễn phí vận chuyển trên toàn quốc.</p>
                         </div>
                     </div>
                 </div>

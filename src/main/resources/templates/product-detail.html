@@ -7,7 +7,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
 </head>
 <body>
 
@@ -17,33 +17,34 @@
     <main class="container my-4">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
+            <ol class="breadcrumb" style="font-size: 0.86rem;">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
                 <li class="breadcrumb-item" th:if="${product.category != null}">
-                    <a th:href="@{'/categories/' + ${product.category.slug}}" class="text-decoration-none text-dark fw-bold" 
+                    <a th:href="@{'/categories/' + ${product.category.slug}}" class="text-decoration-none text-secondary fw-semibold" 
                        th:text="${product.category.name}">Blind Box</a>
                 </li>
-                <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">Tên sản phẩm</li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${product.name}">Tên sản phẩm</li>
             </ol>
         </nav>
 
         <div class="row g-5">
-            <!-- Cột trái: Album ảnh sản phẩm -->
+            <!-- Cột trái: Stage Trưng Bày & Album ảnh sản phẩm -->
             <div class="col-lg-6">
-                <div class="position-sticky" style="top: 100px;">
-                    <!-- Ảnh chính lớn với tính năng Di Chuột Phóng To (Hover Zoom Magnifier chuẩn POP MART) -->
-                    <div id="zoomContainer" class="rounded-4 overflow-hidden border shadow-sm mb-3 bg-white product-zoom-container" style="position: relative; padding-top: 100%;">
+                <div class="position-sticky" style="top: 110px;">
+                    <!-- Ảnh chính lớn với tính năng Di Chuột Phóng To (Hover Zoom Magnifier) -->
+                    <div id="zoomContainer" class="rounded-4 overflow-hidden border-0 shadow-sm mb-3 product-zoom-container" 
+                         style="position: relative; padding-top: 100%; background: radial-gradient(circle at center, #FFFFFF 35%, #F4F5F7 100%); box-shadow: var(--pop-shadow-card);">
                         <img id="mainImage" th:src="${product.mainImageUrl}" th:alt="${product.name}" 
                              style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: transform 0.2s ease-out; transform-origin: center center;">
                         
-                        <!-- Badge Secret -->
+                        <!-- Badge Secret Ánh Kim -->
                         <span class="badge-secret-ratio fs-6 px-3 py-2" th:if="${product.secretRatio != null}">
-                            <i class="bi bi-stars"></i> SECRET <span th:text="${product.secretRatio}">1/144</span>
+                            <i class="bi bi-stars text-warning"></i> SECRET <span th:text="${product.secretRatio}">1/144</span>
                         </span>
 
                         <!-- Huy hiệu hướng dẫn zoom -->
                         <span class="zoom-hint-badge">
-                            <i class="bi bi-zoom-in me-1"></i> Rê chuột để soi chi tiết
+                            <i class="bi bi-zoom-in me-1"></i> Rê chuột soi chi tiết
                         </span>
                     </div>
 
@@ -51,7 +52,7 @@
                     <div class="d-flex gap-2" th:if="${product.images != null && product.images.size() > 1}">
                         <div th:each="img : ${product.images}" 
                              class="rounded-3 overflow-hidden border cursor-pointer thumbnail-box" 
-                             style="width: 70px; height: 70px;"
+                             style="width: 72px; height: 72px; transition: all 0.2s ease;"
                              onclick="changeMainImage(this.querySelector('img').src)">
                             <img th:src="${img.imageUrl}" class="w-100 h-100 object-fit-cover">
                         </div>
@@ -69,52 +70,54 @@
                 </div>
 
                 <!-- Tên sản phẩm -->
-                <h1 class="fw-black text-uppercase mb-3" th:text="${product.name}">Tên Hộp Mù</h1>
+                <h1 class="fw-black text-uppercase mb-3" style="font-size: 2.2rem; letter-spacing: -0.8px;" th:text="${product.name}">Tên Hộp Mù</h1>
 
                 <!-- Secret Card Highlight -->
                 <div class="secret-info-box mb-4" th:if="${product.secretRatio != null}">
                     <div class="d-flex align-items-center gap-3">
                         <div class="display-6 text-warning"><i class="bi bi-gem"></i></div>
                         <div>
-                            <h6 class="fw-bold text-warning mb-1 text-uppercase">Tỷ lệ trúng Secret: <span th:text="${product.secretRatio}">1/144</span></h6>
-                            <p class="small text-light opacity-75 mb-0">Mỗi thùng đều có cơ hội xuất hiện nhân vật ẩn Secret siêu hiếm. Toàn bộ hộp chưa khui seal bạc!</p>
+                            <h6 class="fw-bold text-warning mb-1 text-uppercase">Tỷ lệ mở trúng Secret: <span th:text="${product.secretRatio}">1/144</span></h6>
+                            <p class="small text-light opacity-80 mb-0">Mỗi thùng nguyên seal đều có cơ hội mở trúng nhân vật bí ẩn cực hiếm. Cam kết 100% nguyên vẹn chưa khui seal bạc!</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Giá hiển thị động -->
                 <div class="mb-4">
-                    <span class="text-muted small text-uppercase fw-bold d-block">Giá Sản Phẩm</span>
-                    <h2 class="display-6 fw-black text-danger mb-0" id="displayedPrice"
-                        th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</h2>
+                    <span class="text-secondary small text-uppercase fw-bold d-block mb-1">Giá Bán Niêm Yết</span>
+                    <h2 class="display-5 fw-black text-danger mb-0" id="displayedPrice"
+                        th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</h2>
                 </div>
 
-                <!-- Form Đặt Mua & Chọn Loại Hộp -->
+                <!-- Form Đặt Mua & Chọn Quy Cách -->
                 <form th:action="@{/cart/add}" method="post" id="addToCartForm">
                     <input type="hidden" name="productId" th:value="${product.id}">
                     <input type="hidden" name="purchaseType" id="purchaseTypeInput" value="SINGLE_BOX">
 
                     <!-- Lựa chọn quy cách mua -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-uppercase small text-muted">Chọn Quy Cách Mua:</label>
+                        <label class="form-label fw-bold text-uppercase small text-secondary">Chọn Quy Cách Bốc Hộp:</label>
                         <div class="row g-3">
                             <!-- Nút chọn Hộp lẻ -->
                             <div class="col-6">
                                 <div class="purchase-option-card active" id="optionSingle" onclick="selectOption('SINGLE_BOX')">
-                                    <div class="fw-bold"><i class="bi bi-box me-1"></i> Mua Hộp Lẻ</div>
-                                    <div class="text-danger fw-bold mt-1" 
-                                         th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</div>
-                                    <small class="text-muted d-block mt-1">Bốc ngẫu nhiên 1 hộp</small>
+                                    <div class="option-check"><i class="bi bi-check-lg small"></i></div>
+                                    <div class="fw-bold fs-6"><i class="bi bi-box me-1"></i> Mua Hộp Lẻ</div>
+                                    <div class="text-danger fw-black fs-5 mt-1" 
+                                         th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</div>
+                                    <small class="text-secondary d-block mt-1">Bốc ngẫu nhiên 1 hộp</small>
                                 </div>
                             </div>
 
                             <!-- Nút chọn Cả Set (nếu có) -->
                             <div class="col-6" th:if="${product.wholeSetPrice != null}">
                                 <div class="purchase-option-card" id="optionWhole" onclick="selectOption('WHOLE_SET')">
-                                    <div class="fw-bold"><i class="bi bi-boxes me-1"></i> Nguyên Thùng</div>
-                                    <div class="text-danger fw-bold mt-1" 
-                                         th:text="${#numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">2.100.000 đ</div>
-                                    <small class="text-muted d-block mt-1">Đủ bộ, không trùng</small>
+                                    <div class="option-check"><i class="bi bi-check-lg small"></i></div>
+                                    <div class="fw-bold fs-6"><i class="bi bi-boxes me-1"></i> Nguyên Thùng</div>
+                                    <div class="text-danger fw-black fs-5 mt-1" 
+                                         th:text="${#numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">2.100.000 ₫</div>
+                                    <small class="text-secondary d-block mt-1">Đủ bộ, không trùng mẫu</small>
                                 </div>
                             </div>
                         </div>
@@ -123,43 +126,45 @@
                     <!-- Số lượng & Nút Mua -->
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="input-group" style="width: 140px;">
-                            <button class="btn btn-outline-dark" type="button" onclick="adjustQuantity(-1)">-</button>
-                            <input type="number" name="quantity" id="quantityInput" class="form-control text-center fw-bold" value="1" min="1" max="50">
-                            <button class="btn btn-outline-dark" type="button" onclick="adjustQuantity(1)">+</button>
+                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(-1)">-</button>
+                            <input type="number" name="quantity" id="quantityInput" class="form-control text-center fw-bold border-0 bg-light" value="1" min="1" max="50">
+                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(1)">+</button>
                         </div>
 
-                        <button type="submit" class="btn btn-pop-red flex-grow-1 py-3 fw-bold">
+                        <button type="submit" class="btn btn-pop-red flex-grow-1 py-3 fw-bold fs-6 shadow">
                             <i class="bi bi-bag-plus-fill me-2 fs-5"></i> THÊM VÀO GIỎ HÀNG
                         </button>
                     </div>
                 </form>
 
                 <!-- Bảng Thông Số Kỹ Thuật (Specs) -->
-                <div class="bg-white rounded-4 p-4 border shadow-sm mb-4">
-                    <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Thông Số Kỹ Thuật</h6>
+                <div class="p-4 border-0 shadow-sm mb-4" 
+                     style="background: #FFFFFF; border-radius: var(--pop-radius-lg); box-shadow: var(--pop-shadow-card);">
+                    <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Thông Số Kỹ Thuật & Xuất Xứ</h6>
                     <div class="row g-2 small">
-                        <div class="col-4 text-muted">Thương hiệu:</div>
+                        <div class="col-4 text-secondary">Thương hiệu:</div>
                         <div class="col-8 fw-bold">POP MART Official</div>
 
-                        <div class="col-4 text-muted" th:if="${product.packagingType != null}">Quy cách:</div>
+                        <div class="col-4 text-secondary" th:if="${product.packagingType != null}">Quy cách:</div>
                         <div class="col-8 fw-bold" th:text="${product.packagingType}">1 Hộp lẻ / 12 Hộp nguyên set</div>
 
-                        <div class="col-4 text-muted" th:if="${product.material != null}">Chất liệu:</div>
+                        <div class="col-4 text-secondary" th:if="${product.material != null}">Chất liệu:</div>
                         <div class="col-8 fw-bold" th:text="${product.material}">PVC / ABS</div>
 
-                        <div class="col-4 text-muted" th:if="${product.sizeDimensions != null}">Kích thước:</div>
+                        <div class="col-4 text-secondary" th:if="${product.sizeDimensions != null}">Kích thước:</div>
                         <div class="col-8 fw-bold" th:text="${product.sizeDimensions}">Cao 7.5cm - 9.5cm</div>
 
-                        <div class="col-4 text-muted">Tình trạng:</div>
+                        <div class="col-4 text-secondary">Tình trạng:</div>
                         <div class="col-8 fw-bold text-success">
-                            <i class="bi bi-check-circle-fill me-1"></i> Còn hàng (<span th:text="${product.stockQuantity}">100</span> hộp)
+                            <i class="bi bi-check-circle-fill me-1"></i> Còn hàng sẵn (<span th:text="${product.stockQuantity}">100</span> hộp)
                         </div>
                     </div>
                 </div>
 
                 <!-- Giới thiệu sản phẩm -->
-                <div class="bg-white rounded-4 p-4 border shadow-sm">
-                    <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Câu Chuyện Sản Phẩm</h6>
+                <div class="p-4 border-0 shadow-sm"
+                     style="background: #FFFFFF; border-radius: var(--pop-radius-lg); box-shadow: var(--pop-shadow-card);">
+                    <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Câu Chuyện Bộ Sưu Tập</h6>
                     <div class="text-secondary leading-relaxed" th:text="${product.description}">
                         Giới thiệu chi tiết bộ sưu tập...
                     </div>
@@ -171,27 +176,21 @@
         <!-- SẢN PHẨM CÙNG BỘ SƯU TẬP                   -->
         <!-- ========================================== -->
         <section class="mt-5 pt-4" th:if="${!relatedProducts.isEmpty()}">
-            <h3 class="fw-black text-uppercase mb-4">Sản Phẩm Cùng Danh Mục</h3>
+            <h3 class="fw-black text-uppercase mb-4">Có Thể Bạn Cũng Thích</h3>
             <div class="row g-4">
                 <div class="col-6 col-md-3" th:each="p : ${relatedProducts}">
-                    <div class="pop-product-card">
+                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
                         <div class="pop-product-img-box">
-                            <a th:href="@{'/products/' + ${p.slug}}">
-                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            </a>
+                            <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
                             <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
-                                SECRET <span th:text="${p.secretRatio}">1/144</span>
+                                <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
                             </span>
                         </div>
-                        <div class="p-3 d-flex flex-column flex-grow-1">
-                            <h6 class="fw-bold my-1 text-truncate">
-                                <a th:href="@{'/products/' + ${p.slug}}" class="text-dark text-decoration-none" th:text="${p.name}">
-                                    Tên sản phẩm
-                                </a>
-                            </h6>
-                            <div class="mt-auto pt-2">
-                                <span class="fs-6 fw-bold text-danger"
-                                      th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">350.000 đ</span>
+                        <div class="pop-card-body">
+                            <h4 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h4>
+                            <div class="pop-pricing-box">
+                                <span class="single-box-price"
+                                      th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
                             </div>
                         </div>
                     </div>
@@ -208,8 +207,8 @@
     <!-- Script chuyển đổi giá động khi chọn Hộp lẻ vs Cả set -->
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const singlePriceFormatted = /*[[${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ']]*/ '350.000 đ';
-        const wholeSetPriceFormatted = /*[[${product.wholeSetPrice != null ? #numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT') + ' đ' : ''}]]*/ '';
+        const singlePriceFormatted = /*[[${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫']]*/ '350.000 ₫';
+        const wholeSetPriceFormatted = /*[[${product.wholeSetPrice != null ? #numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT') + ' ₫' : ''}]]*/ '';
         
         function selectOption(type) {
             document.getElementById('purchaseTypeInput').value = type;
