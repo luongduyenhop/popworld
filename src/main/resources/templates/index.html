@@ -94,9 +94,27 @@
         </section>
 
         <!-- ========================================== -->
+        <!-- POPULAR SEARCHES STRIP (POP MART US STYLE) -->
+        <!-- ========================================== -->
+        <section class="container mt-3 pt-2">
+            <div class="d-flex align-items-center gap-2 overflow-x-auto py-1" style="scrollbar-width: none;">
+                <span class="small fw-bold text-dark text-uppercase me-2 flex-shrink-0">
+                    <i class="bi bi-fire text-danger me-1"></i> Xu Hướng:
+                </span>
+                <a th:href="@{/search(keyword='Labubu')}" class="popular-search-tag hot-tag">🔥 Labubu The Monsters</a>
+                <a th:href="@{/search(keyword='Molly')}" class="popular-search-tag">Molly Space</a>
+                <a th:href="@{/search(keyword='Skullpanda')}" class="popular-search-tag">Skullpanda</a>
+                <a th:href="@{/search(keyword='Hirono')}" class="popular-search-tag">Hirono</a>
+                <a th:href="@{/search(keyword='Crybaby')}" class="popular-search-tag">Crybaby</a>
+                <a th:href="@{/categories/mega-collection}" class="popular-search-tag">Mega 400%</a>
+                <a th:href="@{/categories/blind-box}" class="popular-search-tag">Hộp Mù Secret</a>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
         <!-- 2. CHARACTER IP UNIVERSE                   -->
         <!-- ========================================== -->
-        <section class="container mt-5 pt-2">
+        <section class="container mt-4 pt-2">
             <div class="section-title-wrap">
                 <span class="section-kicker">Universe of Art Toys</span>
                 <h2 class="section-title">Vũ Trụ Nhân Vật Biểu Tượng</h2>
@@ -137,12 +155,12 @@
                             <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
                             
                             <!-- Badge Secret Ratio Ánh Kim -->
-                            <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
+                            <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
                             </span>
                             
                             <!-- Badge Hot -->
-                            <span class="badge-new-drop" th:if="${p.isFeatured}">HOT</span>
+                            <span class="badge-pop-hot" th:if="${p.isFeatured}">HOT</span>
                         </div>
 
                         <!-- Thông tin sản phẩm -->
@@ -192,10 +210,10 @@
                     <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
                         <div class="pop-product-img-box">
                             <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
+                            <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/72</span>
                             </span>
-                            <span class="badge-new-drop bg-dark text-white">NEW</span>
+                            <span class="badge-pop-new">NEW</span>
                         </div>
 
                         <div class="pop-card-body">

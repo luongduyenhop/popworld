@@ -33,9 +33,32 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <h1 class="fw-black text-uppercase mb-4">
-            Giỏ Hàng Của Bạn (<span th:text="${cartCount}">0</span> món)
+        <h1 class="fw-black text-uppercase mb-3">
+            <i class="bi bi-bag-heart-fill text-danger me-2"></i> Giỏ Hàng Của Bạn (<span th:text="${cartCount}">0</span> món)
         </h1>
+
+        <!-- Freeship Progress Milestone (Chính sách Freeship đơn từ 500k chuẩn POP MART) -->
+        <div th:if="${cartItems != null && !cartItems.isEmpty()}">
+            <div th:if="${totalAmount >= 500000}" class="alert alert-success bg-success-subtle border-success-subtle rounded-4 p-3 d-flex align-items-center gap-3 mb-4 shadow-sm">
+                <i class="bi bi-truck text-success fs-3 flex-shrink-0"></i>
+                <div class="flex-grow-1">
+                    <strong class="text-success d-block">CHÚC MỪNG! ĐƠN HÀNG ĐẠT ĐIỀU KIỆN FREESHIP TOÀN QUỐC 🚀</strong>
+                    <small class="text-muted">PopWorld sẽ tài trợ 100% phí vận chuyển tiêu chuẩn cho kiện hàng này.</small>
+                </div>
+            </div>
+            <div th:if="${totalAmount < 500000}" class="alert alert-light border rounded-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-truck text-danger fs-3 flex-shrink-0"></i>
+                    <div>
+                        <span class="text-dark d-block">Mua thêm <strong class="text-danger fs-6" th:text="${#numbers.formatDecimal(500000 - totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">150.000 đ</strong> để được <strong>FREESHIP toàn quốc!</strong></span>
+                        <small class="text-muted">Chính sách ưu đãi miễn phí ship cho hóa đơn từ 500.000 đ.</small>
+                    </div>
+                </div>
+                <a th:href="@{/categories/blind-box}" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i> Săn Thêm Hộp Mù
+                </a>
+            </div>
+        </div>
 
         <!-- Empty Cart State -->
         <div th:if="${cartItems == null || cartItems.isEmpty()}" class="bg-white rounded-4 p-5 text-center border shadow-sm my-5">

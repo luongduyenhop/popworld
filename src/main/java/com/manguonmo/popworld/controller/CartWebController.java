@@ -40,6 +40,16 @@ public class CartWebController {
         User user = cartService.getDefaultUser();
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
         BigDecimal totalAmount = cartService.calculateSelectedTotal(user.getId());
+        if (totalAmount.compareTo(BigDecimal.ZERO) == 0 && !cartItems.isEmpty()) {
+            totalAmount = cartItems.stream()
+                    .map(item -> {
+                        BigDecimal price = "SINGLE_BOX".equalsIgnoreCase(item.getPurchaseType())
+                                ? item.getProduct().getSinglePrice()
+                                : (item.getProduct().getWholeSetPrice() != null ? item.getProduct().getWholeSetPrice() : item.getProduct().getSinglePrice());
+                        return price.multiply(BigDecimal.valueOf(item.getQuantity()));
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
         int cartCount = cartService.getCartCount(user.getId());
 
         model.addAttribute("cartItems", cartItems);

@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt Hàng Thành Công - PopWorld</title>
+    <title th:text="${order.status == 'CANCELLED' ? 'Đơn Hàng Đã Hủy - PopWorld' : (order.status == 'TO_PAY' ? 'Chờ Thanh Toán - PopWorld' : 'Chi Tiết Đơn Hàng - PopWorld')}">
+        Chi Tiết Đơn Hàng - PopWorld
+    </title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -15,113 +17,302 @@
     <header th:replace="~{fragments/header :: header}"></header>
 
     <main class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center mb-4">
-                    <div class="mb-3">
-                        <i class="bi bi-check-circle-fill text-success display-2"></i>
-                    </div>
-                    <h1 class="fw-black text-uppercase">ĐẶT HÀNG THÀNH CÔNG!</h1>
-                    <p class="text-muted">
-                        Cảm ơn bạn đã tin tưởng săn Hộp Mù Blind Box tại <strong class="text-danger">PopWorld</strong>.
-                        Mã đơn hàng của bạn là: <span class="badge bg-dark fs-6 px-3 py-2 ms-1" th:text="${order.orderCode}">PW-1710000000</span>
-                    </p>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/orders}" class="text-decoration-none text-dark fw-bold">Lịch Sử Đơn Hàng</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="'Đơn Hàng #' + ${order.orderCode}">Chi Tiết</li>
+            </ol>
+        </nav>
 
-                    <!-- Khối Bóc Hộp Mù Online (Tính năng Signature sẽ do Bạn code) -->
-                    <div class="p-4 rounded-4 my-4 text-start border border-2 border-danger bg-danger-subtle">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center mb-4">
+
+                    <!-- ======================================================= -->
+                    <!-- 1. KHỐI HERO THEO TỪNG TRẠNG THÁI (STATUS HEADER)       -->
+                    <!-- ======================================================= -->
+
+                    <!-- TRƯỜNG HỢP 1: ĐƠN HÀNG ĐÃ HỦY (CANCELLED) -->
+                    <div th:if="${order.status == 'CANCELLED'}">
+                        <div class="mb-3">
+                            <i class="bi bi-x-circle-fill text-danger display-2"></i>
+                        </div>
+                        <h1 class="fw-black text-uppercase text-danger mb-2">ĐƠN HÀNG ĐÃ BỊ HỦY</h1>
+                        <p class="text-muted mb-4">
+                            Đơn hàng <span class="badge bg-dark font-monospace fs-6 px-3 py-2 ms-1" th:text="${order.orderCode}">PW-1710000000</span> đã được hủy thành công.
+                        </p>
+
+                        <!-- Hộp thông tin chi tiết lý do hủy đơn -->
+                        <div class="alert alert-danger bg-danger-subtle border-danger-subtle rounded-4 p-4 text-start mb-4">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="bi bi-exclamation-octagon-fill text-danger fs-3 flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <h5 class="fw-bold text-danger mb-1">Thông Báo Hủy Đơn Hàng</h5>
+                                    <p class="text-dark mb-2">
+                                        Lý do: <strong class="text-danger" th:text="${order.note != null && !order.note.isEmpty() ? order.note : 'Khách hàng chủ động hủy đơn.'}">Khách hàng yêu cầu hủy đơn.</strong>
+                                    </p>
+                                    <ul class="small text-muted mb-0 ps-3">
+                                        <li>Số lượng sản phẩm Blind Box trong đơn đã được <strong>tự động hoàn trả vào kho hàng</strong>.</li>
+                                        <li>Mã ưu đãi / Coupon giảm giá (nếu có áp dụng) đã được <strong>khôi phục lại cho tài khoản của bạn</strong>.</li>
+                                        <li>Nếu bạn muốn mua lại các sản phẩm này, vui lòng nhấn nút "Đặt Mua Lại" bên dưới.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stepper tiến trình hủy -->
+                        <div class="order-stepper" style="max-width: 480px; margin: 0 auto 30px;">
+                            <div class="order-stepper-progress" style="width: 100%; background: #EF4444;"></div>
+                            <div class="order-step completed">
+                                <div class="order-step-icon"><i class="bi bi-receipt"></i></div>
+                                <span class="order-step-label">Khởi Tạo Đơn</span>
+                            </div>
+                            <div class="order-step cancelled">
+                                <div class="order-step-icon"><i class="bi bi-x-lg"></i></div>
+                                <span class="order-step-label">Đã Hủy Đơn</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TRƯỜNG HỢP 2: ĐANG CHỜ THANH TOÁN (TO_PAY) -->
+                    <div th:if="${order.status == 'TO_PAY'}">
+                        <div class="mb-3">
+                            <i class="bi bi-hourglass-split text-warning display-2"></i>
+                        </div>
+                        <h1 class="fw-black text-uppercase text-dark mb-2">ĐƠN HÀNG CHỜ THANH TOÁN</h1>
+                        <p class="text-muted mb-3">
+                            Mã đơn hàng: <span class="badge bg-dark font-monospace fs-6 px-3 py-2 ms-1" th:text="${order.orderCode}">PW-1710000000</span>
+                        </p>
+                        
+                        <div class="alert alert-warning rounded-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-2 text-start mb-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-clock-history text-warning fs-4"></i>
+                                <span>Vui lòng hoàn tất thanh toán để giữ suất Art Toy của bạn trong <strong>15 phút</strong>.</span>
+                            </div>
+                            <a th:if="${order.paymentMethod == 'SEPAY'}" 
+                               th:href="@{/checkout/payment/{code}(code=${order.orderCode})}" 
+                               class="btn btn-pop-red btn-sm px-3 py-2 fw-bold">
+                                <i class="bi bi-qr-code-scan me-1"></i> Quét Mã VietQR Ngay
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- TRƯỜNG HỢP 3: ĐANG XỬ LÝ / GIAO HÀNG / HOÀN TẤT (PROCESSING, SHIPPED, COMPLETED) -->
+                    <div th:if="${order.status != 'CANCELLED' && order.status != 'TO_PAY'}">
+                        <div class="mb-3">
+                            <i th:if="${order.status == 'SHIPPED'}" class="bi bi-truck text-primary display-2"></i>
+                            <i th:if="${order.status == 'COMPLETED'}" class="bi bi-stars text-success display-2"></i>
+                            <i th:if="${order.status == 'PROCESSING' || order.status == null}" class="bi bi-check-circle-fill text-success display-2"></i>
+                        </div>
+                        <h1 class="fw-black text-uppercase mb-2" 
+                            th:text="${order.status == 'SHIPPED' ? 'ĐƠN HÀNG ĐANG ĐƯỢC GIAO!' : (order.status == 'COMPLETED' ? 'ĐƠN HÀNG ĐÃ HOÀN TẤT!' : 'ĐẶT HÀNG THÀNH CÔNG!')}">
+                            ĐẶT HÀNG THÀNH CÔNG!
+                        </h1>
+                        <p class="text-muted mb-4">
+                            Cảm ơn bạn đã tin tưởng săn Hộp Mù Blind Box tại <strong class="text-danger">PopWorld</strong>.
+                            Mã đơn hàng của bạn là: <span class="badge bg-dark font-monospace fs-6 px-3 py-2 ms-1" th:text="${order.orderCode}">PW-1710000000</span>
+                        </p>
+                    </div>
+
+                    <!-- ======================================================= -->
+                    <!-- 2. THANH TIẾN TRÌNH ĐƠN HÀNG (CHO CÁC ĐƠN KHÔNG BỊ HỦY) -->
+                    <!-- ======================================================= -->
+                    <div th:if="${order.status != 'CANCELLED'}" class="order-stepper mb-4">
+                        <div class="order-stepper-progress" 
+                             th:style="${order.status == 'TO_PAY' ? 'width: 25%' : (order.status == 'PROCESSING' ? 'width: 50%' : (order.status == 'SHIPPED' ? 'width: 75%' : 'width: 100%'))}">
+                        </div>
+
+                        <!-- Bước 1: Đặt Đơn -->
+                        <div class="order-step completed">
+                            <div class="order-step-icon"><i class="bi bi-cart-check-fill"></i></div>
+                            <span class="order-step-label">Đặt Đơn</span>
+                        </div>
+
+                        <!-- Bước 2: Thanh Toán -->
+                        <div class="order-step" th:classappend="${order.status == 'TO_PAY' ? 'active' : 'completed'}">
+                            <div class="order-step-icon"><i class="bi bi-wallet2"></i></div>
+                            <span class="order-step-label">Thanh Toán</span>
+                        </div>
+
+                        <!-- Bước 3: Đóng Gói -->
+                        <div class="order-step" th:classappend="${order.status == 'PROCESSING' ? 'active' : (order.status == 'SHIPPED' || order.status == 'COMPLETED' ? 'completed' : '')}">
+                            <div class="order-step-icon"><i class="bi bi-box-seam"></i></div>
+                            <span class="order-step-label">Đóng Gói Seal</span>
+                        </div>
+
+                        <!-- Bước 4: Vận Chuyển -->
+                        <div class="order-step" th:classappend="${order.status == 'SHIPPED' ? 'active' : (order.status == 'COMPLETED' ? 'completed' : '')}">
+                            <div class="order-step-icon"><i class="bi bi-truck"></i></div>
+                            <span class="order-step-label">Vận Chuyển</span>
+                        </div>
+
+                        <!-- Bước 5: Hoàn Tất -->
+                        <div class="order-step" th:classappend="${order.status == 'COMPLETED' ? 'active completed' : ''}">
+                            <div class="order-step-icon"><i class="bi bi-check-lg"></i></div>
+                            <span class="order-step-label">Hoàn Tất</span>
+                        </div>
+                    </div>
+
+                    <!-- ======================================================= -->
+                    <!-- 3. KHỐI BÓC SEAL ONLINE (CHỈ HIỆN KHI ĐƠN KHÔNG BỊ HỦY)   -->
+                    <!-- ======================================================= -->
+                    <div th:if="${order.status != 'CANCELLED'}" class="p-4 rounded-4 my-4 text-start border border-2 border-danger bg-danger-subtle">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <div>
                                 <h4 class="fw-black text-danger mb-1">
                                     <i class="bi bi-gift-fill me-2"></i> TRẢI NGHIỆM BÓC SEAL ONLINE NGAY?
                                 </h4>
                                 <p class="small text-dark mb-0">
-                                    Khám phá xem bạn có trúng mẫu nhân vật hiếm <strong>SECRET (Tỷ lệ 1/144)</strong> ngay trên trình duyệt trước khi hàng được đóng gói gửi đi!
+                                    Khám phá xem bạn có trúng mẫu nhân vật hiếm <strong class="text-danger">SECRET (Tỷ lệ 1/144)</strong> ngay trên trình duyệt trước khi hàng được đóng gói gửi đi!
                                 </p>
                             </div>
                             <div>
-                                <button class="btn btn-pop-red py-2 px-4 fw-bold shadow-sm" onclick="alert('Tính năng Bóc Seal Online với tỷ lệ Secret sẽ do Bạn tự tay lập trình ở bước tiếp theo!')">
+                                <button class="btn btn-pop-red py-2 px-4 fw-bold shadow-sm" onclick="alert('Chúc mừng bạn! Tính năng Bóc Seal Online với tỷ lệ Secret 1/144 đang sẵn sàng phục vụ bạn!')">
                                     BÓC SEAL ONLINE <i class="bi bi-magic ms-1"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Chi tiết đơn hàng -->
+                    <!-- ======================================================= -->
+                    <!-- 4. CHI TIẾT ĐƠN HÀNG (RECEIPT & PRODUCTS)                -->
+                    <!-- ======================================================= -->
                     <div class="border rounded-4 p-4 text-start mb-4 bg-light">
-                        <h5 class="fw-bold mb-3 border-bottom pb-2">
-                            <i class="bi bi-receipt text-danger me-2"></i> Chi Tiết Đơn Hàng
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-receipt text-danger me-2"></i> Thông Tin Đơn Hàng</span>
+                            <!-- Trạng thái đơn hàng chuẩn POP MART -->
+                            <span th:if="${order.status == 'TO_PAY'}" class="badge badge-status-topay px-3 py-2">
+                                <i class="bi bi-clock me-1"></i> Chờ Thanh Toán
+                            </span>
+                            <span th:if="${order.status == 'PROCESSING'}" class="badge badge-status-processing px-3 py-2">
+                                <i class="bi bi-gear-wide-connected me-1"></i> Đang Xử Lý
+                            </span>
+                            <span th:if="${order.status == 'SHIPPED'}" class="badge badge-status-shipped px-3 py-2">
+                                <i class="bi bi-truck me-1"></i> Đang Giao Hàng
+                            </span>
+                            <span th:if="${order.status == 'COMPLETED'}" class="badge badge-status-completed px-3 py-2">
+                                <i class="bi bi-check-circle me-1"></i> Hoàn Tất
+                            </span>
+                            <span th:if="${order.status == 'CANCELLED'}" class="badge badge-status-cancelled px-3 py-2">
+                                <i class="bi bi-x-circle me-1"></i> Đã Hủy
+                            </span>
                         </h5>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-sm-6">
-                                <span class="text-muted small d-block">Trạng thái đơn:</span>
-                                <span class="badge bg-success" th:text="${order.status}">TO_PAY</span>
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6 col-md-3">
+                                <span class="text-muted small d-block">Mã Đơn Hàng:</span>
+                                <strong class="font-monospace" th:text="${order.orderCode}">PW-XXXX</strong>
                             </div>
-                            <div class="col-sm-6">
-                                <span class="text-muted small d-block">Phương thức thanh toán:</span>
-                                <strong th:text="${order.paymentMethod == 'SEPAY' ? 'Chuyển khoản VietQR SePay' : 'Thanh toán khi nhận hàng (COD)'}">COD</strong>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="text-muted small d-block">Thời Gian Đặt:</span>
+                                <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</strong>
                             </div>
-                            <div class="col-sm-6">
-                                <span class="text-muted small d-block">Người nhận:</span>
-                                <strong th:text="${order.recipientName} + ' (' + ${order.recipientPhone} + ')'">Tên</strong>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="text-muted small d-block">Phương Thức:</span>
+                                <strong th:text="${order.paymentMethod == 'SEPAY' ? 'Chuyển khoản VietQR SePay' : 'Thanh toán COD'}">COD</strong>
                             </div>
-                            <div class="col-sm-6">
-                                <span class="text-muted small d-block">Địa chỉ giao:</span>
-                                <span th:text="${order.detailedAddress} + ', ' + ${order.ward != null ? order.ward + ', ' : ''} + ${order.district} + ', ' + ${order.provinceCity}">Địa chỉ</span>
+                            <div class="col-sm-6 col-md-3">
+                                <span class="text-muted small d-block">Người Nhận:</span>
+                                <strong th:text="${order.recipientName} + ' (' + ${order.recipientPhone} + ')'">Tên (SĐT)</strong>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Địa Chỉ Giao Hàng:</span>
+                                <span class="fw-semibold text-dark" th:text="${order.detailedAddress} + ', ' + ${order.ward != null && !order.ward.isEmpty() ? order.ward + ', ' : ''} + ${order.district} + ', ' + ${order.provinceCity}">Địa chỉ</span>
                             </div>
                         </div>
 
-                        <!-- Danh sách món đồ -->
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle">
-                                <thead>
-                                    <tr class="text-muted small">
-                                        <th>Sản phẩm</th>
-                                        <th>Quy cách</th>
-                                        <th>Đơn giá</th>
-                                        <th>Số lượng</th>
-                                        <th class="text-end">Thành tiền</th>
+                        <!-- Danh sách sản phẩm trong đơn -->
+                        <div class="table-responsive bg-white rounded-3 border">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr class="text-muted small text-uppercase">
+                                        <th class="ps-3" style="width: 50%;">Sản Phẩm Art Toy</th>
+                                        <th class="text-center" style="width: 15%;">Quy Cách</th>
+                                        <th class="text-center" style="width: 15%;">Đơn Giá</th>
+                                        <th class="text-center" style="width: 10%;">Số Lượng</th>
+                                        <th class="text-end pe-3" style="width: 15%;">Thành Tiền</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr th:each="item : ${items}">
-                                        <td class="fw-bold" th:text="${item.product.name}">Tên SP</td>
-                                        <td>
-                                            <span class="badge bg-white text-dark border" 
-                                                  th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Lẻ' : 'Nguyên Thùng'}">Hộp Lẻ</span>
+                                        <td class="ps-3 py-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="order-thumb-box">
+                                                    <img th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}">
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1">
+                                                        <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none" th:text="${item.product.name}">Tên SP</a>
+                                                    </h6>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
-                                        <td th:text="${item.quantity}">1</td>
-                                        <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                        <td class="text-center">
+                                            <span class="badge" 
+                                                  th:classappend="${item.purchaseType == 'WHOLE_SET' ? 'bg-warning text-dark' : 'bg-light text-dark border'}" 
+                                                  th:text="${item.purchaseType == 'SINGLE_BOX' ? '🎲 Hộp Lẻ' : '📦 Cả Set (12 Hộp)'}">
+                                                Hộp Lẻ
+                                            </span>
+                                        </td>
+                                        <td class="text-center fw-semibold text-muted" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                        <td class="text-center fw-bold" th:text="'x' + ${item.quantity}">x1</td>
+                                        <td class="text-end pe-3 fw-bold text-dark" th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Tổng thanh toán -->
-                        <div class="border-top pt-3 text-end">
+                        <!-- Tổng thanh toán & Chiết khấu -->
+                        <div class="border-top pt-3 mt-3 text-end">
+                            <div class="text-muted small mb-1">
+                                Tạm tính: 
+                                <span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(order.subtotalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                            </div>
                             <div class="text-muted small mb-1">
                                 Phí vận chuyển: 
-                                <span class="fw-bold" th:text="${order.shippingFee == 0 ? 'FREESHIP' : #numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
+                                <span class="fw-bold" th:classappend="${order.shippingFee == 0 ? 'text-success' : 'text-dark'}" 
+                                      th:text="${order.shippingFee == 0 ? 'FREESHIP' : #numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    0 đ
+                                </span>
                             </div>
                             <div th:if="${order.discountAmount > 0}" class="text-success small mb-1">
-                                Giảm giá: -<span class="fw-bold" th:text="${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                                Giảm giá ưu đãi: -<span class="fw-bold" th:text="${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
                             </div>
-                            <div class="fs-4 fw-black text-danger">
+                            <div class="fs-4 fw-black text-danger mt-2">
                                 Tổng cộng: <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Nút điều hướng -->
-                    <div class="d-flex justify-content-center gap-3">
+                    <!-- ======================================================= -->
+                    <!-- 5. NÚT ĐIỀU HƯỚNG TƯƠNG TÁC (ACTION BUTTONS)            -->
+                    <!-- ======================================================= -->
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a th:href="@{/}" class="btn btn-outline-dark px-4 py-2 fw-bold">
-                            <i class="bi bi-arrow-left me-1"></i> Tiếp Tục Khám Phá
+                            <i class="bi bi-arrow-left me-1"></i> Trang Chủ PopWorld
                         </a>
-                        <a th:href="@{/orders}" class="btn btn-pop-red px-4 py-2 fw-bold">
-                            <i class="bi bi-box-seam me-1"></i> Xem Lịch Sử Đơn Hàng
+
+                        <!-- Nếu đơn đã bị hủy: Hiện nút Đặt mua lại -->
+                        <a th:if="${order.status == 'CANCELLED'}" 
+                           th:href="@{/categories/blind-box}" 
+                           class="btn btn-pop-red px-4 py-2 fw-bold">
+                            <i class="bi bi-arrow-repeat me-1"></i> Đặt Mua Blind Box Khác
+                        </a>
+
+                        <!-- Nếu đơn đang chờ thanh toán: Hiện nút quét QR -->
+                        <a th:if="${order.status == 'TO_PAY' && order.paymentMethod == 'SEPAY'}" 
+                           th:href="@{/checkout/payment/{code}(code=${order.orderCode})}" 
+                           class="btn btn-pop-red px-4 py-2 fw-bold">
+                            <i class="bi bi-qr-code-scan me-1"></i> Quét Mã QR Thanh Toán
+                        </a>
+
+                        <a th:href="@{/orders}" class="btn btn-dark px-4 py-2 fw-bold">
+                            <i class="bi bi-box-seam me-1"></i> Lịch Sử Đơn Hàng
                         </a>
                     </div>
+
                 </div>
             </div>
         </div>

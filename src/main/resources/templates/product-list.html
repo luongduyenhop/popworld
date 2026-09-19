@@ -23,103 +23,120 @@
             </ol>
         </nav>
 
-        <!-- Page Header Banner -->
-        <div class="p-4 p-lg-5 mb-4 border-0 shadow-sm" 
-             style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
-            <div class="d-flex align-items-center gap-3">
-                <div th:if="${currentCharacter != null}">
-                    <img th:src="${currentCharacter.avatarUrl}" class="rounded-circle border border-3 border-danger shadow-sm" 
-                         width="80" height="80" style="object-fit: cover;">
+        <!-- POP MART US Pastel Collection Banner -->
+        <div class="pop-collection-banner-us mb-4">
+            <div class="doodle-accent-left d-none d-md-block">✦ ★</div>
+            <div class="doodle-accent-right d-none d-md-block">★ ✦</div>
+            <div class="banner-inner-card">
+                <div th:if="${currentCharacter != null}" class="mb-3 text-center">
+                    <img th:src="${currentCharacter.avatarUrl}" class="rounded-circle border border-3 border-white shadow" 
+                         width="84" height="84" style="object-fit: cover;">
                 </div>
-                <div>
-                    <span class="section-kicker mb-1">PopWorld Collection</span>
-                    <h1 class="fw-black text-uppercase mb-2" style="letter-spacing: -0.8px;" th:text="${pageTitle}">Danh Mục Sản Phẩm</h1>
-                    <p class="text-secondary mb-0" th:text="${pageDescription}">Khám phá toàn bộ thế giới Art Toy chính hãng</p>
+                <h1 class="fw-black text-uppercase mb-2 tracking-tight" style="font-size: 1.9rem; letter-spacing: -0.5px;" th:text="${pageTitle}">ALL PRODUCTS</h1>
+                <p class="text-secondary small mb-0" th:text="${pageDescription}">Khám phá toàn bộ vũ trụ Art Toy & Blind Box chính hãng</p>
+            </div>
+        </div>
+
+        <!-- Thanh Tabbar Danh Mục Ngang Chuẩn POP MART -->
+        <div class="pop-order-tabs-dock mb-3">
+            <a th:href="@{/products}" 
+               class="pop-tab-item"
+               th:classappend="${currentCategory == null && currentCharacter == null} ? 'active' : ''">
+                <i class="bi bi-grid-fill me-1"></i> Tất Cả Sản Phẩm
+            </a>
+            <a th:each="cat : ${categories}" 
+               th:href="@{'/categories/' + ${cat.slug}}" 
+               class="pop-tab-item"
+               th:classappend="${currentCategory != null && currentCategory.id == cat.id} ? 'active' : ''">
+                <span th:text="${cat.name}">Hộp Mù Blind Box</span>
+            </a>
+        </div>
+
+        <!-- Dải Lọc Nhân Vật IP Nhanh (Pill Chips) -->
+        <div class="d-flex align-items-center gap-2 overflow-x-auto pb-3 mb-4" style="scrollbar-width: none;">
+            <span class="small fw-bold text-secondary text-uppercase me-2 flex-shrink-0">
+                <i class="bi bi-stars text-danger me-1"></i> Theo Nhân Vật:
+            </span>
+            <a th:each="ip : ${characterIps}" 
+               th:href="@{'/characters/' + ${ip.id}}"
+               class="pop-tab-item py-1 px-3"
+               style="font-size: 0.82rem;"
+               th:classappend="${currentCharacter != null && currentCharacter.id == ip.id} ? 'active' : ''">
+                <img th:src="${ip.avatarUrl}" class="rounded-circle me-1 border" width="20" height="20" style="object-fit: cover;">
+                <span th:text="${ip.name}">Labubu</span>
+            </a>
+        </div>
+
+        <!-- Thanh Thống Kê & Lưới Sản Phẩm Cân Đối Toàn Trang -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-secondary fw-bold small">
+                Hiển thị <strong class="text-dark" th:text="${products.size()}">0</strong> chiến lợi phẩm Art Toy
+            </span>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${products.isEmpty()}" class="p-5 text-center border-0 shadow-sm my-4"
+             style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
+            <div class="display-1 text-muted mb-3"><i class="bi bi-box2"></i></div>
+            <h4 class="fw-bold">Chưa tìm thấy sản phẩm phù hợp</h4>
+            <p class="text-secondary">Rất tiếc, hiện tại danh mục này chưa có sản phẩm hoặc từ khóa không khớp.</p>
+            <a th:href="@{/}" class="btn btn-pop-red mt-2">Quay Lại Trang Chủ</a>
+        </div>
+
+        <!-- Skeleton Product Grid (Vệt sáng nghiêng 15 độ chuẩn POP MART) -->
+        <div id="productsSkeletonGrid" class="row g-4 mb-4" style="display: none;">
+            <div class="col-6 col-md-4 col-lg-3" th:each="i : ${#numbers.sequence(1, 4)}">
+                <div class="pop-skeleton-card p-0 rounded-4 overflow-hidden border shadow-sm h-100">
+                    <div class="pop-skeleton-box" style="width: 100%; padding-top: 100%; border-radius: 0;"></div>
+                    <div class="p-3">
+                        <div class="pop-skeleton-pill mb-2" style="width: 45%; height: 12px;"></div>
+                        <div class="pop-skeleton-pill mb-2" style="width: 85%; height: 18px;"></div>
+                        <div class="pop-skeleton-pill mb-3" style="width: 60%; height: 18px;"></div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="pop-skeleton-pill" style="width: 50%; height: 20px;"></div>
+                            <div class="pop-skeleton-pill" style="width: 35%; height: 16px;"></div>
+                        </div>
+                        <div class="pop-skeleton-pill w-100" style="height: 38px; border-radius: 50px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Sidebar Bộ Lọc -->
-            <aside class="col-lg-3 category-sidebar-col" style="position: -webkit-sticky; position: sticky; top: 110px; align-self: flex-start; z-index: 100;">
-                <div class="p-4 border-0 shadow-sm" 
-                     style="background: #FFFFFF; border-radius: var(--pop-radius-lg); box-shadow: var(--pop-shadow-card);">
-                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom" style="font-size: 0.95rem;">Danh Mục</h5>
-                    <ul class="list-unstyled mb-4 d-flex flex-column gap-1">
-                        <li th:each="cat : ${categories}">
-                            <a th:href="@{'/categories/' + ${cat.slug}}" 
-                               class="d-flex justify-content-between align-items-center text-decoration-none fw-semibold py-2 px-3 rounded-pill transition-all"
-                               th:classappend="${currentCategory != null && currentCategory.id == cat.id} ? 'bg-danger text-white shadow-sm' : 'text-dark bg-light'">
-                                <span th:text="${cat.name}">Hộp Mù Blind Box</span>
-                                <i class="bi bi-chevron-right small opacity-75"></i>
-                            </a>
-                        </li>
-                    </ul>
-
-                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom" style="font-size: 0.95rem;">Nhân Vật IP</h5>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a th:each="ip : ${characterIps}" th:href="@{'/characters/' + ${ip.id}}"
-                           class="badge text-decoration-none py-2 px-3 rounded-pill fw-bold"
-                           th:classappend="${currentCharacter != null && currentCharacter.id == ip.id} ? 'bg-danger text-white shadow-sm' : 'bg-light text-dark'">
-                            <span th:text="${ip.name}">Labubu</span>
-                        </a>
+        <!-- Grid Cards 4 Cột Cân Đối Hoàn Hảo (col-6 col-md-4 col-lg-3) -->
+        <div class="row g-4" id="mainProductGrid" th:if="${!products.isEmpty()}">
+            <div class="col-6 col-md-4 col-lg-3" th:each="p : ${products}">
+                <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
+                    <div class="pop-product-img-box">
+                        <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
+                        <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
+                            <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
+                        </span>
+                        <span class="badge-pop-new" th:if="${p.isNewRelease}">NEW</span>
+                        <span class="badge-pop-hot" th:if="${p.isFeatured && !p.isNewRelease}">HOT</span>
                     </div>
-                </div>
-            </aside>
 
-            <!-- Lưới Sản Phẩm -->
-            <section class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-secondary fw-bold small">
-                        Hiển thị <span class="text-dark" th:text="${products.size()}">0</span> sản phẩm
-                    </span>
-                </div>
+                    <div class="pop-card-body">
+                        <span class="badge-series-tag" 
+                              th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
+                        <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
 
-                <!-- Empty State -->
-                <div th:if="${products.isEmpty()}" class="p-5 text-center border-0 shadow-sm"
-                     style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
-                    <div class="display-1 text-muted mb-3"><i class="bi bi-box2"></i></div>
-                    <h4 class="fw-bold">Chưa tìm thấy sản phẩm phù hợp</h4>
-                    <p class="text-secondary">Rất tiếc, hiện tại danh mục này chưa có sản phẩm hoặc từ khóa không khớp.</p>
-                    <a th:href="@{/}" class="btn btn-pop-red mt-2">Quay Lại Trang Chủ</a>
-                </div>
-
-                <!-- Grid Cards -->
-                <div class="row g-4" th:if="${!products.isEmpty()}">
-                    <div class="col-6 col-md-4" th:each="p : ${products}">
-                        <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
-                            <div class="pop-product-img-box">
-                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                                <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
-                                    <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
-                                </span>
-                                <span class="badge-new-drop" th:if="${p.isNewRelease}">NEW</span>
+                        <div class="pop-pricing-box">
+                            <div>
+                                <span class="single-box-price"
+                                      th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
                             </div>
-
-                            <div class="pop-card-body">
-                                <span class="badge-series-tag" 
-                                      th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
-                                <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
-
-                                <div class="pop-pricing-box">
-                                    <div>
-                                        <span class="single-box-price"
-                                              th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
-                                    </div>
-                                    <div th:if="${p.wholeSetPrice != null}">
-                                        <span class="whole-set-pill"
-                                              th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
-                                    </div>
-                                </div>
-
-                                <div class="pop-quick-action">
-                                    <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
-                                </div>
+                            <div th:if="${p.wholeSetPrice != null}">
+                                <span class="whole-set-pill"
+                                      th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
                             </div>
+                        </div>
+
+                        <div class="pop-quick-action">
+                            <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
         </div>
     </main>
 
@@ -127,5 +144,20 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Hiệu ứng chuyển cảnh Skeleton khi bấm chuyển Tab danh mục hoặc IP nhân vật
+        document.querySelectorAll('.pop-tab-item').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') && !this.classList.contains('active')) {
+                    const grid = document.getElementById('mainProductGrid');
+                    const skel = document.getElementById('productsSkeletonGrid');
+                    if (grid && skel) {
+                        grid.style.display = 'none';
+                        skel.style.display = 'flex';
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

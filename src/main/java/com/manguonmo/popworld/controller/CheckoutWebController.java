@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller điều phối luồng Thanh toán (Checkout), VietQR SePay, và Quản lý Đơn hàng.
@@ -203,8 +204,13 @@ public class CheckoutWebController {
         User user = cartService.getDefaultUser();
         List<Order> orders = orderService.getOrdersByUser(user.getId());
 
+        // Lấy danh sách sản phẩm cho từng đơn hàng để hiển thị ảnh thumbnail và thông tin chi tiết
+        Map<Long, List<OrderItem>> orderItemsMap = orders.stream()
+                .collect(Collectors.toMap(Order::getId, order -> orderItemRepository.findByOrderId(order.getId()), (a, b) -> a));
+
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
+        model.addAttribute("orderItemsMap", orderItemsMap);
 
         return "my-orders";
     }

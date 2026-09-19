@@ -46,6 +46,17 @@ public class ProductWebController {
         }
     }
 
+    @GetMapping("/products")
+    public String allProducts(Model model) {
+        addCommonAttributes(model);
+        List<Product> products = productService.getAllActiveProducts();
+        model.addAttribute("products", products);
+        model.addAttribute("currentCategory", null);
+        model.addAttribute("pageTitle", "Tất Cả Sản Phẩm POP MART");
+        model.addAttribute("pageDescription", "Khám phá toàn bộ bộ sưu tập Art Toys & Blind Box chính hãng");
+        return "product-list";
+    }
+
     @GetMapping("/products/{slug}")
     public String productDetail(@PathVariable String slug, Model model) {
         addCommonAttributes(model);
