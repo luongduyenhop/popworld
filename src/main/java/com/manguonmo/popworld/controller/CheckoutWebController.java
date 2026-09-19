@@ -208,4 +208,17 @@ public class CheckoutWebController {
 
         return "my-orders";
     }
+    @PostMapping("/orders/{orderCode}/cancel")
+    public String cancelOrder(@PathVariable String orderCode,
+                              @RequestParam(required = false, defaultValue = "") String reason,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            User user = cartService.getDefaultUser();
+            orderService.cancelOrder(user.getId(), orderCode, reason);
+            redirectAttributes.addFlashAttribute("successMessage", "Hủy đơn hàng " + orderCode + " thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hủy đơn hàng thất bại: " + e.getMessage());
+        }
+        return "redirect:/orders";
+    }
 }

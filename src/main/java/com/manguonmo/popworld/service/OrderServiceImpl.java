@@ -49,8 +49,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public Order createOrder(Long userId, String recipientName, String recipientPhone,
-                            String provinceCity, String district, String ward,
-                            String detailedAddress, String paymentMethod, String couponCode) {
+                             String provinceCity, String district, String ward,
+                             String detailedAddress, String paymentMethod, String couponCode) {
 
         // =========================================================================
         // BƯỚC 1: Tìm thông tin người dùng trong CSDL bằng UserRepository
@@ -93,9 +93,9 @@ public class OrderServiceImpl implements OrderService {
             }
             // Cộng dồn tiền: subtotal = subtotal.add(...) vì BigDecimal là Immutable (bất biến)
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
-            int updateRows = productRepository.updateStock(cart.getProduct().getId(),quantity);
+            int updateRows = productRepository.updateStock(cart.getProduct().getId(), quantity);
 
-            if (updateRows == 0){
+            if (updateRows == 0) {
                 throw new OutOfStockException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
             }
         }
@@ -120,9 +120,9 @@ public class OrderServiceImpl implements OrderService {
         Coupon appliedCoupon = null;
 
         if (couponCode != null && !couponCode.trim().isEmpty()) {
-           CouponDiscountResponse couponDiscountResponse = couponService.calculateDiscount(couponCode,userId,subtotal);
-           discount = couponDiscountResponse.getDiscountAmount();
-           appliedCoupon = couponService.applyCoupon(couponCode,userId,subtotal);
+            CouponDiscountResponse couponDiscountResponse = couponService.calculateDiscount(couponCode, userId, subtotal);
+            discount = couponDiscountResponse.getDiscountAmount();
+            appliedCoupon = couponService.applyCoupon(couponCode, userId, subtotal);
         }
 
         // =========================================================================
@@ -220,5 +220,42 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> getOrdersByUser(Long userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    @Transactional
+    public Order cancelOrder(Long userId, String orderCode, String reason) {
+        Order order = orderRepository.findByOrderCode(orderCode).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy đơn hàng này")
+        );
+
+        if(order.getUser() == null || !order.getUser().getId().equals(userId)){
+            throw  new BadRequestException("Bạn không có quyền hủy đơn hàng này!");
+        }
+        String orderStatus = order.getStatus();
+        if (!List.of("TO_PAY", "PROCESSING").contains(orderStatus)) {
+            throw new BadRequestException("Đơn hàng đã được bàn giao cho đơn vị vận chuyển không thể hủy");
+        }
+        List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
+        if(!itemList.isEmpty()){
+            for (OrderItem item: itemList){
+                int quantityToRestore = "SINGLE_BOX".equalsIgnoreCase(item.getPurchaseType())
+                        ? item.getQuantity()
+                        : item.getQuantity() * 12;
+                productRepository.addStock(item.getProduct().getId(), quantityToRestore);
+
+            }
+        }
+        if(order.getCoupon() != null){
+            couponService.releaseCoupon(order.getCoupon().getId(),userId);
+        }
+        order.setStatus("CANCELLED");
+        String cancelNote = (reason != null && !reason.trim().isEmpty())
+                ? "Khách hàng hủy đơn: " + reason.trim()
+                : "Khách hàng chủ động hủy đơn.";
+        order.setNote(cancelNote);
+        orderRepository.save(order);
+
+        return order;
     }
 }

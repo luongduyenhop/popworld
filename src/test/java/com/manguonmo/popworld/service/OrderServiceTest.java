@@ -377,5 +377,104 @@ class OrderServiceTest {
         assertTrue(ex.getMessage().contains("đã hết hàng hoặc không đủ số lượng tồn kho"));
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    // =========================================================================
+    // NHÓM TEST: cancelOrder (Hủy đơn hàng chủ động bởi người dùng)
+    // =========================================================================
+
+    @Test
+    @DisplayName("Hủy đơn hàng thành công: Hoàn kho, hoàn mã coupon và chuyển status sang CANCELLED")
+    void cancelOrder_Success_RestoresStockAndReleasesCoupon() {
+        // --- 1. ARRANGE ---
+        Coupon coupon = Coupon.builder().id(99L).code("POP10").build();
+        Order order = Order.builder()
+                .id(100L)
+                .orderCode("PW-100")
+                .user(sampleUser) // id = 1L
+                .status("PROCESSING")
+                .coupon(coupon)
+                .build();
+
+        Product prod1 = Product.builder().id(101L).name("Hirono Box").build();
+        Product prod2 = Product.builder().id(102L).name("Skullpanda Set").build();
+
+        OrderItem item1 = OrderItem.builder().id(1L).product(prod1).purchaseType("SINGLE_BOX").quantity(2).build();
+        OrderItem item2 = OrderItem.builder().id(2L).product(prod2).purchaseType("WHOLE_SET").quantity(1).build();
+
+        when(orderRepository.findByOrderCode("PW-100")).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item1, item2));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // --- 2. ACT ---
+        Order cancelledOrder = orderService.cancelOrder(1L, "PW-100", "Đổi ý không mua nữa");
+
+        // --- 3. ASSERT ---
+        assertEquals("CANCELLED", cancelledOrder.getStatus());
+        assertTrue(cancelledOrder.getNote().contains("Đổi ý không mua nữa"));
+
+        // Hoàn kho SINGLE_BOX (2 hộp lẻ)
+        verify(productRepository, times(1)).addStock(101L, 2);
+        // Hoàn kho WHOLE_SET (1 set = 12 hộp lẻ)
+        verify(productRepository, times(1)).addStock(102L, 12);
+        // Hoàn mã coupon
+        verify(couponService, times(1)).releaseCoupon(99L, 1L);
+        // Lưu lại đơn hàng
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    @DisplayName("Hủy đơn hàng thất bại: Ném ResourceNotFoundException khi không tìm thấy mã đơn")
+    void cancelOrder_ThrowsResourceNotFoundException_WhenOrderNotFound() {
+        when(orderRepository.findByOrderCode("PW-UNKNOWN")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                orderService.cancelOrder(1L, "PW-UNKNOWN", "Lý do")
+        );
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+        verify(couponService, never()).releaseCoupon(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("Hủy đơn hàng thất bại: Chống IDOR - Ném BadRequestException khi User không sở hữu đơn")
+    void cancelOrder_ThrowsBadRequestException_WhenUserNotOwner() {
+        User otherUser = User.builder().id(2L).fullName("User Khác").build();
+        Order order = Order.builder()
+                .id(101L)
+                .orderCode("PW-101")
+                .user(otherUser) // Đơn thuộc user 2
+                .status("PROCESSING")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-101")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-101", "Cố tình hủy trộm đơn")
+        );
+
+        assertTrue(ex.getMessage().contains("Bạn không có quyền hủy đơn hàng này"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("Hủy đơn hàng thất bại: Ném BadRequestException khi đơn đã giao (SHIPPED) hoặc hoàn tất (COMPLETED)")
+    void cancelOrder_ThrowsBadRequestException_WhenOrderStatusInvalid() {
+        Order shippedOrder = Order.builder()
+                .id(102L)
+                .orderCode("PW-102")
+                .user(sampleUser)
+                .status("SHIPPED") // Đang giao hàng
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-102")).thenReturn(Optional.of(shippedOrder));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-102", "Đơn đã đi giao rồi")
+        );
+
+        assertTrue(ex.getMessage().contains("không thể hủy"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
 

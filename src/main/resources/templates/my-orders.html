@@ -32,6 +32,18 @@
             </span>
         </div>
 
+        <!-- Thông báo thành công hoặc lỗi -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">Thông báo thành công</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">Thông báo lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <!-- Trạng thái chưa có đơn hàng nào -->
         <div th:if="${orders == null || orders.isEmpty()}" class="bg-white rounded-4 p-5 text-center border shadow-sm my-5">
             <div class="display-1 text-muted mb-3"><i class="bi bi-inbox"></i></div>
@@ -89,6 +101,9 @@
                                     Phương thức: 
                                     <span class="fw-bold" th:text="${order.paymentMethod == 'SEPAY' ? 'Chuyển khoản VietQR SePay' : 'Thanh toán khi nhận hàng (COD)'}">COD</span>
                                 </div>
+                                <div th:if="${order.status == 'CANCELLED' && order.note != null}" class="text-danger small mt-2">
+                                    <i class="bi bi-info-circle-fill me-1"></i> <span th:text="${order.note}">Lý do hủy đơn</span>
+                                </div>
                             </div>
 
                             <div class="col-md-5 text-md-end mt-3 mt-md-0">
@@ -98,18 +113,67 @@
                                     0 đ
                                 </div>
 
-                                <div>
+                                <div class="d-flex justify-content-md-end gap-2 flex-wrap">
                                     <!-- Nút Thanh toán ngay nếu là SePay và đang TO_PAY -->
                                     <a th:if="${order.status == 'TO_PAY' && order.paymentMethod == 'SEPAY'}" 
                                        th:href="@{/checkout/payment/{code}(code=${order.orderCode})}" 
-                                       class="btn btn-danger btn-sm px-3 py-2 fw-bold me-2 shadow-sm">
+                                       class="btn btn-danger btn-sm px-3 py-2 fw-bold shadow-sm">
                                         <i class="bi bi-qr-code me-1"></i> Quét Mã QR Ngay
                                     </a>
+
+                                    <!-- Nút Hủy Đơn Hàng (chỉ hiện khi TO_PAY hoặc PROCESSING) -->
+                                    <button th:if="${order.status == 'TO_PAY' || order.status == 'PROCESSING'}" 
+                                            type="button" 
+                                            class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold"
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#cancelOrderModal-' + ${order.orderCode}">
+                                        <i class="bi bi-x-circle me-1"></i> Hủy Đơn
+                                    </button>
 
                                     <a th:href="@{/checkout/success/{code}(code=${order.orderCode})}" 
                                        class="btn btn-outline-dark btn-sm px-3 py-2">
                                         Xem Chi Tiết
                                     </a>
+                                </div>
+
+                                <!-- Modal Xác Nhận Hủy Đơn Hàng -->
+                                <div th:if="${order.status == 'TO_PAY' || order.status == 'PROCESSING'}" 
+                                     class="modal fade text-start" 
+                                     th:id="'cancelOrderModal-' + ${order.orderCode}" 
+                                     tabindex="-1" 
+                                     aria-labelledby="cancelModalLabel" 
+                                     aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <form th:action="@{/orders/{code}/cancel(code=${order.orderCode})}" method="post">
+                                                <div class="modal-header border-bottom-0 pb-0">
+                                                    <h5 class="modal-title fw-bold text-danger" id="cancelModalLabel">
+                                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Xác Nhận Hủy Đơn Hàng
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body py-3">
+                                                    <p class="mb-2">Bạn có chắc chắn muốn hủy đơn hàng <strong class="font-monospace text-dark" th:text="${order.orderCode}">PW-XXXX</strong> không?</p>
+                                                    <div class="alert alert-warning small py-2 px-3 rounded-3 mb-3">
+                                                        <i class="bi bi-info-circle-fill me-1"></i> Số lượng sản phẩm sẽ được tự động hoàn lại vào kho và mã giảm giá (nếu có) sẽ được hoàn trả cho bạn.
+                                                    </div>
+                                                    <label class="form-label fw-bold small text-muted">Lý do hủy đơn:</label>
+                                                    <select class="form-select rounded-3 mb-2" name="reason">
+                                                        <option value="Đổi ý không muốn mua nữa">Đổi ý không muốn mua nữa</option>
+                                                        <option value="Đặt nhầm sản phẩm / số lượng">Đặt nhầm sản phẩm / số lượng</option>
+                                                        <option value="Muốn thay đổi thông tin nhận hàng / SĐT">Muốn thay đổi thông tin nhận hàng / SĐT</option>
+                                                        <option value="Muốn áp dụng mã giảm giá khác">Muốn áp dụng mã giảm giá khác</option>
+                                                        <option value="Tìm thấy sản phẩm khác ưng ý hơn">Tìm thấy sản phẩm khác ưng ý hơn</option>
+                                                        <option value="Lý do khác">Lý do khác</option>
+                                                    </select>
+                                                </div>
+                                                <div class="modal-footer border-top-0 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                                                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Hủy</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
