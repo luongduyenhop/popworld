@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Quản Lý Khách Hàng')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#customersContent}, 'Khách Hàng & Thành Viên PopWorld', 'customers')}">
+    <div id="customersContent">
+        <!-- ========================================================================= -->
+        <!-- 1. STATS OVERVIEW CARDS                                                   -->
+        <!-- ========================================================================= -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Tổng Số Khách Hàng</div>
+                        <div class="admin-stat-number fs-3" th:text="${totalCustomers}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Thành Viên VIP Collector</div>
+                        <div class="admin-stat-number fs-3 text-warning" th:text="${vipCount}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-amber" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Thành Viên Thường (Member)</div>
+                        <div class="admin-stat-number fs-3" th:text="${memberCount}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. CUSTOMERS DATA TABLE                                                   -->
+        <!-- ========================================================================= -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div>
+                    <h6 class="mb-0 fw-bold">Danh Sách Tài Khoản Người Dùng</h6>
+                    <small class="text-muted">Quản lý thứ hạng VIP và điểm thưởng tích lũy khi mua Art Toy</small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Khách Hàng</th>
+                            <th>Email</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Hạng Thành Viên</th>
+                            <th>Điểm Tích Lũy</th>
+                            <th>Vai Trò</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${customers == null or customers.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 d-block mb-2 text-secondary"></i>
+                                Chưa có khách hàng nào trong hệ thống.
+                            </td>
+                        </tr>
+                        <tr th:each="cust : ${customers}">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-light border text-dark fw-bold d-flex align-items-center justify-content-center" 
+                                         style="width: 38px; height: 38px;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark" th:text="${cust.fullName}">Nguyễn Văn A</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-secondary" th:text="${cust.email}">user@popworld.com</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-dark" th:text="${cust.phone != null ? cust.phone : 'Chưa cập nhật'}">0912345678</span>
+                            </td>
+                            <td>
+                                <span th:if="${cust.membershipTier == 'VIP'}" 
+                                      class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
+                                    <i class="bi bi-star-fill me-1"></i> VIP Member
+                                </span>
+                                <span th:unless="${cust.membershipTier == 'VIP'}" 
+                                      class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                                    Member
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-black text-danger fs-6" th:text="${cust.rewardPoints != null ? cust.rewardPoints : 0} + ' pts'">
+                                    0 pts
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${cust.role == 'ROLE_ADMIN'}" class="badge bg-dark rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                    Admin
+                                </span>
+                                <span th:unless="${cust.role == 'ROLE_ADMIN'}" class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                    User
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${cust.enabled}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                    Hoạt động
+                                </span>
+                                <span th:unless="${cust.enabled}" class="badge bg-danger-subtle text-danger border rounded-pill px-3 py-1">
+                                    Bị khóa
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

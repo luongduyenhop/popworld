@@ -1,0 +1,474 @@
+/* ==========================================================================
+   POPWORLD ADMIN PORTAL - POP MART INSPIRED LUXURY DESIGN SYSTEM
+   Designed with Authentic POP MART Design DNA (Obsidian Black, Signature Red, Crisp Minimalist)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    --admin-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --admin-sidebar-bg: #111113;
+    --admin-sidebar-hover: rgba(255, 255, 255, 0.07);
+    --admin-sidebar-border: rgba(255, 255, 255, 0.08);
+    --admin-sidebar-text: #9CA3AF;
+    --admin-sidebar-active-text: #FFFFFF;
+    
+    --pop-red: #D1001F;
+    --pop-red-hover: #b00019;
+    --pop-red-subtle: rgba(209, 0, 31, 0.08);
+    
+    --admin-body-bg: #F8F9FA;
+    --admin-card-bg: #FFFFFF;
+    --admin-border-subtle: rgba(0, 0, 0, 0.06);
+    --admin-border-hover: rgba(0, 0, 0, 0.12);
+    
+    --admin-text-main: #141416;
+    --admin-text-muted: #64748B;
+    
+    --admin-radius-sm: 8px;
+    --admin-radius-md: 14px;
+    --admin-radius-lg: 20px;
+    --admin-radius-pill: 9999px;
+}
+
+body.admin-body {
+    font-family: var(--admin-font);
+    background-color: var(--admin-body-bg);
+    color: var(--admin-text-main);
+    letter-spacing: -0.015em;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* ==========================================================================
+   ADMIN LAYOUT STRUCTURE (SIDEBAR + MAIN CONTENT)
+   ========================================================================== */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.admin-sidebar {
+    width: 270px;
+    background-color: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--admin-sidebar-border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.admin-sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--admin-sidebar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-nav-group {
+    padding: 16px 14px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.admin-nav-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6B7280;
+    padding: 12px 14px 6px;
+    margin: 0;
+}
+
+.admin-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: var(--admin-radius-md);
+    color: var(--admin-sidebar-text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 4px;
+}
+
+.admin-nav-link i {
+    font-size: 1.15rem;
+    transition: transform 0.2s ease;
+}
+
+.admin-nav-link:hover {
+    background-color: var(--admin-sidebar-hover);
+    color: var(--admin-sidebar-active-text);
+    transform: translateX(3px);
+}
+
+.admin-nav-link.active {
+    background-color: var(--pop-red);
+    color: #FFFFFF;
+    box-shadow: 0 4px 18px rgba(209, 0, 31, 0.35);
+}
+
+.admin-nav-badge {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: var(--admin-radius-pill);
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+}
+
+.admin-nav-link.active .admin-nav-badge {
+    background: #FFFFFF;
+    color: var(--pop-red);
+}
+
+.admin-sidebar-footer {
+    padding: 18px 20px;
+    border-top: 1px solid var(--admin-sidebar-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   ADMIN MAIN AREA & TOPBAR
+   ========================================================================== */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background-color: var(--admin-body-bg);
+}
+
+.admin-topbar {
+    height: 70px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--admin-border-subtle);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 990;
+}
+
+.admin-content {
+    padding: 32px;
+    flex: 1;
+}
+
+.btn-store-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--admin-radius-pill);
+    border: 1px solid var(--admin-border-subtle);
+    background: #FFFFFF;
+    color: var(--admin-text-main);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-store-preview:hover {
+    border-color: #111113;
+    background: #111113;
+    color: #FFFFFF;
+}
+
+/* ==========================================================================
+   STAT KPI CARDS (LUXURY POP MART STYLE)
+   ========================================================================== */
+.admin-stat-card {
+    background: #FFFFFF;
+    border-radius: var(--admin-radius-lg);
+    border: 1px solid var(--admin-border-subtle);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+    border-color: rgba(209, 0, 31, 0.15);
+}
+
+.admin-stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.admin-stat-icon.icon-red {
+    background: rgba(209, 0, 31, 0.08);
+    color: var(--pop-red);
+}
+
+.admin-stat-icon.icon-amber {
+    background: rgba(245, 158, 11, 0.1);
+    color: #D97706;
+}
+
+.admin-stat-icon.icon-blue {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563EB;
+}
+
+.admin-stat-icon.icon-green {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.admin-stat-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--admin-text-muted);
+    margin-bottom: 6px;
+}
+
+.admin-stat-number {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--admin-text-main);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   DATA TABLES (CLEAN LUXURY EDITORIAL)
+   ========================================================================== */
+.admin-card {
+    background: #FFFFFF;
+    border-radius: var(--admin-radius-lg);
+    border: 1px solid var(--admin-border-subtle);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+}
+
+.admin-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--admin-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFFFF;
+}
+
+.admin-table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.admin-table thead th {
+    background: #F8F9FA;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748B;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--admin-border-subtle);
+    border-top: none;
+}
+
+.admin-table tbody td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--admin-border-subtle);
+    font-size: 0.9rem;
+}
+
+.admin-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #FAFAFB;
+}
+
+/* ==========================================================================
+   POP MART STATUS PILL BADGES
+   ========================================================================== */
+.badge-status {
+    padding: 5px 12px;
+    border-radius: var(--admin-radius-pill);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1.2;
+}
+
+.badge-status-topay {
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.badge-status-processing {
+    background: #DBEAFE;
+    color: #1E40AF;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.badge-status-shipped {
+    background: #EDE9FE;
+    color: #5B21B6;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.badge-status-completed {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.badge-status-cancelled {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Action Buttons */
+.btn-action-pill {
+    padding: 6px 14px;
+    border-radius: var(--admin-radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-action-ship {
+    background: #1E40AF;
+    color: #FFFFFF;
+}
+.btn-action-ship:hover {
+    background: #1D4ED8;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.btn-action-complete {
+    background: #166534;
+    color: #FFFFFF;
+}
+.btn-action-complete:hover {
+    background: #15803D;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+}
+
+.btn-action-detail {
+    background: #F1F5F9;
+    color: #334155;
+}
+.btn-action-detail:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+}
+
+/* Filter Tab Pills */
+.admin-tab-item {
+    padding: 8px 16px;
+    border-radius: var(--admin-radius-pill);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--admin-text-muted);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid var(--admin-border-subtle);
+}
+
+.admin-tab-item:hover {
+    color: var(--admin-text-main);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.admin-tab-item.active {
+    background: #111113;
+    color: #FFFFFF;
+    border-color: #111113;
+    box-shadow: 0 4px 12px rgba(17, 17, 19, 0.2);
+}
+
+.admin-tab-count {
+    padding: 2px 7px;
+    border-radius: var(--admin-radius-pill);
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.admin-tab-item.active .admin-tab-count {
+    background: var(--pop-red);
+    color: #FFFFFF;
+}
+
+/* Thumbnail */
+.admin-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #F3F4F6;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Responsive Mobile */
+@media (max-width: 991px) {
+    .admin-sidebar {
+        position: fixed;
+        left: -270px;
+    }
+    .admin-sidebar.show {
+        left: 0;
+    }
+    .admin-topbar {
+        padding: 0 16px;
+    }
+    .admin-content {
+        padding: 16px;
+    }
+}

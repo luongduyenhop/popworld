@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Quản Lý Kho Hàng Art Toy')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#productsContent}, 'Kho Hàng Art Toy & Hộp Mù', 'products')}">
+    <div id="productsContent">
+        <!-- ========================================================================= -->
+        <!-- 1. STATS OVERVIEW CARDS                                                   -->
+        <!-- ========================================================================= -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Tổng Số Mẫu Art Toy</div>
+                        <div class="admin-stat-number fs-3" th:text="${totalCount}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-box-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Đang Mở Bán Online</div>
+                        <div class="admin-stat-number fs-3 text-success" th:text="${activeCount}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Cảnh Báo Sắp Hết Hàng</div>
+                        <div class="admin-stat-number fs-3 text-danger" th:text="${lowStockCount}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-red" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. FILTER & SEARCH DOCK                                                   -->
+        <!-- ========================================================================= -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a th:href="@{/admin/products}" class="admin-tab-item"
+                   th:classappend="${selectedCategoryId == null ? 'active' : ''}">
+                    Tất Cả Danh Mục
+                </a>
+                <a th:each="cat : ${categories}" 
+                   th:href="@{/admin/products(categoryId=${cat.id})}" 
+                   class="admin-tab-item"
+                   th:classappend="${selectedCategoryId == cat.id ? 'active' : ''}"
+                   th:text="${cat.name}">
+                    Hộp Mù
+                </a>
+            </div>
+
+            <!-- Search -->
+            <form th:action="@{/admin/products}" method="get" class="d-flex align-items-center gap-2" style="min-width: 280px;">
+                <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}">
+                <div class="input-group">
+                    <input type="search" name="keyword" class="form-control rounded-pill-start border-end-0 px-3" 
+                           placeholder="Tìm tên mô hình..." th:value="${keyword}">
+                    <button class="btn btn-dark rounded-pill-end px-3" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/products}" 
+                   class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </form>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 3. PRODUCTS DATA TABLE                                                    -->
+        <!-- ========================================================================= -->
+        <div class="admin-card">
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Sản Phẩm Art Toy</th>
+                            <th>Danh Mục / IP</th>
+                            <th>Giá Hộp Lẻ</th>
+                            <th>Giá Nguyên Set</th>
+                            <th>Tồn Kho (Hộp)</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-end">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${products == null or products.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-box2 fs-1 d-block mb-2 text-secondary"></i>
+                                Không tìm thấy sản phẩm nào trong kho.
+                            </td>
+                        </tr>
+                        <tr th:each="product : ${products}">
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="${product.mainImageUrl}" class="admin-thumb" alt="Product">
+                                    <div>
+                                        <div class="fw-bold text-dark" th:text="${product.name}">Tên Art Toy</div>
+                                        <div class="d-flex align-items-center gap-1 mt-1">
+                                            <span th:if="${product.isFeatured}" class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Hot</span>
+                                            <span th:if="${product.isNewRelease}" class="badge bg-dark rounded-pill" style="font-size: 0.65rem;">New</span>
+                                            <span th:if="${product.secretRatio != null}" class="badge bg-warning text-dark rounded-pill" style="font-size: 0.65rem;" th:text="'Secret: ' + ${product.secretRatio}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark" th:text="${product.category != null ? product.category.name : 'Chưa phân loại'}">Blind Box</div>
+                                <small class="text-muted" th:text="${product.series != null ? product.series.name : ''}"></small>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark" 
+                                     th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    0 đ
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-secondary" 
+                                     th:text="${product.wholeSetPrice != null ? #numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Chỉ bán lẻ'}">
+                                    0 đ
+                                </div>
+                            </td>
+                            <td>
+                                <!-- Form cập nhật tồn kho nhanh -->
+                                <form th:action="@{'/admin/products/' + ${product.id} + '/stock'}" method="post" class="d-flex align-items-center gap-1">
+                                    <input type="number" name="stockQuantity" min="0" 
+                                           class="form-control form-control-sm text-center fw-bold rounded-3" 
+                                           style="width: 75px;" 
+                                           th:value="${product.stockQuantity}"
+                                           th:classappend="${product.stockQuantity <= 10 ? 'border-danger text-danger' : ''}">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark rounded-3 px-2" title="Cập nhật số lượng">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <span th:if="${product.active}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                    <i class="bi bi-eye me-1"></i> Đang bán
+                                </span>
+                                <span th:unless="${product.active}" class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1">
+                                    <i class="bi bi-eye-slash me-1"></i> Tạm ẩn
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    <!-- Nút Bật/Tắt Trạng thái -->
+                                    <form th:action="@{'/admin/products/' + ${product.id} + '/toggle-active'}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm rounded-pill px-3 fw-bold"
+                                                th:classappend="${product.active ? 'btn-outline-danger' : 'btn-outline-success'}"
+                                                th:title="${product.active ? 'Tạm dừng bán' : 'Kích hoạt bán'}">
+                                            <i class="bi" th:classappend="${product.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
+                                            <span th:text="${product.active ? 'Ẩn' : 'Bán'}"></span>
+                                        </button>
+                                    </form>
+
+                                    <a th:href="@{'/products/' + ${product.slug}}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2" title="Xem trên web">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

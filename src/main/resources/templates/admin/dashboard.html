@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Bảng Điều Khiển')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#dashboardContent}, 'Bảng Điều Khiển Tổng Quan', 'dashboard')}">
+    <div id="dashboardContent">
+        <!-- ========================================================================= -->
+        <!-- 1. KPI STAT CARDS ROW                                                     -->
+        <!-- ========================================================================= -->
+        <div class="row g-4 mb-4">
+            <!-- Card 1: Doanh Thu -->
+            <div class="col-xl-3 col-sm-6">
+                <div class="admin-stat-card">
+                    <div>
+                        <div class="admin-stat-label">Tổng Doanh Thu</div>
+                        <div class="admin-stat-number text-danger" 
+                             th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                            0 đ
+                        </div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-arrow-up-right text-success fw-bold"></i> Đơn hoàn tất & thanh toán
+                        </div>
+                    </div>
+                    <div class="admin-stat-icon icon-red">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Đơn Chờ Xử Lý -->
+            <div class="col-xl-3 col-sm-6">
+                <div class="admin-stat-card">
+                    <div>
+                        <div class="admin-stat-label">Chờ Bàn Giao Vận Chuyển</div>
+                        <div class="admin-stat-number text-warning" th:text="${pendingOrders}">0</div>
+                        <div class="small text-muted mt-1">
+                            <span class="text-danger fw-bold" th:if="${pendingOrders > 0}">Cần xử lý ngay</span>
+                            <span th:if="${pendingOrders == 0}">Tất cả đã đóng gói</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-icon icon-amber">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Tổng Đơn Hàng -->
+            <div class="col-xl-3 col-sm-6">
+                <div class="admin-stat-card">
+                    <div>
+                        <div class="admin-stat-label">Tổng Số Đơn Hàng</div>
+                        <div class="admin-stat-number" th:text="${totalOrders}">0</div>
+                        <div class="small text-muted mt-1">
+                            <span th:text="${completedOrders} + ' đã giao thành công'">0 đã giao</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-icon icon-blue">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Sản Phẩm Kho Hàng -->
+            <div class="col-xl-3 col-sm-6">
+                <div class="admin-stat-card">
+                    <div>
+                        <div class="admin-stat-label">Art Toy Đang Bán</div>
+                        <div class="admin-stat-number" th:text="${activeProducts}">0</div>
+                        <div class="small text-muted mt-1">
+                            <span class="text-danger" th:if="${lowStockProducts > 0}" th:text="${lowStockProducts} + ' mẫu sắp hết'"></span>
+                            <span th:if="${lowStockProducts == 0}">Kho hàng dồi dào</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-icon icon-green">
+                        <i class="bi bi-collection-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. RECENT ORDERS & TOP IP DISTRIBUTION                                    -->
+        <!-- ========================================================================= -->
+        <div class="row g-4">
+            <!-- Left: Đơn Hàng Mới Nhất -->
+            <div class="col-xl-8">
+                <div class="admin-card h-100">
+                    <div class="admin-card-header">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Đơn Hàng Gần Đây</h6>
+                            <small class="text-muted">Theo dõi và cập nhật trạng thái đơn hàng tức thì</small>
+                        </div>
+                        <a th:href="@{/admin/orders}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã Đơn</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Tổng Tiền</th>
+                                    <th>Trạng Thái</th>
+                                    <th class="text-end">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${recentOrders == null or recentOrders.isEmpty()}">
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                        Chưa có đơn hàng nào trong hệ thống
+                                    </td>
+                                </tr>
+                                <tr th:each="order : ${recentOrders}">
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${order.orderCode}">PW-123456</div>
+                                        <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;" th:text="${order.paymentMethod}">COD</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold" th:text="${order.recipientName}">Nguyễn Văn A</div>
+                                        <small class="text-muted" th:text="${order.recipientPhone}">0912345678</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark" 
+                                             th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                            0 đ
+                                        </div>
+                                        <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'HH:mm dd/MM')}">10:30 19/09</small>
+                                    </td>
+                                    <td>
+                                        <span th:if="${order.status == 'TO_PAY'}" class="badge-status badge-status-topay">
+                                            <i class="bi bi-clock"></i> Chờ thanh toán
+                                        </span>
+                                        <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
+                                            <i class="bi bi-hourglass-split"></i> Chờ xử lý
+                                        </span>
+                                        <span th:if="${order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
+                                            <i class="bi bi-truck"></i> Đang giao
+                                        </span>
+                                        <span th:if="${order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
+                                            <i class="bi bi-check2-circle"></i> Hoàn tất
+                                        </span>
+                                        <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
+                                            <i class="bi bi-x-circle"></i> Đã hủy
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1 align-items-center">
+                                            <!-- Nút Bàn giao vận chuyển nếu đang Chờ xử lý -->
+                                            <form th:if="${order.status == 'PROCESSING'}" 
+                                                  th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship'}" method="post" class="d-inline">
+                                                <button type="submit" class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển">
+                                                    <i class="bi bi-truck"></i> Giao Hàng
+                                                </button>
+                                            </form>
+
+                                            <!-- Nút Hoàn tất nếu đang Giao hàng -->
+                                            <form th:if="${order.status == 'SHIPPED'}" 
+                                                  th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
+                                                <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận hoàn tất">
+                                                    <i class="bi bi-check-lg"></i> Hoàn Tất
+                                                </button>
+                                            </form>
+
+                                            <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="btn-action-pill btn-action-detail" title="Chi tiết đơn">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Top IP Nhân Vật & Phím Tắt -->
+            <div class="col-xl-4">
+                <div class="admin-card mb-4">
+                    <div class="admin-card-header">
+                        <h6 class="mb-0 fw-bold">Vũ Trụ Nhân Vật IP</h6>
+                        <span class="badge bg-danger rounded-pill" th:text="${characterIps.size()} + ' Nhân vật'">0</span>
+                    </div>
+                    <div class="p-3">
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-2 hover-bg-light" 
+                             th:each="ip : ${characterIps}">
+                            <div class="d-flex align-items-center gap-3">
+                                <img th:src="${ip.avatarUrl}" class="rounded-circle border" width="40" height="40" style="object-fit:cover;">
+                                <div>
+                                    <div class="fw-bold" th:text="${ip.name}">Labubu</div>
+                                    <small class="text-muted" th:text="${ip.artist != null ? ip.artist.name : 'POP MART Original'}"></small>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill">IP Hot</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tiện ích nhanh -->
+                <div class="admin-card p-4 text-center" style="background: linear-gradient(135deg, #111113 0%, #1f1f25 100%); color: #FFFFFF;">
+                    <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                        <i class="bi bi-lightning-charge-fill fs-5"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Cửa Hàng Trực Tuyến</h6>
+                    <p class="small text-white-50 mb-3">Kiểm tra hiển thị sản phẩm và trải nghiệm mua sắm từ góc nhìn khách hàng</p>
+                    <a th:href="@{/}" target="_blank" class="btn btn-light rounded-pill fw-bold w-100 py-2">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Truy Cập PopWorld
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

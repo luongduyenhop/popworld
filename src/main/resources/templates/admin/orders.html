@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Quản Lý Đơn Hàng')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#ordersContent}, 'Quản Lý Đơn Hàng Art Toy', 'orders')}">
+    <div id="ordersContent">
+        <!-- ========================================================================= -->
+        <!-- 1. STATUS FILTER TABS DOCK (POP MART STYLE)                               -->
+        <!-- ========================================================================= -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a th:href="@{/admin/orders(status='ALL')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'ALL' ? 'active' : ''}">
+                    <span>Tất Cả</span>
+                    <span class="admin-tab-count" th:text="${countAll}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='TO_PAY')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'TO_PAY' ? 'active' : ''}">
+                    <span>Chờ Thanh Toán</span>
+                    <span class="admin-tab-count" th:text="${countToPay}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='PROCESSING')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'PROCESSING' ? 'active' : ''}">
+                    <span>Chờ Xử Lý</span>
+                    <span class="admin-tab-count" th:text="${countProcessing}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='SHIPPED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'SHIPPED' ? 'active' : ''}">
+                    <span>Đang Giao</span>
+                    <span class="admin-tab-count" th:text="${countShipped}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='COMPLETED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}">
+                    <span>Hoàn Tất</span>
+                    <span class="admin-tab-count" th:text="${countCompleted}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='CANCELLED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'CANCELLED' ? 'active' : ''}">
+                    <span>Đã Hủy</span>
+                    <span class="admin-tab-count" th:text="${countCancelled}">0</span>
+                </a>
+            </div>
+
+            <!-- Search Form -->
+            <form th:action="@{/admin/orders}" method="get" class="d-flex align-items-center gap-2" style="min-width: 280px;">
+                <input type="hidden" name="status" th:value="${currentStatus}">
+                <div class="input-group">
+                    <input type="search" name="keyword" class="form-control rounded-pill-start border-end-0 px-3" 
+                           placeholder="Tìm theo mã đơn, SĐT..." th:value="${keyword}">
+                    <button class="btn btn-dark rounded-pill-end px-3" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/orders(status=${currentStatus})}" 
+                   class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </form>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. ORDERS DATA TABLE                                                      -->
+        <!-- ========================================================================= -->
+        <div class="admin-card">
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Đơn Hàng</th>
+                            <th>Khách Hàng & Liên Hệ</th>
+                            <th>Địa Chỉ Giao Hàng</th>
+                            <th>Tổng Thanh Toán</th>
+                            <th>Thời Gian</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-end">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${orders == null or orders.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                Không tìm thấy đơn hàng nào phù hợp với bộ lọc hiện tại.
+                            </td>
+                        </tr>
+                        <tr th:each="order : ${orders}">
+                            <td>
+                                <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="fw-bold text-dark text-decoration-none" th:text="${order.orderCode}">PW-123456</a>
+                                <div>
+                                    <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.7rem;" th:text="${order.paymentMethod}">COD</span>
+                                    <span th:if="${order.paidAt != null}" class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">
+                                        Đã TT
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark" th:text="${order.recipientName}">Nguyễn Văn A</div>
+                                <div class="small text-muted" th:text="${order.recipientPhone}">0912345678</div>
+                            </td>
+                            <td style="max-width: 240px;">
+                                <div class="small text-truncate" th:title="${order.detailedAddress + ', ' + (order.ward != null ? order.ward + ', ' : '') + order.district + ', ' + order.provinceCity}">
+                                    <span th:text="${order.detailedAddress}"></span>, 
+                                    <span th:text="${order.district}"></span>, 
+                                    <strong th:text="${order.provinceCity}"></strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-black text-danger fs-6" 
+                                     th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                                    0 đ
+                                </div>
+                                <small class="text-muted" th:if="${order.discountAmount != null and order.discountAmount > 0}">
+                                    Giảm: <span th:text="${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                </small>
+                            </td>
+                            <td>
+                                <div class="small fw-semibold text-dark" th:text="${#temporals.format(order.createdAt, 'HH:mm')}">14:30</div>
+                                <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}">19/09/2026</small>
+                            </td>
+                            <td>
+                                <span th:if="${order.status == 'TO_PAY'}" class="badge-status badge-status-topay">
+                                    <i class="bi bi-clock"></i> Chờ thanh toán
+                                </span>
+                                <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
+                                    <i class="bi bi-hourglass-split"></i> Chờ xử lý
+                                </span>
+                                <span th:if="${order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
+                                    <i class="bi bi-truck"></i> Đang giao
+                                </span>
+                                <span th:if="${order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
+                                    <i class="bi bi-check2-circle"></i> Hoàn tất
+                                </span>
+                                <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
+                                    <i class="bi bi-x-circle"></i> Đã hủy
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    <!-- Nút Bàn giao vận chuyển nếu đang Chờ xử lý -->
+                                    <form th:if="${order.status == 'PROCESSING'}" 
+                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship'}" method="post" class="d-inline">
+                                        <button type="submit" class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển">
+                                            <i class="bi bi-truck"></i> Giao Hàng
+                                        </button>
+                                    </form>
+
+                                    <!-- Nút Hoàn tất nếu đang Giao hàng -->
+                                    <form th:if="${order.status == 'SHIPPED'}" 
+                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
+                                        <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công">
+                                            <i class="bi bi-check-lg"></i> Hoàn Tất
+                                        </button>
+                                    </form>
+
+                                    <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="btn-action-pill btn-action-detail" title="Xem chi tiết đơn">
+                                        <i class="bi bi-eye"></i> Chi Tiết
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
