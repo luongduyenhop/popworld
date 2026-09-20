@@ -1,5 +1,6 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.CharacterIpService;
 import com.manguonmo.popworld.entity.CharacterIp;
 import com.manguonmo.popworld.repository.CharacterIpRepository;
 import org.springframework.stereotype.Service;

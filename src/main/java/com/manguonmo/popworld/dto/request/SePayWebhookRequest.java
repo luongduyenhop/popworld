@@ -1,4 +1,4 @@
-package com.manguonmo.popworld.dto;
+package com.manguonmo.popworld.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.manguonmo.popworld.service;
 
-import com.manguonmo.popworld.dto.SePayWebhookRequest;
+import com.manguonmo.popworld.dto.request.SePayWebhookRequest;
 
 /**
  * Interface Quản lý Xử lý Thanh toán

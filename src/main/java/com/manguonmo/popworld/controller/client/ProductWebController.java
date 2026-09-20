@@ -1,4 +1,4 @@
-package com.manguonmo.popworld.controller;
+package com.manguonmo.popworld.controller.client;
 
 import com.manguonmo.popworld.entity.Category;
 import com.manguonmo.popworld.entity.CharacterIp;

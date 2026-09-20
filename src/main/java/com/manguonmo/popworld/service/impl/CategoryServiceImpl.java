@@ -1,5 +1,6 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.entity.Category;
 import com.manguonmo.popworld.repository.CategoryRepository;
 import org.springframework.stereotype.Service;

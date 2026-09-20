@@ -1,5 +1,6 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.ProductService;
 import com.manguonmo.popworld.entity.Product;
 import com.manguonmo.popworld.repository.ProductRepository;
 import org.springframework.stereotype.Service;

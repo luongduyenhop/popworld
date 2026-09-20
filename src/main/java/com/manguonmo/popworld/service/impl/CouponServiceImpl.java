@@ -1,5 +1,6 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.CouponService;
 import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
 import com.manguonmo.popworld.entity.Coupon;
 import com.manguonmo.popworld.entity.UserCoupon;

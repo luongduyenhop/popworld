@@ -1,5 +1,6 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.service.impl.CategoryServiceImpl;
 import com.manguonmo.popworld.entity.Category;
 import com.manguonmo.popworld.repository.CategoryRepository;
 import org.junit.jupiter.api.DisplayName;

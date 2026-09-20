@@ -1,5 +1,6 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.entity.CartItem;
 import com.manguonmo.popworld.entity.Product;
 import com.manguonmo.popworld.entity.User;

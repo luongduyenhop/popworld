@@ -1,19 +1,20 @@
-package com.manguonmo.popworld.service;
+package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.service.CouponService;
+import com.manguonmo.popworld.service.OrderService;
 import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -257,5 +258,45 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         return order;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getAllOrders(String status) {
+        if(status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())){
+            return orderRepository.findByStatusOrderByCreatedAtDesc(status.trim().toUpperCase());
+        }
+        return orderRepository.findAll(Sort.by(Sort.Direction.DESC,"createdAt"));
+    }
+
+    @Override
+    @Transactional
+    public Order shipOrder(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
+        );
+        if (!"PROCESSING".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Chỉ có thể giao hàng cho đơn ở trạng thái Chờ xử lý (PROCESSING). Trạng thái hiện tại: " + order.getStatus());
+        }
+
+        order.setStatus("SHIPPED");
+        return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional
+    public Order completeOrder(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
+        );
+        if (!"SHIPPED".equalsIgnoreCase(order.getStatus())){
+            throw new BadRequestException("Chỉ có thể hoàn tất đơn hàng đang được giao (SHIPPED). Trạng thái hiện tại: " + order.getStatus());
+        }
+
+        order.setStatus("COMPLETED");
+        if(order.getPaidAt()==null){
+            order.setPaidAt(LocalDateTime.now());
+        }
+        return orderRepository.save(order);
     }
 }

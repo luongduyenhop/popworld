@@ -1,6 +1,6 @@
-package com.manguonmo.popworld.controller;
+package com.manguonmo.popworld.controller.webhook;
 
-import com.manguonmo.popworld.dto.SePayWebhookRequest;
+import com.manguonmo.popworld.dto.request.SePayWebhookRequest;
 import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;

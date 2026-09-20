@@ -1,5 +1,6 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.service.impl.CharacterIpServiceImpl;
 import com.manguonmo.popworld.entity.CharacterIp;
 import com.manguonmo.popworld.repository.CharacterIpRepository;
 import org.junit.jupiter.api.DisplayName;
