@@ -6,7 +6,6 @@ import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
-import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
@@ -26,14 +25,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Controller điều phối luồng Thanh toán (Checkout), VietQR SePay, và Quản lý Đơn hàng.
+ * Controller xử lý toàn bộ luồng Đặt hàng (Checkout) & Thanh toán (Payment)
  */
 @Controller
 public class CheckoutWebController {
 
     private final OrderService orderService;
     private final CartService cartService;
-    private final OrderItemRepository orderItemRepository;
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
 
@@ -48,12 +46,10 @@ public class CheckoutWebController {
 
     public CheckoutWebController(OrderService orderService,
                                  CartService cartService,
-                                 OrderItemRepository orderItemRepository,
                                  CategoryService categoryService,
                                  CharacterIpService characterIpService) {
         this.orderService = orderService;
         this.cartService = cartService;
-        this.orderItemRepository = orderItemRepository;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
     }
@@ -154,7 +150,7 @@ public class CheckoutWebController {
             return "redirect:/cart";
         }
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        List<OrderItem> items = orderService.getOrderItems(order.getId());
 
         // Tạo URL QR VietQR động qua SePay:
         // Cú pháp: https://qr.sepay.vn/img?acc={STK}&bank={BANK}&amount={AMOUNT}&des={DES}
@@ -188,7 +184,7 @@ public class CheckoutWebController {
             return "redirect:/";
         }
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        List<OrderItem> items = orderService.getOrderItems(order.getId());
         model.addAttribute("order", order);
         model.addAttribute("items", items);
 
@@ -206,7 +202,7 @@ public class CheckoutWebController {
 
         // Lấy danh sách sản phẩm cho từng đơn hàng để hiển thị ảnh thumbnail và thông tin chi tiết
         Map<Long, List<OrderItem>> orderItemsMap = orders.stream()
-                .collect(Collectors.toMap(Order::getId, order -> orderItemRepository.findByOrderId(order.getId()), (a, b) -> a));
+                .collect(Collectors.toMap(Order::getId, order -> orderService.getOrderItems(order.getId()), (a, b) -> a));
 
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);

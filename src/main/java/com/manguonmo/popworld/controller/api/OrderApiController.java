@@ -7,7 +7,6 @@ import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.mapper.OrderMapper;
-import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +23,13 @@ import java.util.Map;
 public class OrderApiController {
 
     private final OrderService orderService;
-    private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
     private final CartService cartService;
 
     public OrderApiController(OrderService orderService,
-                              OrderItemRepository orderItemRepository,
                               OrderMapper orderMapper,
                               CartService cartService) {
         this.orderService = orderService;
-        this.orderItemRepository = orderItemRepository;
         this.orderMapper = orderMapper;
         this.cartService = cartService;
     }
@@ -48,7 +44,7 @@ public class OrderApiController {
             throw new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode);
         }
 
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        List<OrderItem> items = orderService.getOrderItems(order.getId());
         OrderResponse response = orderMapper.toResponse(order, items);
 
         return ResponseEntity.ok(ApiResponse.success("Lấy thông tin đơn hàng thành công", response));
@@ -85,7 +81,7 @@ public class OrderApiController {
 
         List<OrderResponse> responseList = orders.stream()
                 .map(order -> {
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+                    List<OrderItem> items = orderService.getOrderItems(order.getId());
                     return orderMapper.toResponse(order, items);
                 })
                 .toList();

@@ -1,7 +1,6 @@
 package com.manguonmo.popworld.controller.client;
 
 import com.manguonmo.popworld.entity.*;
-import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
@@ -32,9 +31,6 @@ class CheckoutWebControllerTest {
 
     @Mock
     private CartService cartService;
-
-    @Mock
-    private OrderItemRepository orderItemRepository;
 
     @Mock
     private CategoryService categoryService;

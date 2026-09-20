@@ -6,7 +6,6 @@ import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.mapper.OrderMapper;
-import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.OrderService;
 import org.junit.jupiter.api.DisplayName;
@@ -32,9 +31,6 @@ public class OrderApiControllerTest {
     private OrderService orderService;
 
     @Mock
-    private OrderItemRepository orderItemRepository;
-
-    @Mock
     private OrderMapper orderMapper;
 
     @Mock
@@ -50,7 +46,7 @@ public class OrderApiControllerTest {
         OrderResponse expectedResponse = OrderResponse.builder().orderCode("PW-123456").build();
 
         when(orderService.getOrderByCode("PW-123456")).thenReturn(order);
-        when(orderItemRepository.findByOrderId(1L)).thenReturn(List.of());
+        when(orderService.getOrderItems(1L)).thenReturn(List.of());
         when(orderMapper.toResponse(order, List.of())).thenReturn(expectedResponse);
 
         ResponseEntity<ApiResponse<OrderResponse>> response = orderApiController.getOrderDetail("PW-123456");
@@ -100,7 +96,7 @@ public class OrderApiControllerTest {
 
         when(cartService.getDefaultUser()).thenReturn(user);
         when(orderService.getOrdersByUser(10L)).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrderId(1L)).thenReturn(List.of());
+        when(orderService.getOrderItems(1L)).thenReturn(List.of());
         when(orderMapper.toResponse(order, List.of())).thenReturn(orderRes);
 
         ResponseEntity<ApiResponse<List<OrderResponse>>> response = orderApiController.getMyOrders();

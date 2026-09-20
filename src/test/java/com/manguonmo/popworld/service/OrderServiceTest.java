@@ -477,5 +477,19 @@ class OrderServiceTest {
         assertTrue(ex.getMessage().contains("không thể hủy"));
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @Test
+    @DisplayName("getOrderItems trả về danh sách OrderItem của đơn hàng từ orderItemRepository")
+    void getOrderItems_ShouldReturnListFromRepository() {
+        OrderItem item = OrderItem.builder().id(10L).quantity(2).build();
+        when(orderItemRepository.findByOrderId(100L)).thenReturn(List.of(item));
+
+        List<OrderItem> result = orderService.getOrderItems(100L);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(10L, result.get(0).getId());
+        verify(orderItemRepository, times(1)).findByOrderId(100L);
+    }
 }
 

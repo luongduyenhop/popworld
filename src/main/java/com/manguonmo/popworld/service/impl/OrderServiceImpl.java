@@ -299,4 +299,10 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderRepository.save(order);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderItem> getOrderItems(Long orderId) {
+        return orderItemRepository.findByOrderId(orderId);
+    }
 }
