@@ -9,8 +9,13 @@ import java.util.Optional;
 
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
-    List<CartItem> findByUserId(Long userId);
-    Optional<CartItem> findByUserIdAndProductIdAndPurchaseType(Long userId, Long productId, String purchaseType);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.user.id = :userId")
+    List<CartItem> findByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.user.id = :userId AND c.product.id = :productId AND c.purchaseType = :purchaseType")
+    Optional<CartItem> findByUserIdAndProductIdAndPurchaseType(@org.springframework.data.repository.query.Param("userId") Long userId,
+                                                               @org.springframework.data.repository.query.Param("productId") Long productId,
+                                                               @org.springframework.data.repository.query.Param("purchaseType") String purchaseType);
     void deleteByUserId(Long userId);
     void deleteByUserIdAndIsSelectedTrue(Long userId);
 }

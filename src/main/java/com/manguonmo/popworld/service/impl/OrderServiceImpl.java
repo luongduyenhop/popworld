@@ -1,5 +1,9 @@
 package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.dto.response.OrderItemResponse;
+import com.manguonmo.popworld.dto.response.OrderResponse;
+import com.manguonmo.popworld.dto.response.OrderStatusCountResponse;
+import com.manguonmo.popworld.mapper.OrderMapper;
 import com.manguonmo.popworld.service.CouponService;
 import com.manguonmo.popworld.service.OrderService;
 import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
@@ -25,19 +29,23 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final OrderMapper orderMapper;
 
     // [CHÚ THÍCH]: Constructor Injection chuẩn Spring Boot (dọn dẹp các tham số thừa)
     public OrderServiceImpl(OrderRepository orderRepository,
                             CartItemRepository cartItemRepository,
                             CouponService couponService,
                             OrderItemRepository orderItemRepository,
-                            UserRepository userRepository, ProductRepository productRepository) {
+                            UserRepository userRepository,
+                            ProductRepository productRepository,
+                            OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.couponService = couponService;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.orderMapper = orderMapper;
     }
 
     /**
@@ -262,11 +270,33 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Order> getAllOrders(String status) {
-        if(status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())){
-            return orderRepository.findByStatusOrderByCreatedAtDesc(status.trim().toUpperCase());
+    public List<OrderResponse> getAllOrders(String status) {
+        List<Order> getOrders;
+        if (status == null || status.trim().isBlank() || "ALL".equalsIgnoreCase(status.trim())) {
+            getOrders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        } else {
+            getOrders = orderRepository.findByStatusOrderByCreatedAtDesc(status.trim().toUpperCase());
         }
-        return orderRepository.findAll(Sort.by(Sort.Direction.DESC,"createdAt"));
+        return getOrders.stream().map(
+                order -> {
+                    List<OrderItem> orderItem = orderItemRepository.findByOrderId(order.getId());
+                    return orderMapper.toResponse(order,orderItem);
+                }
+        ).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderStatusCountResponse getOrderStatusCounts() {
+
+        return OrderStatusCountResponse.builder()
+                .all(orderRepository.count())
+                .toPay(orderRepository.countByStatus("TO_PAY"))
+                .processing(orderRepository.countByStatus("PROCESSING"))
+                .shipped(orderRepository.countByStatus("SHIPPED"))
+                .completed(orderRepository.countByStatus("COMPLETED"))
+                .cancelled(orderRepository.countByStatus("CANCELLED"))
+                .build();
     }
 
     @Override
@@ -304,5 +334,24 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderItem> getOrderItems(Long orderId) {
         return orderItemRepository.findByOrderId(orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> searchOrders(String keyword) {
+
+        if(keyword == null || keyword.isBlank() ){
+            return getAllOrders("ALL");
+        }
+        List<Order> orders = orderRepository.searchOrders(keyword.trim());
+        return orders.stream().map(
+                order -> {
+                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+                    return orderMapper.toResponse(order,items);
+                }
+        ).toList();
+
+
+
     }
 }

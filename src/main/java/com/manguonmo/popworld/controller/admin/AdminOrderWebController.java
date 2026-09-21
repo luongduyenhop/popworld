@@ -1,8 +1,9 @@
 package com.manguonmo.popworld.controller.admin;
 
+import com.manguonmo.popworld.dto.response.OrderResponse;
+import com.manguonmo.popworld.dto.response.OrderStatusCountResponse;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
-import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,6 @@ import java.util.List;
 public class AdminOrderWebController {
 
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
 
     /**
      * Danh sách đơn hàng trong trang quản trị với bộ lọc trạng thái và tìm kiếm
@@ -27,33 +27,30 @@ public class AdminOrderWebController {
     public String listOrders(@RequestParam(value = "status", required = false, defaultValue = "ALL") String status,
                              @RequestParam(value = "keyword", required = false) String keyword,
                              Model model) {
-        List<Order> orders;
+        List<OrderResponse> orders;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            orders = orderRepository.searchOrders(keyword.trim());
+            orders = orderService.searchOrders(keyword.trim());
         } else {
             orders = orderService.getAllOrders(status);
         }
 
-        // Đếm số lượng đơn hàng theo từng trạng thái để hiển thị badge trên các Tab
-        long countAll = orderRepository.count();
-        long countToPay = orderRepository.countByStatus("TO_PAY");
-        long countProcessing = orderRepository.countByStatus("PROCESSING");
-        long countShipped = orderRepository.countByStatus("SHIPPED");
-        long countCompleted = orderRepository.countByStatus("COMPLETED");
-        long countCancelled = orderRepository.countByStatus("CANCELLED");
+        // Đếm số lượng đơn hàng theo từng trạng thái bằng DTO từ OrderService
+        OrderStatusCountResponse counts = orderService.getOrderStatusCounts();
 
         model.addAttribute("orders", orders);
         model.addAttribute("currentStatus", status.toUpperCase());
         model.addAttribute("keyword", keyword);
         model.addAttribute("activeNav", "orders");
 
-        model.addAttribute("countAll", countAll);
-        model.addAttribute("countToPay", countToPay);
-        model.addAttribute("countProcessing", countProcessing);
-        model.addAttribute("countShipped", countShipped);
-        model.addAttribute("countCompleted", countCompleted);
-        model.addAttribute("countCancelled", countCancelled);
+        if (counts != null) {
+            model.addAttribute("countAll", counts.getAll());
+            model.addAttribute("countToPay", counts.getToPay());
+            model.addAttribute("countProcessing", counts.getProcessing());
+            model.addAttribute("countShipped", counts.getShipped());
+            model.addAttribute("countCompleted", counts.getCompleted());
+            model.addAttribute("countCancelled", counts.getCancelled());
+        }
 
         return "admin/orders";
     }

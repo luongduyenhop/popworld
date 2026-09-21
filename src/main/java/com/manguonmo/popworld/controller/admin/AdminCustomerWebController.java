@@ -1,7 +1,8 @@
 package com.manguonmo.popworld.controller.admin;
 
+import com.manguonmo.popworld.dto.response.CustomerStatsResponse;
 import com.manguonmo.popworld.entity.User;
-import com.manguonmo.popworld.repository.UserRepository;
+import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,20 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminCustomerWebController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping
     public String listCustomers(Model model) {
-        List<User> customers = userRepository.findAll();
-
-        long totalCustomers = customers.size();
-        long vipCount = customers.stream().filter(u -> "VIP".equalsIgnoreCase(u.getMembershipTier())).count();
-        long memberCount = totalCustomers - vipCount;
+        List<User> customers = userService.getAllCustomers();
+        CustomerStatsResponse stats = userService.getCustomerStats();
 
         model.addAttribute("customers", customers);
-        model.addAttribute("totalCustomers", totalCustomers);
-        model.addAttribute("vipCount", vipCount);
-        model.addAttribute("memberCount", memberCount);
+        model.addAttribute("totalCustomers", stats.getTotalCustomers());
+        model.addAttribute("vipCount", stats.getVipCount());
+        model.addAttribute("memberCount", stats.getMemberCount());
         model.addAttribute("activeNav", "customers");
 
         return "admin/customers";

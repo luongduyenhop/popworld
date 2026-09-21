@@ -5,11 +5,14 @@ import com.manguonmo.popworld.entity.CartItem;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
 import com.manguonmo.popworld.service.OrderService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Controller xử lý toàn bộ luồng Đặt hàng (Checkout) & Thanh toán (Payment)
  */
+@Slf4j
 @Controller
 public class CheckoutWebController {
 
@@ -133,8 +137,12 @@ public class CheckoutWebController {
                 return "redirect:/checkout/success/" + order.getOrderCode();
             }
 
+        } catch (BadRequestException | OutOfStockException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/checkout";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đặt hàng thất bại: " + e.getMessage());
+            log.error("Lỗi không mong muốn trong quá trình xử lý đặt hàng: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Hệ thống gặp sự cố trong quá trình xử lý đơn hàng. Vui lòng thử lại sau!");
             return "redirect:/checkout";
         }
     }

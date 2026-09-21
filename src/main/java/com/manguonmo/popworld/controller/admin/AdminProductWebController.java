@@ -1,9 +1,10 @@
 package com.manguonmo.popworld.controller.admin;
 
+import com.manguonmo.popworld.dto.response.ProductStatsResponse;
 import com.manguonmo.popworld.entity.Category;
 import com.manguonmo.popworld.entity.Product;
-import com.manguonmo.popworld.repository.CategoryRepository;
-import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.service.CategoryService;
+import com.manguonmo.popworld.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,29 +18,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminProductWebController {
 
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+    private final ProductService productService;
+    private final CategoryService categoryService;
 
     @GetMapping
     public String listProducts(@RequestParam(value = "categoryId", required = false) Long categoryId,
                                @RequestParam(value = "keyword", required = false) String keyword,
                                Model model) {
-        List<Product> products;
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            products = productRepository.findByNameContainingIgnoreCaseAndActiveTrue(keyword.trim());
-        } else if (categoryId != null) {
-            Category category = categoryRepository.findById(categoryId).orElse(null);
-            if (category != null) {
-                products = productRepository.findByCategorySlugAndActiveTrue(category.getSlug());
-            } else {
-                products = productRepository.findAllByOrderByCreatedAtDesc();
-            }
-        } else {
-            products = productRepository.findAllByOrderByCreatedAtDesc();
-        }
-
-        List<Category> categories = categoryRepository.findAll();
+        List<Product> products = productService.getAdminProducts(categoryId, keyword);
+        List<Category> categories = categoryService.getAllCategories();
+        ProductStatsResponse stats = productService.getProductStats();
 
         model.addAttribute("products", products);
         model.addAttribute("categories", categories);
@@ -47,9 +35,9 @@ public class AdminProductWebController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("activeNav", "products");
 
-        model.addAttribute("totalCount", productRepository.count());
-        model.addAttribute("activeCount", productRepository.countByActiveTrue());
-        model.addAttribute("lowStockCount", productRepository.countByStockQuantityLessThanEqual(10));
+        model.addAttribute("totalCount", stats.getTotalCount());
+        model.addAttribute("activeCount", stats.getActiveCount());
+        model.addAttribute("lowStockCount", stats.getLowStockCount());
 
         return "admin/products";
     }
@@ -58,25 +46,22 @@ public class AdminProductWebController {
     public String updateStock(@PathVariable Long id,
                               @RequestParam("stockQuantity") Integer stockQuantity,
                               RedirectAttributes redirectAttributes) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product != null && stockQuantity != null && stockQuantity >= 0) {
-            product.setStockQuantity(stockQuantity);
-            productRepository.save(product);
+        try {
+            Product product = productService.updateStock(id, stockQuantity);
             redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật tồn kho cho " + product.getName() + " thành: " + stockQuantity + " hộp!");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật tồn kho hợp lệ!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
         return "redirect:/admin/products";
     }
 
     @PostMapping("/{id}/toggle-active")
     public String toggleActive(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product != null) {
-            boolean newStatus = !Boolean.TRUE.equals(product.getActive());
-            product.setActive(newStatus);
-            productRepository.save(product);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã " + (newStatus ? "kích hoạt mở bán" : "tạm ẩn") + " sản phẩm: " + product.getName());
+        try {
+            Product product = productService.toggleActive(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã " + (Boolean.TRUE.equals(product.getActive()) ? "kích hoạt mở bán" : "tạm ẩn") + " sản phẩm: " + product.getName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
         return "redirect:/admin/products";
     }

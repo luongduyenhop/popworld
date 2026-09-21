@@ -2,11 +2,15 @@ package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.service.impl.OrderServiceImpl;
 import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
+import com.manguonmo.popworld.dto.response.OrderResponse;
+import com.manguonmo.popworld.dto.response.OrderStatusCountResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import com.manguonmo.popworld.mapper.OrderMapper;
 import com.manguonmo.popworld.repository.*;
+import org.springframework.data.domain.Sort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +60,9 @@ class OrderServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private OrderMapper orderMapper;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -491,5 +498,155 @@ class OrderServiceTest {
         assertEquals(10L, result.get(0).getId());
         verify(orderItemRepository, times(1)).findByOrderId(100L);
     }
+
+    // =========================================================================
+    // ADMIN ORDER MANAGEMENT TESTS
+    // =========================================================================
+
+    @Test
+    @DisplayName("getAllOrders: Lấy tất cả đơn hàng khi status là ALL hoặc null")
+    void getAllOrders_WhenStatusAllOrNull_ShouldReturnAllOrdersSorted() {
+        Order mockOrder = Order.builder().id(1L).orderCode("PW-ALL-1").build();
+        OrderItem mockItem = OrderItem.builder().id(11L).build();
+        OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-ALL-1").build();
+
+        when(orderRepository.findAll(any(Sort.class))).thenReturn(List.of(mockOrder));
+        when(orderItemRepository.findByOrderId(1L)).thenReturn(List.of(mockItem));
+        when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
+
+        List<OrderResponse> result = orderService.getAllOrders("ALL");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("PW-ALL-1", result.get(0).getOrderCode());
+        verify(orderRepository).findAll(any(Sort.class));
+        verify(orderRepository, never()).findByStatusOrderByCreatedAtDesc(anyString());
+    }
+
+    @Test
+    @DisplayName("getAllOrders: Lọc theo status cụ thể (PROCESSING)")
+    void getAllOrders_WhenStatusSpecific_ShouldFilterByStatus() {
+        Order mockOrder = Order.builder().id(2L).orderCode("PW-PROC-2").status("PROCESSING").build();
+        OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-PROC-2").status("PROCESSING").build();
+
+        when(orderRepository.findByStatusOrderByCreatedAtDesc("PROCESSING")).thenReturn(List.of(mockOrder));
+        when(orderItemRepository.findByOrderId(2L)).thenReturn(List.of());
+        when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
+
+        List<OrderResponse> result = orderService.getAllOrders("PROCESSING");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("PW-PROC-2", result.get(0).getOrderCode());
+        verify(orderRepository).findByStatusOrderByCreatedAtDesc("PROCESSING");
+        verify(orderRepository, never()).findAll(any(Sort.class));
+    }
+
+    @Test
+    @DisplayName("searchOrders: Tìm kiếm đơn hàng theo từ khóa")
+    void searchOrders_WithKeyword_ShouldReturnMatchingOrders() {
+        Order mockOrder = Order.builder().id(3L).orderCode("PW-SRCH-3").build();
+        OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-SRCH-3").build();
+
+        when(orderRepository.searchOrders("0987654321")).thenReturn(List.of(mockOrder));
+        when(orderItemRepository.findByOrderId(3L)).thenReturn(List.of());
+        when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
+
+        List<OrderResponse> result = orderService.searchOrders("  0987654321  ");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("PW-SRCH-3", result.get(0).getOrderCode());
+        verify(orderRepository).searchOrders("0987654321");
+    }
+
+    @Test
+    @DisplayName("searchOrders: Khi keyword là null hoặc rỗng -> fallback về getAllOrders(ALL)")
+    void searchOrders_BlankKeyword_ShouldFallbackToAllOrders() {
+        Order mockOrder = Order.builder().id(4L).orderCode("PW-FALLBACK").build();
+        OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-FALLBACK").build();
+
+        when(orderRepository.findAll(any(Sort.class))).thenReturn(List.of(mockOrder));
+        when(orderItemRepository.findByOrderId(4L)).thenReturn(List.of());
+        when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
+
+        List<OrderResponse> result = orderService.searchOrders("   ");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("PW-FALLBACK", result.get(0).getOrderCode());
+        verify(orderRepository).findAll(any(Sort.class));
+    }
+
+    @Test
+    @DisplayName("getOrderStatusCounts: Trả về thống kê số lượng đơn theo từng trạng thái")
+    void getOrderStatusCounts_ShouldReturnAllCounts() {
+        when(orderRepository.count()).thenReturn(50L);
+        when(orderRepository.countByStatus("TO_PAY")).thenReturn(5L);
+        when(orderRepository.countByStatus("PROCESSING")).thenReturn(10L);
+        when(orderRepository.countByStatus("SHIPPED")).thenReturn(15L);
+        when(orderRepository.countByStatus("COMPLETED")).thenReturn(18L);
+        when(orderRepository.countByStatus("CANCELLED")).thenReturn(2L);
+
+        OrderStatusCountResponse counts = orderService.getOrderStatusCounts();
+
+        assertNotNull(counts);
+        assertEquals(50L, counts.getAll());
+        assertEquals(5L, counts.getToPay());
+        assertEquals(10L, counts.getProcessing());
+        assertEquals(15L, counts.getShipped());
+        assertEquals(18L, counts.getCompleted());
+        assertEquals(2L, counts.getCancelled());
+    }
+
+    @Test
+    @DisplayName("shipOrder: Chuyển trạng thái đơn hàng từ PROCESSING sang SHIPPED thành công")
+    void shipOrder_Success() {
+        Order order = Order.builder().id(5L).orderCode("PW-SHIP-1").status("PROCESSING").build();
+        when(orderRepository.findByOrderCode("PW-SHIP-1")).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.shipOrder("pw-ship-1");
+
+        assertNotNull(result);
+        assertEquals("SHIPPED", result.getStatus());
+        verify(orderRepository).save(order);
+    }
+
+    @Test
+    @DisplayName("shipOrder: Ném BadRequestException nếu đơn không ở trạng thái PROCESSING")
+    void shipOrder_ThrowsBadRequestException_WhenNotProcessing() {
+        Order order = Order.builder().id(6L).orderCode("PW-SHIP-2").status("TO_PAY").build();
+        when(orderRepository.findByOrderCode("PW-SHIP-2")).thenReturn(Optional.of(order));
+
+        assertThrows(BadRequestException.class, () -> orderService.shipOrder("PW-SHIP-2"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("completeOrder: Chuyển trạng thái từ SHIPPED sang COMPLETED và cập nhật paidAt")
+    void completeOrder_Success() {
+        Order order = Order.builder().id(7L).orderCode("PW-COMP-1").status("SHIPPED").build();
+        when(orderRepository.findByOrderCode("PW-COMP-1")).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.completeOrder("pw-comp-1");
+
+        assertNotNull(result);
+        assertEquals("COMPLETED", result.getStatus());
+        assertNotNull(result.getPaidAt());
+        verify(orderRepository).save(order);
+    }
+
+    @Test
+    @DisplayName("completeOrder: Ném BadRequestException nếu đơn không ở trạng thái SHIPPED")
+    void completeOrder_ThrowsBadRequestException_WhenNotShipped() {
+        Order order = Order.builder().id(8L).orderCode("PW-COMP-2").status("PROCESSING").build();
+        when(orderRepository.findByOrderCode("PW-COMP-2")).thenReturn(Optional.of(order));
+
+        assertThrows(BadRequestException.class, () -> orderService.completeOrder("PW-COMP-2"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
+
 

@@ -32,6 +32,16 @@ public class OrderResponse {
 
     private String paymentMethod;
 
+    private String detailedAddress;
+
+    private String ward;
+
+    private String district;
+
+    private String provinceCity;
+
+    private LocalDateTime paidAt;
+
     private LocalDateTime createdAt;
 
     private List<OrderItemResponse> items;

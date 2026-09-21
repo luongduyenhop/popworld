@@ -28,6 +28,9 @@ class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private com.manguonmo.popworld.repository.CategoryRepository categoryRepository;
+
     // 4. @InjectMocks: Tạo ra đối tượng THẬT mà chúng ta muốn test
     // Mockito sẽ tự động tiêm con rối productRepository ở trên vào ProductServiceImpl!
     @InjectMocks
@@ -116,8 +119,66 @@ class ProductServiceTest {
         Optional<Product> rsTest = productService.getProductBySlug("slug khong ton tai");
 
         assertTrue(rsTest.isEmpty());
+    }
 
+    // =========================================================================
+    // ADMIN INVENTORY TESTS
+    // =========================================================================
 
+    @Test
+    @DisplayName("Admin: getAdminProducts theo từ khóa")
+    void test_GetAdminProducts_WithKeyword() {
+        Product p = Product.builder().id(10L).name("Skullpanda Winter").active(true).build();
+        when(productRepository.findByNameContainingIgnoreCaseAndActiveTrue("Winter")).thenReturn(List.of(p));
 
+        List<Product> result = productService.getAdminProducts(null, "Winter");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Skullpanda Winter", result.get(0).getName());
+        verify(productRepository).findByNameContainingIgnoreCaseAndActiveTrue("Winter");
+    }
+
+    @Test
+    @DisplayName("Admin: getProductStats trả về các chỉ số kho")
+    void test_GetProductStats() {
+        when(productRepository.count()).thenReturn(100L);
+        when(productRepository.countByActiveTrue()).thenReturn(85L);
+        when(productRepository.countByStockQuantityLessThanEqual(10)).thenReturn(12L);
+
+        com.manguonmo.popworld.dto.response.ProductStatsResponse stats = productService.getProductStats();
+
+        assertNotNull(stats);
+        assertEquals(100L, stats.getTotalCount());
+        assertEquals(85L, stats.getActiveCount());
+        assertEquals(12L, stats.getLowStockCount());
+    }
+
+    @Test
+    @DisplayName("Admin: updateStock thành công")
+    void test_UpdateStock_Success() {
+        Product p = Product.builder().id(1L).name("Labubu").stockQuantity(5).build();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(p));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Product updated = productService.updateStock(1L, 20);
+
+        assertNotNull(updated);
+        assertEquals(20, updated.getStockQuantity());
+        verify(productRepository).save(p);
+    }
+
+    @Test
+    @DisplayName("Admin: toggleActive đảo trạng thái active")
+    void test_ToggleActive_Success() {
+        Product p = Product.builder().id(1L).name("Labubu").active(true).build();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(p));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Product toggled = productService.toggleActive(1L);
+
+        assertNotNull(toggled);
+        assertFalse(toggled.getActive());
+        verify(productRepository).save(p);
     }
 }
