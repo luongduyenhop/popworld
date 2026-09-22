@@ -35,3 +35,8 @@ build/
 ### Office Temp Files ###
 ~$*
 *.tmp
+
+### Coach / Agent rules (Local only) ###
+COACHING_GUIDELINES.md
+AGENTS.md
+
