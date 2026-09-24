@@ -5,12 +5,14 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
+import com.manguonmo.popworld.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -20,13 +22,14 @@ public class CartWebController {
     private final CartService cartService;
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
-
+    private final UserService userService;
     public CartWebController(CartService cartService,
                              CategoryService categoryService,
-                             CharacterIpService characterIpService) {
+                             CharacterIpService characterIpService, UserService userService) {
         this.cartService = cartService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
+        this.userService = userService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -35,9 +38,10 @@ public class CartWebController {
     }
 
     @GetMapping
-    public String viewCart(Model model) {
+    public String viewCart(Model model, Principal principal) {
         addCommonAttributes(model);
-        User user = cartService.getDefaultUser();
+        String userName = principal.getName();
+        User user = userService.getUserByEmail(userName);
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
         BigDecimal totalAmount = cartService.calculateSelectedTotal(user.getId());
         if (totalAmount.compareTo(BigDecimal.ZERO) == 0 && !cartItems.isEmpty()) {
@@ -64,9 +68,11 @@ public class CartWebController {
     public String addToCart(@RequestParam Long productId,
                             @RequestParam(defaultValue = "SINGLE_BOX") String purchaseType,
                             @RequestParam(defaultValue = "1") int quantity,
-                            RedirectAttributes redirectAttributes) {
+                            RedirectAttributes redirectAttributes,
+                            Principal principal) {
         try {
-            User user = cartService.getDefaultUser();
+            String username = principal.getName();
+            User user = userService.getUserByEmail(username);
             cartService.addToCart(user.getId(), productId, purchaseType, quantity);
             redirectAttributes.addFlashAttribute("successMessage", "Đã thêm vào giỏ hàng thành công!");
         } catch (Exception e) {

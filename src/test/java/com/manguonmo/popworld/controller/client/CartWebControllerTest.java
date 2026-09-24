@@ -5,6 +5,7 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
+import com.manguonmo.popworld.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +37,12 @@ class CartWebControllerTest {
     private CharacterIpService characterIpService;
 
     @Mock
+    private UserService userService;
+
+    @Mock
+    private Principal principal;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -47,19 +55,20 @@ class CartWebControllerTest {
 
     @BeforeEach
     void setUp() {
-        sampleUser = User.builder().id(1L).fullName("Test User").build();
+        sampleUser = User.builder().id(1L).email("test@popworld.com").fullName("Test User").build();
     }
 
     @Test
     @DisplayName("viewCart: Hiển thị giỏ hàng và các thuộc tính liên quan")
     void viewCart_shouldRenderCartPage() {
-        when(cartService.getDefaultUser()).thenReturn(sampleUser);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
         CartItem item = CartItem.builder().id(10L).build();
         when(cartService.getCartItems(1L)).thenReturn(List.of(item));
         when(cartService.calculateSelectedTotal(1L)).thenReturn(new BigDecimal("300000"));
         when(cartService.getCartCount(1L)).thenReturn(1);
 
-        String viewName = cartWebController.viewCart(model);
+        String viewName = cartWebController.viewCart(model, principal);
 
         assertEquals("cart", viewName);
         verify(model, times(1)).addAttribute("cartItems", List.of(item));
@@ -71,9 +80,10 @@ class CartWebControllerTest {
     @Test
     @DisplayName("addToCart: Thêm sản phẩm thành công và redirect về /cart kèm flash message")
     void addToCart_Success_RedirectsToCart() {
-        when(cartService.getDefaultUser()).thenReturn(sampleUser);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
 
-        String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 2, redirectAttributes);
+        String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 2, redirectAttributes, principal);
 
         assertEquals("redirect:/cart", viewName);
         verify(cartService, times(1)).addToCart(1L, 100L, "SINGLE_BOX", 2);
@@ -83,11 +93,12 @@ class CartWebControllerTest {
     @Test
     @DisplayName("addToCart: Khi có ngoại lệ thì redirect về /cart kèm errorMessage")
     void addToCart_Fail_RedirectsToCartWithErrorMessage() {
-        when(cartService.getDefaultUser()).thenReturn(sampleUser);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
         doThrow(new RuntimeException("Hết hàng tồn kho"))
                 .when(cartService).addToCart(1L, 100L, "SINGLE_BOX", 2);
 
-        String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 2, redirectAttributes);
+        String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 2, redirectAttributes, principal);
 
         assertEquals("redirect:/cart", viewName);
         verify(redirectAttributes, times(1)).addFlashAttribute(eq("errorMessage"), contains("Hết hàng tồn kho"));

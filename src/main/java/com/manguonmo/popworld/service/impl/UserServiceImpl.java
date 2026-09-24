@@ -7,6 +7,7 @@ import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new  UsernameNotFoundException("Không tìm thấy username với email: "+ email)
+        );
+    }
+
+    @Override
     public List<User> getAllCustomers() {
         return userRepository.findAll();
     }
@@ -66,4 +74,5 @@ public class UserServiceImpl implements UserService {
                 .memberCount(memberCount)
                 .build();
     }
+
 }

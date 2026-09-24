@@ -10,4 +10,5 @@ public interface UserService {
     List<User> getAllCustomers();
     CustomerStatsResponse getCustomerStats();
     User register(RegisterRequest request);
+    User getUserByEmail(String email);
 }
