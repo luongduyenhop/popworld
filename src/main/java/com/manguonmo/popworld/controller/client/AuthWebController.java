@@ -57,4 +57,12 @@ public class AuthWebController {
     public String showLoginForm() {
         return "login";
     }
+
+    /**
+     * GET /403 - Trang thông báo từ chối truy cập (Access Denied)
+     */
+    @GetMapping("/403")
+    public String showAccessDeniedPage() {
+        return "403";
+    }
 }

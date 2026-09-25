@@ -100,4 +100,12 @@ class AuthWebControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("login"));
     }
+
+    @Test
+    @DisplayName("GET /403: Hiển thị trang từ chối truy cập 403 thành công")
+    void showAccessDeniedPage_ShouldReturn403View() throws Exception {
+        mockMvc.perform(get("/403"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("403"));
+    }
 }
