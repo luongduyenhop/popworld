@@ -1263,3 +1263,365 @@ header.sticky-top,
     0%, 100% { opacity: 0.4; }
     50%      { opacity: 0.85; }
 }
+
+/* ==========================================================================
+   POP MART US CUSTOMER HUB & MY ORDERS (2-COLUMN DESIGN)
+   ========================================================================== */
+
+.pop-account-container {
+    max-width: 1240px;
+    margin: 24px auto 60px;
+    padding: 0 16px;
+}
+
+/* 1. LEFT SIDEBAR */
+.pop-account-sidebar {
+    background: transparent;
+}
+
+/* User Card */
+.pop-user-card {
+    background: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #ECEEF2;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.pop-user-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.pop-points-badge {
+    background: #FFF7ED;
+    color: #EA580C;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.pop-user-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+}
+
+.pop-user-actions a {
+    color: #64748B;
+    text-decoration: underline;
+    transition: color 0.15s;
+}
+
+.pop-user-actions a:hover {
+    color: #111113;
+}
+
+.pop-user-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.pop-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #F1F3F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #475569;
+    border: 1px solid #E2E8F0;
+    flex-shrink: 0;
+}
+
+.pop-user-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111113;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pop-barcode-icon {
+    font-size: 1.25rem;
+    color: #334155;
+    margin-left: auto;
+    cursor: pointer;
+}
+
+.pop-user-benefits {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid #F1F3F5;
+    font-size: 0.8rem;
+}
+
+.pop-benefit-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.pop-benefit-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #8C96A5;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.pop-benefit-val {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #111113;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pop-benefit-val:hover {
+    color: #D1001F;
+}
+
+/* Coupons Card */
+.pop-metric-card {
+    background: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #ECEEF2;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.pop-metric-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #111113;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.pop-metric-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748B;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Orders Menu & Delivery Toggle */
+.pop-side-menu-card {
+    background: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #ECEEF2;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.pop-side-menu-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111113;
+    margin-bottom: 16px;
+}
+
+.pop-delivery-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #F1F3F5;
+    margin-bottom: 16px;
+}
+
+.pop-delivery-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #F8F9FA;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748B;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.pop-delivery-btn i {
+    font-size: 1.35rem;
+}
+
+.pop-delivery-btn.active {
+    background: #FFF5F5;
+    color: #D1001F;
+    border-color: #FECACA;
+}
+
+.pop-delivery-btn.active i {
+    color: #D1001F;
+}
+
+.pop-side-nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #F8F9FA;
+    text-decoration: none;
+    color: #334155;
+    transition: color 0.15s;
+}
+
+.pop-side-nav-item:last-child {
+    border-bottom: none;
+    padding-bottom: 4px;
+}
+
+.pop-side-nav-item:hover {
+    color: #D1001F;
+}
+
+.pop-side-nav-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.pop-side-nav-content i {
+    font-size: 1.1rem;
+    color: #64748B;
+    margin-top: 1px;
+}
+
+.pop-side-nav-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #111113;
+    line-height: 1.2;
+}
+
+.pop-side-nav-desc {
+    font-size: 0.72rem;
+    color: #94A3B8;
+}
+
+.pop-side-nav-arrow {
+    font-size: 0.85rem;
+    color: #94A3B8;
+}
+
+/* 2. RIGHT ORDERS HUB */
+.pop-orders-hub {
+    background: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #ECEEF2;
+    padding: 24px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    min-height: 520px;
+}
+
+.pop-orders-header-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #111113;
+    margin-bottom: 18px;
+}
+
+/* Underline Tabs */
+.pop-orders-underline-tabs {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    border-bottom: 1px solid #ECEEF2;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.pop-orders-underline-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.pop-underline-tab {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
+    padding: 0 0 12px 0;
+    position: relative;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s;
+}
+
+.pop-underline-tab:hover {
+    color: #111113;
+}
+
+.pop-underline-tab.active {
+    color: #D1001F;
+    font-weight: 800;
+}
+
+.pop-underline-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2.5px;
+    background-color: #D1001F;
+    border-radius: 2px;
+}
+
+/* Empty State */
+.pop-orders-empty-state {
+    padding: 70px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pop-empty-icon-box {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #F4F5F7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94A3B8;
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+}
+
+.pop-empty-text {
+    font-size: 0.95rem;
+    color: #475569;
+    margin: 0;
+    font-weight: 500;
+}

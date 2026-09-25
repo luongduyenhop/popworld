@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
     Optional<Coupon> findByCodeAndActiveTrue(String code);
     boolean existsByCode(String code);
+    long countByActiveTrue();
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Coupon c SET c.usedCount = c.usedCount + 1 WHERE c.id = :couponId AND (c.usageLimit IS NULL OR c.usedCount < c.usageLimit)")

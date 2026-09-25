@@ -41,6 +41,7 @@ public class CheckoutWebController {
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
     private final UserService userService;
+    private final com.manguonmo.popworld.repository.CouponRepository couponRepository;
 
     @Value("${sepay.bank-code:MBBank}")
     private String sepayBankCode;
@@ -55,12 +56,14 @@ public class CheckoutWebController {
                                  CartService cartService,
                                  CategoryService categoryService,
                                  CharacterIpService characterIpService,
-                                 UserService userService) {
+                                 UserService userService,
+                                 com.manguonmo.popworld.repository.CouponRepository couponRepository) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.userService = userService;
+        this.couponRepository = couponRepository;
     }
 
     private void addCommonAttributes(Model model) {
@@ -254,6 +257,7 @@ public class CheckoutWebController {
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         model.addAttribute("orderItemsMap", orderItemsMap);
+        model.addAttribute("couponsCount", couponRepository.countByActiveTrue());
 
         return "my-orders";
     }
