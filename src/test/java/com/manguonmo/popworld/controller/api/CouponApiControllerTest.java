@@ -4,8 +4,8 @@ import com.manguonmo.popworld.dto.request.CouponValidateRequest;
 import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.dto.response.CouponDiscountResponse;
 import com.manguonmo.popworld.entity.User;
-import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CouponService;
+import com.manguonmo.popworld.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,16 +27,17 @@ class CouponApiControllerTest {
     private CouponService couponService;
 
     @Mock
-    private CartService cartService;
+    private UserService userService;
 
     @InjectMocks
     private CouponApiController couponApiController;
 
     @Test
-    @DisplayName("validateCoupon thành công: Trả về 200 OK và kết quả tính tiền giảm giá")
+    @DisplayName("validateCoupon thành công: Trả về 200 OK và kết quả tính tiền giảm giá khi có user đăng nhập")
     void validateCoupon_Success_ReturnsDiscountResponse() {
         User user = User.builder().id(1L).fullName("Nguyen Van A").build();
-        when(cartService.getDefaultUser()).thenReturn(user);
+        Principal principal = () -> "user@popworld.com";
+        when(userService.getUserByEmail("user@popworld.com")).thenReturn(user);
 
         CouponDiscountResponse mockResponse = CouponDiscountResponse.builder()
                 .couponCode("POP10")
@@ -55,7 +57,7 @@ class CouponApiControllerTest {
                 .subtotal(new BigDecimal("500000"))
                 .build();
 
-        ResponseEntity<ApiResponse<CouponDiscountResponse>> response = couponApiController.validateCoupon(request);
+        ResponseEntity<ApiResponse<CouponDiscountResponse>> response = couponApiController.validateCoupon(request, principal);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
@@ -66,10 +68,8 @@ class CouponApiControllerTest {
     }
 
     @Test
-    @DisplayName("validateCoupon thành công khi user null (khách vãng lai)")
-    void validateCoupon_Success_WhenUserNull() {
-        when(cartService.getDefaultUser()).thenReturn(null);
-
+    @DisplayName("validateCoupon thành công khi principal null (khách vãng lai)")
+    void validateCoupon_Success_WhenPrincipalNull() {
         CouponDiscountResponse mockResponse = CouponDiscountResponse.builder()
                 .couponCode("FREESHIP")
                 .discountAmount(new BigDecimal("30000"))
@@ -83,11 +83,12 @@ class CouponApiControllerTest {
                 .subtotal(new BigDecimal("600000"))
                 .build();
 
-        ResponseEntity<ApiResponse<CouponDiscountResponse>> response = couponApiController.validateCoupon(request);
+        ResponseEntity<ApiResponse<CouponDiscountResponse>> response = couponApiController.validateCoupon(request, null);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
         assertEquals("FREESHIP", response.getBody().getData().getCouponCode());
         verify(couponService, times(1)).calculateDiscount("FREESHIP", null, new BigDecimal("600000"));
+        verifyNoInteractions(userService);
     }
 }

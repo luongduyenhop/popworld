@@ -1,5 +1,8 @@
 package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.OutOfStockException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.entity.CartItem;
 import com.manguonmo.popworld.entity.Product;
@@ -38,16 +41,35 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItem addToCart(Long userId, Long productId, String purchaseType, int quantity) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng để thêm vào giỏ hàng.");
+        }
+        if (quantity <= 0) {
+            throw new BadRequestException("Số lượng sản phẩm phải lớn hơn 0!");
+        }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng ID: " + userId));
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm ID: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm ID: " + productId));
 
         String type = (purchaseType != null && purchaseType.equalsIgnoreCase("WHOLE_SET")) 
                 ? "WHOLE_SET" : "SINGLE_BOX";
 
         Optional<CartItem> existingItemOpt = cartItemRepository
                 .findByUserIdAndProductIdAndPurchaseType(userId, productId, type);
+
+        int requestedBoxes = "WHOLE_SET".equalsIgnoreCase(type) ? quantity * 12 : quantity;
+        int totalBoxes = requestedBoxes;
+        if (existingItemOpt.isPresent()) {
+            int currentQty = existingItemOpt.get().getQuantity();
+            totalBoxes = "WHOLE_SET".equalsIgnoreCase(type) ? (currentQty + quantity) * 12 : (currentQty + quantity);
+        }
+
+        int availableStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+        if (totalBoxes > availableStock) {
+            throw new OutOfStockException("Sản phẩm '" + product.getName() + "' không đủ số lượng tồn kho (hiện còn " + availableStock + " hộp)!");
+        }
 
         if (existingItemOpt.isPresent()) {
             CartItem item = existingItemOpt.get();
@@ -58,7 +80,7 @@ public class CartServiceImpl implements CartService {
                     .user(user)
                     .product(product)
                     .purchaseType(type)
-                    .quantity(Math.max(1, quantity))
+                    .quantity(quantity)
                     .isSelected(true)
                     .build();
             return cartItemRepository.save(newItem);
@@ -66,28 +88,61 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void updateQuantity(Long cartItemId, int quantity) {
+    public void updateQuantity(Long userId, Long cartItemId, int quantity) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
+        }
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
+
+        if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+        }
+
         if (quantity <= 0) {
-            cartItemRepository.deleteById(cartItemId);
+            cartItemRepository.delete(item);
         } else {
-            cartItemRepository.findById(cartItemId).ifPresent(item -> {
-                item.setQuantity(quantity);
-                cartItemRepository.save(item);
-            });
+            if (item.getProduct() != null && item.getProduct().getStockQuantity() != null) {
+                int requestedBoxes = "WHOLE_SET".equalsIgnoreCase(item.getPurchaseType()) ? quantity * 12 : quantity;
+                int availableStock = item.getProduct().getStockQuantity();
+                if (requestedBoxes > availableStock) {
+                    throw new OutOfStockException("Sản phẩm '" + item.getProduct().getName() + "' không đủ số lượng tồn kho (hiện còn " + availableStock + " hộp)!");
+                }
+            }
+            item.setQuantity(quantity);
+            cartItemRepository.save(item);
         }
     }
 
     @Override
-    public void updateSelection(Long cartItemId, boolean isSelected) {
-        cartItemRepository.findById(cartItemId).ifPresent(item -> {
-            item.setIsSelected(isSelected);
-            cartItemRepository.save(item);
-        });
+    public void updateSelection(Long userId, Long cartItemId, boolean isSelected) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
+        }
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
+
+        if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+        }
+
+        item.setIsSelected(isSelected);
+        cartItemRepository.save(item);
     }
 
     @Override
-    public void removeFromCart(Long cartItemId) {
-        cartItemRepository.deleteById(cartItemId);
+    public void removeFromCart(Long userId, Long cartItemId) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng để xóa sản phẩm khỏi giỏ.");
+        }
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
+
+        if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+        }
+
+        cartItemRepository.delete(item);
     }
 
     @Override
@@ -116,13 +171,5 @@ public class CartServiceImpl implements CartService {
     public int getCartCount(Long userId) {
         List<CartItem> items = cartItemRepository.findByUserId(userId);
         return items.stream().mapToInt(CartItem::getQuantity).sum();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public User getDefaultUser() {
-        return userRepository.findByEmail("user@popworld.com")
-                .orElseGet(() -> userRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Không có người dùng nào trong CSDL!")));
     }
 }

@@ -44,16 +44,6 @@ public class CartWebController {
         User user = userService.getUserByEmail(userName);
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
         BigDecimal totalAmount = cartService.calculateSelectedTotal(user.getId());
-        if (totalAmount.compareTo(BigDecimal.ZERO) == 0 && !cartItems.isEmpty()) {
-            totalAmount = cartItems.stream()
-                    .map(item -> {
-                        BigDecimal price = "SINGLE_BOX".equalsIgnoreCase(item.getPurchaseType())
-                                ? item.getProduct().getSinglePrice()
-                                : (item.getProduct().getWholeSetPrice() != null ? item.getProduct().getWholeSetPrice() : item.getProduct().getSinglePrice());
-                        return price.multiply(BigDecimal.valueOf(item.getQuantity()));
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-        }
         int cartCount = cartService.getCartCount(user.getId());
 
         model.addAttribute("cartItems", cartItems);
@@ -83,22 +73,52 @@ public class CartWebController {
 
     @PostMapping("/update")
     public String updateQuantity(@RequestParam Long cartItemId,
-                                 @RequestParam int quantity) {
-        cartService.updateQuantity(cartItemId, quantity);
+                                 @RequestParam int quantity,
+                                 Principal principal,
+                                 RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            cartService.updateQuantity(user.getId(), cartItemId, quantity);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/cart";
     }
 
     @PostMapping("/toggle-select")
     public String toggleSelection(@RequestParam Long cartItemId,
-                                  @RequestParam(defaultValue = "false") boolean isSelected) {
-        cartService.updateSelection(cartItemId, isSelected);
+                                  @RequestParam(defaultValue = "false") boolean isSelected,
+                                  Principal principal,
+                                  RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            cartService.updateSelection(user.getId(), cartItemId, isSelected);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/cart";
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteCartItem(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        cartService.removeFromCart(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sản phẩm khỏi giỏ hàng.");
+    public String deleteCartItem(@PathVariable Long id,
+                                 Principal principal,
+                                 RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            cartService.removeFromCart(user.getId(), id);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sản phẩm khỏi giỏ hàng.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/cart";
     }
 }

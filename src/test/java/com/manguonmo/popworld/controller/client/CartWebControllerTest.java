@@ -107,28 +107,37 @@ class CartWebControllerTest {
     @Test
     @DisplayName("updateQuantity: Cập nhật số lượng và redirect về /cart")
     void updateQuantity_shouldCallServiceAndRedirect() {
-        String viewName = cartWebController.updateQuantity(5L, 3);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+
+        String viewName = cartWebController.updateQuantity(5L, 3, principal, redirectAttributes);
 
         assertEquals("redirect:/cart", viewName);
-        verify(cartService, times(1)).updateQuantity(5L, 3);
+        verify(cartService, times(1)).updateQuantity(1L, 5L, 3);
     }
 
     @Test
     @DisplayName("toggleSelection: Đổi trạng thái chọn món và redirect về /cart")
     void toggleSelection_shouldCallServiceAndRedirect() {
-        String viewName = cartWebController.toggleSelection(5L, true);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+
+        String viewName = cartWebController.toggleSelection(5L, true, principal, redirectAttributes);
 
         assertEquals("redirect:/cart", viewName);
-        verify(cartService, times(1)).updateSelection(5L, true);
+        verify(cartService, times(1)).updateSelection(1L, 5L, true);
     }
 
     @Test
     @DisplayName("deleteCartItem: Xóa sản phẩm khỏi giỏ và redirect về /cart")
     void deleteCartItem_shouldCallServiceAndRedirect() {
-        String viewName = cartWebController.deleteCartItem(15L, redirectAttributes);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+
+        String viewName = cartWebController.deleteCartItem(15L, principal, redirectAttributes);
 
         assertEquals("redirect:/cart", viewName);
-        verify(cartService, times(1)).removeFromCart(15L);
+        verify(cartService, times(1)).removeFromCart(1L, 15L);
         verify(redirectAttributes, times(1)).addFlashAttribute(eq("successMessage"), contains("Đã xóa"));
     }
 }

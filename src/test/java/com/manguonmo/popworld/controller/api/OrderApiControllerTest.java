@@ -4,10 +4,11 @@ import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.dto.response.OrderResponse;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.User;
+import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.mapper.OrderMapper;
-import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.OrderService;
+import com.manguonmo.popworld.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,13 +17,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderApiControllerTest {
@@ -34,7 +34,7 @@ public class OrderApiControllerTest {
     private OrderMapper orderMapper;
 
     @Mock
-    private CartService cartService;
+    private UserService userService;
 
     @InjectMocks
     private OrderApiController orderApiController;
@@ -88,22 +88,31 @@ public class OrderApiControllerTest {
     }
 
     @Test
-    @DisplayName("getMyOrders trả về danh sách đơn của người dùng")
+    @DisplayName("getMyOrders trả về danh sách đơn của người dùng khi có Principal")
     public void getMyOrders_shouldReturnOrderList() {
         User user = User.builder().id(10L).build();
         Order order = Order.builder().id(1L).orderCode("PW-1").build();
         OrderResponse orderRes = OrderResponse.builder().orderCode("PW-1").build();
+        Principal principal = () -> "test@popworld.com";
 
-        when(cartService.getDefaultUser()).thenReturn(user);
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(user);
         when(orderService.getOrdersByUser(10L)).thenReturn(List.of(order));
         when(orderService.getOrderItems(1L)).thenReturn(List.of());
         when(orderMapper.toResponse(order, List.of())).thenReturn(orderRes);
 
-        ResponseEntity<ApiResponse<List<OrderResponse>>> response = orderApiController.getMyOrders();
+        ResponseEntity<ApiResponse<List<OrderResponse>>> response = orderApiController.getMyOrders(principal);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
         assertEquals(1, response.getBody().getData().size());
         assertEquals("PW-1", response.getBody().getData().get(0).getOrderCode());
+    }
+
+    @Test
+    @DisplayName("getMyOrders ném BadRequestException khi Principal null")
+    public void getMyOrders_shouldThrowBadRequest_whenPrincipalNull() {
+        assertThrows(BadRequestException.class, () -> orderApiController.getMyOrders(null));
+        verifyNoInteractions(userService);
+        verifyNoInteractions(orderService);
     }
 }

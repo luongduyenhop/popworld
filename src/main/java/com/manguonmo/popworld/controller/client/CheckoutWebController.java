@@ -12,6 +12,7 @@ import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
 import com.manguonmo.popworld.service.OrderService;
+import com.manguonmo.popworld.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class CheckoutWebController {
     private final CartService cartService;
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
+    private final UserService userService;
 
     @Value("${sepay.bank-code:MBBank}")
     private String sepayBankCode;
@@ -51,11 +54,13 @@ public class CheckoutWebController {
     public CheckoutWebController(OrderService orderService,
                                  CartService cartService,
                                  CategoryService categoryService,
-                                 CharacterIpService characterIpService) {
+                                 CharacterIpService characterIpService,
+                                 UserService userService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
+        this.userService = userService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -67,9 +72,17 @@ public class CheckoutWebController {
      * Hiển thị trang điền thông tin đặt hàng (Checkout)
      */
     @GetMapping("/checkout")
-    public String showCheckoutPage(Model model, RedirectAttributes redirectAttributes) {
+    public String showCheckoutPage(Model model, RedirectAttributes redirectAttributes, Principal principal) {
         addCommonAttributes(model);
-        User user = cartService.getDefaultUser();
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn không hợp lệ hoặc đã bị vô hiệu hóa.");
+            return "redirect:/login";
+        }
+
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
 
         if (cartItems.isEmpty()) {
@@ -77,26 +90,23 @@ public class CheckoutWebController {
             return "redirect:/cart";
         }
 
-        BigDecimal subtotal = cartService.calculateSelectedTotal(user.getId());
-        if (subtotal.compareTo(BigDecimal.ZERO) == 0) {
-            // Nếu chưa tick chọn món nào, mặc định tính toàn bộ món trong giỏ
-            subtotal = cartItems.stream()
-                    .map(item -> {
-                        BigDecimal price = "SINGLE_BOX".equalsIgnoreCase(item.getPurchaseType())
-                                ? item.getProduct().getSinglePrice()
-                                : item.getProduct().getWholeSetPrice();
-                        return price.multiply(BigDecimal.valueOf(item.getQuantity()));
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<CartItem> selectedItems = cartItems.stream()
+                .filter(item -> Boolean.TRUE.equals(item.getIsSelected()))
+                .toList();
+
+        if (selectedItems.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng chọn ít nhất một sản phẩm trong giỏ hàng để tiến hành thanh toán!");
+            return "redirect:/cart";
         }
 
+        BigDecimal subtotal = cartService.calculateSelectedTotal(user.getId());
         BigDecimal shippingFee = subtotal.compareTo(BigDecimal.valueOf(500000)) >= 0
                 ? BigDecimal.ZERO
                 : BigDecimal.valueOf(30000);
         BigDecimal totalAmount = subtotal.add(shippingFee);
 
         model.addAttribute("user", user);
-        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("cartItems", selectedItems);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("totalAmount", totalAmount);
@@ -116,9 +126,18 @@ public class CheckoutWebController {
                              @RequestParam String detailedAddress,
                              @RequestParam(defaultValue = "COD") String paymentMethod,
                              @RequestParam(required = false) String couponCode,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             Principal principal) {
         try {
-            User user = cartService.getDefaultUser();
+            if (principal == null) {
+                return "redirect:/login";
+            }
+            User user = userService.getUserByEmail(principal.getName());
+            if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn không hợp lệ hoặc đã bị vô hiệu hóa.");
+                return "redirect:/login";
+            }
+
             Order order = orderService.createOrder(
                     user.getId(),
                     recipientName,
@@ -151,11 +170,18 @@ public class CheckoutWebController {
      * Màn hình thanh toán chuyển khoản qua VietQR SePay động
      */
     @GetMapping("/checkout/payment/{orderCode}")
-    public String showPaymentQrPage(@PathVariable String orderCode, Model model) {
+    public String showPaymentQrPage(@PathVariable String orderCode, Model model, Principal principal) {
         addCommonAttributes(model);
         Order order = orderService.getOrderByCode(orderCode);
         if (order == null) {
             return "redirect:/cart";
+        }
+
+        if (principal != null) {
+            User user = userService.getUserByEmail(principal.getName());
+            if (user != null && order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
+                return "redirect:/403";
+            }
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());
@@ -185,11 +211,18 @@ public class CheckoutWebController {
      * Màn hình thông báo đặt hàng thành công
      */
     @GetMapping("/checkout/success/{orderCode}")
-    public String showOrderSuccessPage(@PathVariable String orderCode, Model model) {
+    public String showOrderSuccessPage(@PathVariable String orderCode, Model model, Principal principal) {
         addCommonAttributes(model);
         Order order = orderService.getOrderByCode(orderCode);
         if (order == null) {
             return "redirect:/";
+        }
+
+        if (principal != null) {
+            User user = userService.getUserByEmail(principal.getName());
+            if (user != null && order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
+                return "redirect:/403";
+            }
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());
@@ -203,9 +236,15 @@ public class CheckoutWebController {
      * Xem lịch sử đơn hàng của tôi
      */
     @GetMapping("/orders")
-    public String showMyOrders(Model model) {
+    public String showMyOrders(Model model, Principal principal) {
         addCommonAttributes(model);
-        User user = cartService.getDefaultUser();
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+            return "redirect:/login";
+        }
         List<Order> orders = orderService.getOrdersByUser(user.getId());
 
         // Lấy danh sách sản phẩm cho từng đơn hàng để hiển thị ảnh thumbnail và thông tin chi tiết
@@ -218,12 +257,21 @@ public class CheckoutWebController {
 
         return "my-orders";
     }
+
     @PostMapping("/orders/{orderCode}/cancel")
     public String cancelOrder(@PathVariable String orderCode,
                               @RequestParam(required = false, defaultValue = "") String reason,
-                              RedirectAttributes redirectAttributes) {
+                              RedirectAttributes redirectAttributes,
+                              Principal principal) {
         try {
-            User user = cartService.getDefaultUser();
+            if (principal == null) {
+                return "redirect:/login";
+            }
+            User user = userService.getUserByEmail(principal.getName());
+            if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản không hợp lệ hoặc đã bị vô hiệu hóa.");
+                return "redirect:/login";
+            }
             orderService.cancelOrder(user.getId(), orderCode, reason);
             redirectAttributes.addFlashAttribute("successMessage", "Hủy đơn hàng " + orderCode + " thành công!");
         } catch (Exception e) {

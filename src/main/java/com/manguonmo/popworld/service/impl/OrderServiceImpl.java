@@ -72,17 +72,16 @@ public class OrderServiceImpl implements OrderService {
         );
 
         // =========================================================================
-        // BƯỚC 2: Lấy danh sách các món đồ trong giỏ hàng của User
-        // [CHÚ THÍCH]: Nếu giỏ hàng rỗng, ném Exception rõ ràng thay vì System.out.println
-        // để tránh lỗi NullPointerException ở tầng Controller/UI.
+        // BƯỚC 2: Lấy danh sách các món đồ ĐƯỢC CHỌN trong giỏ hàng của User
+        // [CHÚ THÍCH]: Chỉ tiến hành đặt hàng cho các món có isSelected == true.
         // =========================================================================
-        List<CartItem> cartItems = cartItemRepository.findByUserId(userId);
-        if (cartItems.isEmpty()) {
-            throw new BadRequestException("Giỏ hàng của bạn đang trống, không thể đặt hàng!");
+        List<CartItem> selectedCartItems = cartItemRepository.findByUserIdAndIsSelectedTrue(userId);
+        if (selectedCartItems.isEmpty()) {
+            throw new BadRequestException("Giỏ hàng của bạn đang trống hoặc chưa chọn sản phẩm nào để đặt hàng!");
         }
 
         // =========================================================================
-        // BƯỚC 3: Tính tiền hàng (subtotal)
+        // BƯỚC 3: Tính tiền hàng (subtotal) & Trừ tồn kho nguyên tử
         // [CHÚ THÍCH QUAN TRỌNG VỀ JAVA STRING]:
         // 1. Tuyệt đối KHÔNG dùng toán tử '==' để so sánh chuỗi (cart.getPurchaseType() == "Single").
         //    '==' so sánh địa chỉ ô nhớ, không so sánh nội dung. Bắt buộc dùng .equalsIgnoreCase().
@@ -90,19 +89,21 @@ public class OrderServiceImpl implements OrderService {
         // 3. Getter giá hộp lẻ trong Product.java là getSinglePrice().
         // =========================================================================
         BigDecimal subtotal = BigDecimal.ZERO;
-        Integer quantity = 0;
-        for (CartItem cart : cartItems) {
+        for (CartItem cart : selectedCartItems) {
             BigDecimal unitPrice;
+            int requiredStock;
             if ("SINGLE_BOX".equalsIgnoreCase(cart.getPurchaseType())) {
                 unitPrice = cart.getProduct().getSinglePrice();
-                quantity = cart.getQuantity();
+                requiredStock = cart.getQuantity();
             } else {
-                unitPrice = cart.getProduct().getWholeSetPrice();
-                quantity = cart.getQuantity() * 12;
+                unitPrice = cart.getProduct().getWholeSetPrice() != null
+                        ? cart.getProduct().getWholeSetPrice()
+                        : cart.getProduct().getSinglePrice();
+                requiredStock = cart.getQuantity() * 12;
             }
             // Cộng dồn tiền: subtotal = subtotal.add(...) vì BigDecimal là Immutable (bất biến)
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
-            int updateRows = productRepository.updateStock(cart.getProduct().getId(), quantity);
+            int updateRows = productRepository.updateStock(cart.getProduct().getId(), requiredStock);
 
             if (updateRows == 0) {
                 throw new OutOfStockException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
@@ -187,11 +188,11 @@ public class OrderServiceImpl implements OrderService {
         // 2. orderItem.setTotalPrice(...): Là giá của RIÊNG món này (unitPrice * quantity),
         //    tuyệt đối KHÔNG gán totalAmount của cả đơn hàng vào từng món!
         // =========================================================================
-        List<OrderItem> orderItems = cartItems.stream().map(
+        List<OrderItem> orderItems = selectedCartItems.stream().map(
                 cartItem -> {
                     BigDecimal unitPrice = "SINGLE_BOX".equalsIgnoreCase(cartItem.getPurchaseType())
                             ? cartItem.getProduct().getSinglePrice()
-                            : cartItem.getProduct().getWholeSetPrice();
+                            : (cartItem.getProduct().getWholeSetPrice() != null ? cartItem.getProduct().getWholeSetPrice() : cartItem.getProduct().getSinglePrice());
 
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(savedOrder); // Gắn quan hệ với Order vừa tạo
@@ -207,13 +208,12 @@ public class OrderServiceImpl implements OrderService {
         orderItemRepository.saveAll(orderItems);
 
         // =========================================================================
-        // BƯỚC 10: Xóa các CartItem đã đặt khỏi giỏ hàng
+        // BƯỚC 10: Xóa CHỈ các CartItem ĐÃ ĐẶT HÀNG (được chọn) khỏi giỏ hàng
         // [CHÚ THÍCH AN TOÀN DỮ LIỆU]:
-        // Phải gọi cartItemRepository.deleteAll(cartItems) -> Chỉ xóa các món của đơn hàng này!
-        // Tuyệt đối KHÔNG gọi cartItemRepository.deleteAll() không tham số vì lệnh đó
-        // sẽ XÓA SẠCH giỏ hàng của TẤT CẢ mọi người dùng khác trên toàn hệ thống!
+        // Phải gọi cartItemRepository.deleteAll(selectedCartItems) -> Chỉ xóa các món đã chọn của đơn này!
+        // Các món không được chọn vẫn được giữ lại an toàn trong giỏ của người dùng.
         // =========================================================================
-        cartItemRepository.deleteAll(cartItems);
+        cartItemRepository.deleteAll(selectedCartItems);
 
         // =========================================================================
         // BƯỚC 11: Trả về đối tượng Order đã lưu thành công

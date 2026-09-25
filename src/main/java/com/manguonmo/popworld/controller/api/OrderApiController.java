@@ -5,13 +5,15 @@ import com.manguonmo.popworld.dto.response.OrderResponse;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
+import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.mapper.OrderMapper;
-import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.OrderService;
+import com.manguonmo.popworld.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -24,14 +26,14 @@ public class OrderApiController {
 
     private final OrderService orderService;
     private final OrderMapper orderMapper;
-    private final CartService cartService;
+    private final UserService userService;
 
     public OrderApiController(OrderService orderService,
                               OrderMapper orderMapper,
-                              CartService cartService) {
+                              UserService userService) {
         this.orderService = orderService;
         this.orderMapper = orderMapper;
-        this.cartService = cartService;
+        this.userService = userService;
     }
 
     /**
@@ -75,8 +77,11 @@ public class OrderApiController {
      * Lấy danh sách đơn hàng của người dùng hiện tại
      */
     @GetMapping("/my-orders")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders() {
-        User user = cartService.getDefaultUser();
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Principal principal) {
+        if (principal == null) {
+            throw new BadRequestException("Vui lòng đăng nhập để xem danh sách đơn hàng.");
+        }
+        User user = userService.getUserByEmail(principal.getName());
         List<Order> orders = orderService.getOrdersByUser(user.getId());
 
         List<OrderResponse> responseList = orders.stream()

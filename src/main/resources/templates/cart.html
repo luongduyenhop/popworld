@@ -170,7 +170,7 @@
                         <span class="text-muted">Phí vận chuyển:</span>
                         <span class="fw-bold" 
                               th:classappend="${totalAmount >= 500000} ? 'text-success' : 'text-dark'"
-                              th:text="${totalAmount >= 500000 ? 'MIỄN PHÍ' : '30.000 đ'}">
+                              th:text="${totalAmount == 0 ? '0 đ' : (totalAmount >= 500000 ? 'MIỄN PHÍ' : '30.000 đ')}">
                             MIỄN PHÍ
                         </span>
                     </div>
@@ -191,7 +191,7 @@
                     <div class="d-flex justify-content-between align-items-baseline mt-4 mb-4">
                         <span class="fw-black text-uppercase">Tổng Thanh Toán:</span>
                         <span class="display-6 fw-black text-danger"
-                              th:text="${#numbers.formatDecimal(totalAmount >= 500000 ? totalAmount : totalAmount + 30000, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                              th:text="${#numbers.formatDecimal(totalAmount == 0 ? 0 : (totalAmount >= 500000 ? totalAmount : totalAmount + 30000), 0, 'COMMA', 0, 'POINT')} + ' đ'">
                             0 đ
                         </span>
                     </div>

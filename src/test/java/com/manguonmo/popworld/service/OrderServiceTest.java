@@ -125,7 +125,7 @@ class OrderServiceTest {
         List<CartItem> cartList = List.of(cartItem);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(cartItemRepository.findByUserId(1L)).thenReturn(cartList);
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(cartList);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // --- 2. ACT (Thực thi hàm cần test) ---
@@ -185,7 +185,7 @@ class OrderServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(cartItemRepository.findByUserId(1L)).thenReturn(cartList);
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(cartList);
         when(couponService.calculateDiscount(eq("POP10"), eq(1L), any(BigDecimal.class)))
                 .thenReturn(CouponDiscountResponse.builder()
                         .couponCode("POP10")
@@ -245,7 +245,7 @@ class OrderServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(List.of(cartItem));
         when(couponService.calculateDiscount(eq("EXPIRED"), eq(1L), any(BigDecimal.class)))
                 .thenThrow(new BadRequestException("Mã giảm giá đã hết hạn sử dụng!"));
 
@@ -286,10 +286,10 @@ class OrderServiceTest {
     // TEST CASE 5: Giỏ hàng rỗng -> Ném BadRequestException
     // =========================================================================
     @Test
-    @DisplayName("Ném BadRequestException khi giỏ hàng của User đang rỗng")
+    @DisplayName("Ném BadRequestException khi giỏ hàng của User đang rỗng hoặc không có món được chọn")
     void createOrder_ThrowsException_WhenCartIsEmpty() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(cartItemRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(Collections.emptyList());
 
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
@@ -371,7 +371,7 @@ class OrderServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
-        when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(List.of(cartItem));
         when(productRepository.updateStock(eq(sampleProductSingle.getId()), eq(3))).thenReturn(0); // Kho không đủ
 
         OutOfStockException ex = assertThrows(OutOfStockException.class, () ->
@@ -384,6 +384,37 @@ class OrderServiceTest {
 
         assertTrue(ex.getMessage().contains("đã hết hàng hoặc không đủ số lượng tồn kho"));
         verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    // =========================================================================
+    // TEST CASE 9: Chỉ mua và xóa các món được chọn (isSelected = true)
+    // =========================================================================
+    @Test
+    @DisplayName("Chỉ đặt hàng và xóa khỏi giỏ các món isSelected == true, giữ lại món chưa chọn")
+    void createOrder_OnlySelectedItemsProcessedAndDeleted() {
+        CartItem selectedItem = CartItem.builder()
+                .id(1L)
+                .user(sampleUser)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(1)
+                .isSelected(true)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        // Repository chỉ trả về món đã chọn
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(List.of(selectedItem));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order order = orderService.createOrder(
+                1L, "Nguyen Van A", "0987654321",
+                "Hà Nội", "Cầu Giấy", "Dịch Vọng",
+                "123 Cầu Giấy", "COD", null
+        );
+
+        assertNotNull(order);
+        // Verify chỉ xóa danh sách các món ĐƯỢC CHỌN (selectedItem)
+        verify(cartItemRepository, times(1)).deleteAll(List.of(selectedItem));
     }
 
     // =========================================================================
