@@ -91,19 +91,16 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = BigDecimal.ZERO;
         for (CartItem cart : selectedCartItems) {
             BigDecimal unitPrice;
-            int requiredStock;
             if ("SINGLE_BOX".equalsIgnoreCase(cart.getPurchaseType())) {
                 unitPrice = cart.getProduct().getSinglePrice();
-                requiredStock = cart.getQuantity();
             } else {
                 unitPrice = cart.getProduct().getWholeSetPrice() != null
                         ? cart.getProduct().getWholeSetPrice()
                         : cart.getProduct().getSinglePrice();
-                requiredStock = cart.getQuantity() * 12;
             }
             // Cộng dồn tiền: subtotal = subtotal.add(...) vì BigDecimal là Immutable (bất biến)
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
-            int updateRows = productRepository.updateStock(cart.getProduct().getId(), requiredStock);
+            int updateRows = productRepository.updateStock(cart.getProduct().getId(), cart.getRequiredStockBoxes());
 
             if (updateRows == 0) {
                 throw new OutOfStockException("Sản phẩm " + cart.getProduct().getName() + " đã hết hàng hoặc không đủ số lượng tồn kho!");
@@ -238,34 +235,73 @@ public class OrderServiceImpl implements OrderService {
                 () -> new ResourceNotFoundException("Không tìm thấy đơn hàng này")
         );
 
-        if(order.getUser() == null || !order.getUser().getId().equals(userId)){
-            throw  new BadRequestException("Bạn không có quyền hủy đơn hàng này!");
+        if (order.getUser() == null || !order.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền hủy đơn hàng này!");
         }
-        String orderStatus = order.getStatus();
-        if (!List.of("TO_PAY", "PROCESSING").contains(orderStatus)) {
-            throw new BadRequestException("Đơn hàng đã được bàn giao cho đơn vị vận chuyển không thể hủy");
-        }
-        List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
-        if(!itemList.isEmpty()){
-            for (OrderItem item: itemList){
-                int quantityToRestore = "SINGLE_BOX".equalsIgnoreCase(item.getPurchaseType())
-                        ? item.getQuantity()
-                        : item.getQuantity() * 12;
-                productRepository.addStock(item.getProduct().getId(), quantityToRestore);
 
+        String orderStatus = order.getStatus();
+        if ("CANCELLED".equalsIgnoreCase(orderStatus)) {
+            throw new BadRequestException("Đơn hàng này đã bị hủy từ trước!");
+        }
+        if ("EXPIRED".equalsIgnoreCase(orderStatus)) {
+            throw new BadRequestException("Đơn hàng này đã hết hạn thanh toán từ trước!");
+        }
+        if (!"TO_PAY".equalsIgnoreCase(orderStatus)) {
+            throw new BadRequestException("Khách hàng chỉ có thể hủy đơn hàng ở trạng thái Chờ thanh toán (TO_PAY). Trạng thái hiện tại: " + orderStatus);
+        }
+
+        List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
+        if (!itemList.isEmpty()) {
+            for (OrderItem item : itemList) {
+                productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
             }
         }
-        if(order.getCoupon() != null){
-            couponService.releaseCoupon(order.getCoupon().getId(),userId);
+        if (order.getCoupon() != null) {
+            couponService.releaseCoupon(order.getCoupon().getId(), userId);
         }
         order.setStatus("CANCELLED");
         String cancelNote = (reason != null && !reason.trim().isEmpty())
                 ? "Khách hàng hủy đơn: " + reason.trim()
                 : "Khách hàng chủ động hủy đơn.";
         order.setNote(cancelNote);
-        orderRepository.save(order);
+        return orderRepository.save(order);
+    }
 
-        return order;
+    @Override
+    @Transactional
+    public Order adminCancelOrder(String orderCode, String reason) {
+        Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
+        );
+
+        String orderStatus = order.getStatus();
+        if ("CANCELLED".equalsIgnoreCase(orderStatus)) {
+            throw new BadRequestException("Đơn hàng này đã bị hủy từ trước!");
+        }
+        if ("EXPIRED".equalsIgnoreCase(orderStatus)) {
+            throw new BadRequestException("Đơn hàng này đã hết hạn thanh toán từ trước!");
+        }
+        if (!List.of("TO_PAY", "PROCESSING").contains(orderStatus)) {
+            throw new BadRequestException("Không thể hủy đơn hàng ở trạng thái " + orderStatus + ". Đơn hàng đang vận chuyển hoặc đã giao thành công!");
+        }
+
+        List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
+        if (!itemList.isEmpty()) {
+            for (OrderItem item : itemList) {
+                productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+            }
+        }
+        if (order.getCoupon() != null) {
+            Long userId = order.getUser() != null ? order.getUser().getId() : null;
+            couponService.releaseCoupon(order.getCoupon().getId(), userId);
+        }
+
+        order.setStatus("CANCELLED");
+        String cancelNote = (reason != null && !reason.trim().isEmpty())
+                ? "Admin hủy đơn: " + reason.trim()
+                : "Admin chủ động hủy đơn.";
+        order.setNote(cancelNote);
+        return orderRepository.save(order);
     }
 
     @Override
@@ -275,7 +311,13 @@ public class OrderServiceImpl implements OrderService {
         if (status == null || status.trim().isBlank() || "ALL".equalsIgnoreCase(status.trim())) {
             getOrders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
         } else {
-            getOrders = orderRepository.findByStatusOrderByCreatedAtDesc(status.trim().toUpperCase());
+            String filterStatus = status.trim().toUpperCase();
+            if ("SHIPPED".equals(filterStatus)) {
+                filterStatus = "SHIPPING";
+            } else if ("COMPLETED".equals(filterStatus)) {
+                filterStatus = "DELIVERED";
+            }
+            getOrders = orderRepository.findByStatusOrderByCreatedAtDesc(filterStatus);
         }
         return getOrders.stream().map(
                 order -> {
@@ -288,14 +330,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public OrderStatusCountResponse getOrderStatusCounts() {
-
         return OrderStatusCountResponse.builder()
                 .all(orderRepository.count())
                 .toPay(orderRepository.countByStatus("TO_PAY"))
                 .processing(orderRepository.countByStatus("PROCESSING"))
-                .shipped(orderRepository.countByStatus("SHIPPED"))
-                .completed(orderRepository.countByStatus("COMPLETED"))
+                .shipping(orderRepository.countByStatus("SHIPPING"))
+                .delivered(orderRepository.countByStatus("DELIVERED"))
                 .cancelled(orderRepository.countByStatus("CANCELLED"))
+                .expired(orderRepository.countByStatus("EXPIRED"))
                 .build();
     }
 
@@ -309,7 +351,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Chỉ có thể giao hàng cho đơn ở trạng thái Chờ xử lý (PROCESSING). Trạng thái hiện tại: " + order.getStatus());
         }
 
-        order.setStatus("SHIPPED");
+        order.setStatus("SHIPPING");
         return orderRepository.save(order);
     }
 
@@ -319,16 +361,17 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
         );
-        if (!"SHIPPED".equalsIgnoreCase(order.getStatus())){
-            throw new BadRequestException("Chỉ có thể hoàn tất đơn hàng đang được giao (SHIPPED). Trạng thái hiện tại: " + order.getStatus());
+        if (!"SHIPPING".equalsIgnoreCase(order.getStatus())){
+            throw new BadRequestException("Chỉ có thể hoàn tất đơn hàng đang được giao (SHIPPING). Trạng thái hiện tại: " + order.getStatus());
         }
 
-        order.setStatus("COMPLETED");
+        order.setStatus("DELIVERED");
         if(order.getPaidAt()==null){
             order.setPaidAt(LocalDateTime.now());
         }
         return orderRepository.save(order);
     }
+
 
     @Override
     @Transactional(readOnly = true)

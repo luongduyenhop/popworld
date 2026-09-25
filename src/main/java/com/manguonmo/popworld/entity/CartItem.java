@@ -36,4 +36,11 @@ public class CartItem extends BaseEntity {
     @Builder.Default
     @Column(name = "is_selected")
     private Boolean isSelected = true;
+
+    public static final int BOXES_PER_WHOLE_SET = 12;
+
+    public int getRequiredStockBoxes() {
+        int qty = (this.quantity != null) ? this.quantity : 0;
+        return "WHOLE_SET".equalsIgnoreCase(this.purchaseType) ? qty * BOXES_PER_WHOLE_SET : qty;
+    }
 }

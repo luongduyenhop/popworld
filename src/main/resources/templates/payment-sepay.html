@@ -229,7 +229,7 @@
                 .then(res => res.json())
                 .then(response => {
                     const data = response.data || response;
-                    if (data.isPaid || data.status === 'PROCESSING' || data.status === 'COMPLETED') {
+                    if (data.isPaid || data.status === 'PROCESSING' || data.status === 'SHIPPING' || data.status === 'DELIVERED' || data.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         clearInterval(timer);
                         document.getElementById('pollingStatus').innerHTML = `
@@ -240,15 +240,16 @@
                         setTimeout(() => {
                             window.location.href = successUrl;
                         }, 1000);
-                    } else if (data.status === 'CANCELLED') {
+                    } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
                         clearInterval(pollInterval);
                         clearInterval(timer);
                         document.getElementById('pollingStatus').innerHTML = `
                             <span class="text-danger fw-bold fs-6">
-                                <i class="bi bi-x-circle-fill me-1"></i> Đơn hàng đã bị hủy. Mã thanh toán không còn hiệu lực.
+                                <i class="bi bi-x-circle-fill me-1"></i> Đơn hàng đã bị hủy hoặc hết thời gian thanh toán.
                             </span>
                         `;
                     } else if (isManual) {
+
                         alert("Hệ thống chưa nhận được tín hiệu thanh toán từ SePay. Nếu bạn vừa chuyển tiền, vui lòng chờ trong 3-5 giây để ngân hàng gửi giao dịch nhé!");
                     }
                 })

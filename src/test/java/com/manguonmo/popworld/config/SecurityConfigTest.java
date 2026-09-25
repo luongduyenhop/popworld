@@ -47,6 +47,10 @@ class SecurityConfigTest {
     @MockitoBean
     private CartMapper cartMapper;
 
+    @MockitoBean
+    private com.manguonmo.popworld.repository.CouponRepository couponRepository;
+
+
     @Test
     @DisplayName("Chưa đăng nhập truy cập /admin/** -> Redirect về /login")
     void whenUnauthenticated_accessAdmin_shouldRedirectToLogin() throws Exception {

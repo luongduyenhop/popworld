@@ -178,6 +178,29 @@ class PaymentServiceImplTest {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
+    @Test
+    @DisplayName("Đơn hàng: Trả về false khi đơn hàng đã hết hạn (EXPIRED)")
+    void processSePayWebhook_ExpiredOrder_ShouldReturnFalse() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726000000002")
+                .transferAmount(new BigDecimal("300000"))
+                .build();
+
+        Order order = Order.builder()
+                .orderCode("PW-1726000000002")
+                .status("EXPIRED")
+                .totalAmount(new BigDecimal("300000"))
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-1726000000002")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải trả về false khi đơn đã hết hạn 15 phút");
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+
     // =========================================================================
     // TEST CASE 5: Đối soát số tiền - Khách chuyển thiếu tiền
     // =========================================================================

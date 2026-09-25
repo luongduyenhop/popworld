@@ -22,14 +22,17 @@
                         <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
                             <i class="bi bi-hourglass-split"></i> Chờ xử lý
                         </span>
-                        <span th:if="${order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
+                        <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
                             <i class="bi bi-truck"></i> Đang giao
                         </span>
-                        <span th:if="${order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
-                            <i class="bi bi-check2-circle"></i> Hoàn tất
+                        <span th:if="${order.status == 'DELIVERED' or order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
+                            <i class="bi bi-check2-circle"></i> Đã giao hàng
                         </span>
                         <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
                             <i class="bi bi-x-circle"></i> Đã hủy
+                        </span>
+                        <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-cancelled bg-secondary text-white">
+                            <i class="bi bi-alarm"></i> Hết hạn
                         </span>
                     </div>
                     <small class="text-muted" th:text="'Thời gian đặt: ' + ${#temporals.format(order.createdAt, 'HH:mm - dd/MM/yyyy')}"></small>
@@ -45,10 +48,19 @@
                     </button>
                 </form>
 
-                <form th:if="${order.status == 'SHIPPED'}" 
+                <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                       th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete?redirect=detail'}" method="post">
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
                         <i class="bi bi-check2-circle me-1"></i> Xác Nhận Đã Giao Thành Công
+                    </button>
+                </form>
+
+
+                <form th:if="${order.status == 'TO_PAY' or order.status == 'PROCESSING'}"
+                      th:action="@{'/admin/orders/' + ${order.orderCode} + '/cancel?redirect=detail'}" method="post"
+                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này và hoàn lại tồn kho cho sản phẩm?')">
+                    <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-bold">
+                        <i class="bi bi-x-circle me-1"></i> Hủy Đơn Hàng
                     </button>
                 </form>
 

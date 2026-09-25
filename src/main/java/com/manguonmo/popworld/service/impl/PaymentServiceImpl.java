@@ -61,13 +61,14 @@ public class PaymentServiceImpl implements PaymentService{
 
         String status = order.getStatus();
         if(status != null){
-            if (status.equalsIgnoreCase("CANCELLED")) {
-                log.info("Don hang co the da qua 15 phut");
+            if (status.equalsIgnoreCase("CANCELLED") || status.equalsIgnoreCase("EXPIRED")) {
+                log.info("Don hang da bi huy hoac qua 15 phut (EXPIRED/CANCELLED)");
                 return false;
-            } else if(List.of("PROCESSING","SHIPPED","COMPLETED").contains(status)){
+            } else if(List.of("PROCESSING", "SHIPPING", "DELIVERED", "SHIPPED", "COMPLETED").contains(status)){
                 return true;
             }
         }
+
 
         BigDecimal clientTranfer = webhookData.getTransferAmount();
         BigDecimal totalAmount = order.getTotalAmount();

@@ -47,12 +47,16 @@ public class AdminOrderWebController {
             model.addAttribute("countAll", counts.getAll());
             model.addAttribute("countToPay", counts.getToPay());
             model.addAttribute("countProcessing", counts.getProcessing());
+            model.addAttribute("countShipping", counts.getShipping());
+            model.addAttribute("countDelivered", counts.getDelivered());
             model.addAttribute("countShipped", counts.getShipped());
             model.addAttribute("countCompleted", counts.getCompleted());
             model.addAttribute("countCancelled", counts.getCancelled());
+            model.addAttribute("countExpired", counts.getExpired());
         }
 
         return "admin/orders";
+
     }
 
     /**
@@ -76,7 +80,7 @@ public class AdminOrderWebController {
     }
 
     /**
-     * Chuyển trạng thái đơn hàng sang ĐANG GIAO HÀNG (PROCESSING -> SHIPPED)
+     * Chuyển trạng thái đơn hàng sang ĐANG GIAO HÀNG (PROCESSING -> SHIPPING)
      */
     @PostMapping("/{orderCode}/ship")
     public String shipOrder(@PathVariable String orderCode,
@@ -96,7 +100,7 @@ public class AdminOrderWebController {
     }
 
     /**
-     * Chuyển trạng thái đơn hàng sang HOÀN TẤT (SHIPPED -> COMPLETED)
+     * Chuyển trạng thái đơn hàng sang HOÀN TẤT (SHIPPING -> DELIVERED)
      */
     @PostMapping("/{orderCode}/complete")
     public String completeOrder(@PathVariable String orderCode,
@@ -107,6 +111,27 @@ public class AdminOrderWebController {
             redirectAttributes.addFlashAttribute("successMessage", "Đã xác nhận giao thành công đơn hàng " + orderCode + "!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
+
+        if ("detail".equalsIgnoreCase(redirect)) {
+            return "redirect:/admin/orders/" + orderCode;
+        }
+        return "redirect:/admin/orders";
+    }
+
+    /**
+     * Quản trị viên hủy đơn hàng (TO_PAY hoặc PROCESSING -> CANCELLED)
+     */
+    @PostMapping("/{orderCode}/cancel")
+    public String cancelOrder(@PathVariable String orderCode,
+                              @RequestParam(required = false, defaultValue = "") String reason,
+                              @RequestParam(value = "redirect", required = false, defaultValue = "list") String redirect,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            orderService.adminCancelOrder(orderCode, reason);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng " + orderCode + " và hoàn kho tồn kho thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hủy đơn thất bại: " + e.getMessage());
         }
 
         if ("detail".equalsIgnoreCase(redirect)) {

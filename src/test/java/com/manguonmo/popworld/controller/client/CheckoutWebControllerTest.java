@@ -40,7 +40,11 @@ class CheckoutWebControllerTest {
     private UserService userService;
 
     @Mock
+    private com.manguonmo.popworld.repository.CouponRepository couponRepository;
+
+    @Mock
     private Principal principal;
+
 
     @Mock
     private Model model;

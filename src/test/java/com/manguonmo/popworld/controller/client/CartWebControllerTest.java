@@ -140,4 +140,50 @@ class CartWebControllerTest {
         verify(cartService, times(1)).removeFromCart(1L, 15L);
         verify(redirectAttributes, times(1)).addFlashAttribute(eq("successMessage"), contains("Đã xóa"));
     }
+
+    @Test
+    @DisplayName("viewCart: Khi không có sản phẩm nào được chọn (0 món) thì totalAmount là 0")
+    void viewCart_whenNoItemsSelected_totalAmountIsZero() {
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+        CartItem item1 = CartItem.builder().id(1L).isSelected(false).build();
+        CartItem item2 = CartItem.builder().id(2L).isSelected(false).build();
+        CartItem item3 = CartItem.builder().id(3L).isSelected(false).build();
+        List<CartItem> cartList = List.of(item1, item2, item3);
+
+        when(cartService.getCartItems(1L)).thenReturn(cartList);
+        when(cartService.calculateSelectedTotal(1L)).thenReturn(BigDecimal.ZERO);
+        when(cartService.getCartCount(1L)).thenReturn(3);
+
+        String viewName = cartWebController.viewCart(model, principal);
+
+        assertEquals("cart", viewName);
+        verify(model, times(1)).addAttribute("cartItems", cartList);
+        verify(model, times(1)).addAttribute("totalAmount", BigDecimal.ZERO);
+        verify(model, times(1)).addAttribute("cartCount", 3);
+    }
+
+    @Test
+    @DisplayName("viewCart: Khi có 1 trong 3 sản phẩm được chọn thì totalAmount đúng bằng giá sản phẩm đó")
+    void viewCart_whenOneItemSelected_totalAmountMatchesSelected() {
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+        CartItem item1 = CartItem.builder().id(1L).isSelected(true).build();
+        CartItem item2 = CartItem.builder().id(2L).isSelected(false).build();
+        CartItem item3 = CartItem.builder().id(3L).isSelected(false).build();
+        List<CartItem> cartList = List.of(item1, item2, item3);
+        BigDecimal expectedTotal = new BigDecimal("200000");
+
+        when(cartService.getCartItems(1L)).thenReturn(cartList);
+        when(cartService.calculateSelectedTotal(1L)).thenReturn(expectedTotal);
+        when(cartService.getCartCount(1L)).thenReturn(3);
+
+        String viewName = cartWebController.viewCart(model, principal);
+
+        assertEquals("cart", viewName);
+        verify(model, times(1)).addAttribute("cartItems", cartList);
+        verify(model, times(1)).addAttribute("totalAmount", expectedTotal);
+        verify(model, times(1)).addAttribute("cartCount", 3);
+    }
 }
+

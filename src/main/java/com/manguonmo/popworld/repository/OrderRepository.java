@@ -30,6 +30,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> searchOrders(@org.springframework.data.repository.query.Param("keyword") String keyword);
 
     // Tính tổng doanh thu từ các đơn hàng thành công
-    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status IN ('COMPLETED', 'SHIPPED', 'PROCESSING')")
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status IN ('DELIVERED', 'SHIPPING', 'PROCESSING', 'COMPLETED', 'SHIPPED')")
     java.math.BigDecimal calculateTotalRevenue();
 }

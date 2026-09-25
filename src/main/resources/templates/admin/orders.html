@@ -28,22 +28,28 @@
                     <span class="admin-tab-count" th:text="${countProcessing}">0</span>
                 </a>
 
-                <a th:href="@{/admin/orders(status='SHIPPED')}" class="admin-tab-item"
-                   th:classappend="${currentStatus == 'SHIPPED' ? 'active' : ''}">
+                <a th:href="@{/admin/orders(status='SHIPPING')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'SHIPPING' or currentStatus == 'SHIPPED' ? 'active' : ''}">
                     <span>Đang Giao</span>
-                    <span class="admin-tab-count" th:text="${countShipped}">0</span>
+                    <span class="admin-tab-count" th:text="${countShipping != null ? countShipping : countShipped}">0</span>
                 </a>
 
-                <a th:href="@{/admin/orders(status='COMPLETED')}" class="admin-tab-item"
-                   th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}">
-                    <span>Hoàn Tất</span>
-                    <span class="admin-tab-count" th:text="${countCompleted}">0</span>
+                <a th:href="@{/admin/orders(status='DELIVERED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'DELIVERED' or currentStatus == 'COMPLETED' ? 'active' : ''}">
+                    <span>Đã Giao Hàng</span>
+                    <span class="admin-tab-count" th:text="${countDelivered != null ? countDelivered : countCompleted}">0</span>
                 </a>
 
                 <a th:href="@{/admin/orders(status='CANCELLED')}" class="admin-tab-item"
                    th:classappend="${currentStatus == 'CANCELLED' ? 'active' : ''}">
                     <span>Đã Hủy</span>
                     <span class="admin-tab-count" th:text="${countCancelled}">0</span>
+                </a>
+
+                <a th:href="@{/admin/orders(status='EXPIRED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'EXPIRED' ? 'active' : ''}">
+                    <span>Hết Hạn</span>
+                    <span class="admin-tab-count" th:text="${countExpired}">0</span>
                 </a>
             </div>
 
@@ -129,14 +135,17 @@
                                 <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
                                     <i class="bi bi-hourglass-split"></i> Chờ xử lý
                                 </span>
-                                <span th:if="${order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
+                                <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
                                     <i class="bi bi-truck"></i> Đang giao
                                 </span>
-                                <span th:if="${order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
-                                    <i class="bi bi-check2-circle"></i> Hoàn tất
+                                <span th:if="${order.status == 'DELIVERED' or order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
+                                    <i class="bi bi-check2-circle"></i> Đã giao hàng
                                 </span>
                                 <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
                                     <i class="bi bi-x-circle"></i> Đã hủy
+                                </span>
+                                <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-cancelled bg-secondary text-white">
+                                    <i class="bi bi-alarm"></i> Hết hạn
                                 </span>
                             </td>
                             <td class="text-end">
@@ -150,7 +159,7 @@
                                     </form>
 
                                     <!-- Nút Hoàn tất nếu đang Giao hàng -->
-                                    <form th:if="${order.status == 'SHIPPED'}" 
+                                    <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                                           th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
                                         <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công">
                                             <i class="bi bi-check-lg"></i> Hoàn Tất

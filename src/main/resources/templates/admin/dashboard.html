@@ -137,14 +137,17 @@
                                         <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
                                             <i class="bi bi-hourglass-split"></i> Chờ xử lý
                                         </span>
-                                        <span th:if="${order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
+                                        <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
                                             <i class="bi bi-truck"></i> Đang giao
                                         </span>
-                                        <span th:if="${order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
-                                            <i class="bi bi-check2-circle"></i> Hoàn tất
+                                        <span th:if="${order.status == 'DELIVERED' or order.status == 'COMPLETED'}" class="badge-status badge-status-completed">
+                                            <i class="bi bi-check2-circle"></i> Đã giao hàng
                                         </span>
                                         <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
                                             <i class="bi bi-x-circle"></i> Đã hủy
+                                        </span>
+                                        <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-cancelled bg-secondary text-white">
+                                            <i class="bi bi-alarm"></i> Hết hạn
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -158,7 +161,7 @@
                                             </form>
 
                                             <!-- Nút Hoàn tất nếu đang Giao hàng -->
-                                            <form th:if="${order.status == 'SHIPPED'}" 
+                                            <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                                                   th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
                                                 <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận hoàn tất">
                                                     <i class="bi bi-check-lg"></i> Hoàn Tất

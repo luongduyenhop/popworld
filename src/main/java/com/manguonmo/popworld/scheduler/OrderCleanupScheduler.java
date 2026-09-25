@@ -45,29 +45,26 @@ public class OrderCleanupScheduler {
         List<Order> expiredOrders = orderRepository.findByExpiresAtBeforeAndStatus(now, "TO_PAY");
 
         if (!expiredOrders.isEmpty()) {
-            log.info("⏰ Phát hiện {} đơn hàng quá hạn 15 phút chưa thanh toán. Đang tiến hành hủy...", expiredOrders.size());
+            log.info("⏰ Phát hiện {} đơn hàng quá hạn 15 phút chưa thanh toán. Đang tiến hành cập nhật trạng thái EXPIRED...", expiredOrders.size());
 
             for (Order order : expiredOrders) {
-                order.setStatus("CANCELLED");
-                order.setNote("Đơn hàng tự động hủy do quá hạn 15 phút chưa hoàn tất thanh toán.");
+                order.setStatus("EXPIRED");
+                order.setNote("Đơn hàng tự động hết hạn do quá hạn 15 phút chưa hoàn tất thanh toán.");
                 List<OrderItem> orderList = orderItemRepository.findByOrderId(order.getId());
                 if (order.getCoupon() != null) {
                     Long userId = order.getUser() != null ? order.getUser().getId() : null;
                     couponService.releaseCoupon(order.getCoupon().getId(), userId);
                 }
-                for (OrderItem item : orderList){
-                    Integer quantity = 0;
-                    if (item.getPurchaseType().equalsIgnoreCase("SINGLE_BOX") ){
-                        quantity = item.getQuantity();
-                    } else {
-                        quantity = item.getQuantity()*12;
+                for (OrderItem item : orderList) {
+                    if (item.getProduct() != null && item.getProduct().getId() != null) {
+                        productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
                     }
-                    productRepository.addStock(item.getProduct().getId(),quantity);
                 }
             }
 
             orderRepository.saveAll(expiredOrders);
-            log.info("✅ Đã tự động hủy thành công {} đơn hàng quá hạn.", expiredOrders.size());
+            log.info("✅ Đã tự động chuyển trạng thái EXPIRED và hoàn trả tồn kho thành công cho {} đơn hàng quá hạn.", expiredOrders.size());
         }
     }
 }
+

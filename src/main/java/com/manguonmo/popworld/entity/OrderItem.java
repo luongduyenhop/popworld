@@ -38,4 +38,11 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
+
+    public static final int BOXES_PER_WHOLE_SET = 12;
+
+    public int getRequiredStockBoxes() {
+        int qty = (this.quantity != null) ? this.quantity : 0;
+        return "WHOLE_SET".equalsIgnoreCase(this.purchaseType) ? qty * BOXES_PER_WHOLE_SET : qty;
+    }
 }

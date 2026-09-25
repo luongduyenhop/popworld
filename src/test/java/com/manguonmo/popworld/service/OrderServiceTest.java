@@ -422,7 +422,7 @@ class OrderServiceTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Hủy đơn hàng thành công: Hoàn kho, hoàn mã coupon và chuyển status sang CANCELLED")
+    @DisplayName("Hủy đơn hàng thành công: Hoàn kho, hoàn mã coupon và chuyển status sang CANCELLED (chỉ khi TO_PAY)")
     void cancelOrder_Success_RestoresStockAndReleasesCoupon() {
         // --- 1. ARRANGE ---
         Coupon coupon = Coupon.builder().id(99L).code("POP10").build();
@@ -430,7 +430,7 @@ class OrderServiceTest {
                 .id(100L)
                 .orderCode("PW-100")
                 .user(sampleUser) // id = 1L
-                .status("PROCESSING")
+                .status("TO_PAY") // Khách hàng chỉ được hủy khi TO_PAY
                 .coupon(coupon)
                 .build();
 
@@ -483,7 +483,7 @@ class OrderServiceTest {
                 .id(101L)
                 .orderCode("PW-101")
                 .user(otherUser) // Đơn thuộc user 2
-                .status("PROCESSING")
+                .status("TO_PAY")
                 .build();
 
         when(orderRepository.findByOrderCode("PW-101")).thenReturn(Optional.of(order));
@@ -497,24 +497,46 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Hủy đơn hàng thất bại: Ném BadRequestException khi đơn đã giao (SHIPPED) hoặc hoàn tất (COMPLETED)")
-    void cancelOrder_ThrowsBadRequestException_WhenOrderStatusInvalid() {
-        Order shippedOrder = Order.builder()
+    @DisplayName("Hủy đơn hàng thất bại: Khách hàng KHÔNG được hủy khi đơn đang PROCESSING")
+    void cancelOrder_ThrowsBadRequestException_WhenProcessing() {
+        Order processingOrder = Order.builder()
                 .id(102L)
                 .orderCode("PW-102")
                 .user(sampleUser)
-                .status("SHIPPED") // Đang giao hàng
+                .status("PROCESSING")
                 .build();
 
-        when(orderRepository.findByOrderCode("PW-102")).thenReturn(Optional.of(shippedOrder));
+        when(orderRepository.findByOrderCode("PW-102")).thenReturn(Optional.of(processingOrder));
 
         BadRequestException ex = assertThrows(BadRequestException.class, () ->
-                orderService.cancelOrder(1L, "PW-102", "Đơn đã đi giao rồi")
+                orderService.cancelOrder(1L, "PW-102", "Hủy khi đang đóng gói")
         );
 
-        assertTrue(ex.getMessage().contains("không thể hủy"));
+        assertTrue(ex.getMessage().contains("Chờ thanh toán (TO_PAY)"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Hủy đơn hàng thất bại: Ném BadRequestException khi đơn đã giao (SHIPPING) hoặc hoàn tất (DELIVERED)")
+    void cancelOrder_ThrowsBadRequestException_WhenOrderStatusInvalid() {
+        Order shippingOrder = Order.builder()
+                .id(103L)
+                .orderCode("PW-103")
+                .user(sampleUser)
+                .status("SHIPPING")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-103")).thenReturn(Optional.of(shippingOrder));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-103", "Đơn đã đi giao rồi")
+        );
+
+        assertTrue(ex.getMessage().contains("Chờ thanh toán (TO_PAY)"));
         verify(orderRepository, never()).save(any(Order.class));
     }
+
 
     @Test
     @DisplayName("getOrderItems trả về danh sách OrderItem của đơn hàng từ orderItemRepository")
@@ -610,28 +632,30 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("getOrderStatusCounts: Trả về thống kê số lượng đơn theo từng trạng thái")
+    @DisplayName("getOrderStatusCounts: Trả về thống kê số lượng đơn theo từng trạng thái chuẩn hóa")
     void getOrderStatusCounts_ShouldReturnAllCounts() {
-        when(orderRepository.count()).thenReturn(50L);
+        when(orderRepository.count()).thenReturn(51L);
         when(orderRepository.countByStatus("TO_PAY")).thenReturn(5L);
         when(orderRepository.countByStatus("PROCESSING")).thenReturn(10L);
-        when(orderRepository.countByStatus("SHIPPED")).thenReturn(15L);
-        when(orderRepository.countByStatus("COMPLETED")).thenReturn(18L);
+        when(orderRepository.countByStatus("SHIPPING")).thenReturn(15L);
+        when(orderRepository.countByStatus("DELIVERED")).thenReturn(18L);
         when(orderRepository.countByStatus("CANCELLED")).thenReturn(2L);
+        when(orderRepository.countByStatus("EXPIRED")).thenReturn(1L);
 
         OrderStatusCountResponse counts = orderService.getOrderStatusCounts();
 
         assertNotNull(counts);
-        assertEquals(50L, counts.getAll());
+        assertEquals(51L, counts.getAll());
         assertEquals(5L, counts.getToPay());
         assertEquals(10L, counts.getProcessing());
-        assertEquals(15L, counts.getShipped());
-        assertEquals(18L, counts.getCompleted());
+        assertEquals(15L, counts.getShipping());
+        assertEquals(18L, counts.getDelivered());
         assertEquals(2L, counts.getCancelled());
+        assertEquals(1L, counts.getExpired());
     }
 
     @Test
-    @DisplayName("shipOrder: Chuyển trạng thái đơn hàng từ PROCESSING sang SHIPPED thành công")
+    @DisplayName("shipOrder: Chuyển trạng thái đơn hàng từ PROCESSING sang SHIPPING thành công")
     void shipOrder_Success() {
         Order order = Order.builder().id(5L).orderCode("PW-SHIP-1").status("PROCESSING").build();
         when(orderRepository.findByOrderCode("PW-SHIP-1")).thenReturn(Optional.of(order));
@@ -640,7 +664,7 @@ class OrderServiceTest {
         Order result = orderService.shipOrder("pw-ship-1");
 
         assertNotNull(result);
-        assertEquals("SHIPPED", result.getStatus());
+        assertEquals("SHIPPING", result.getStatus());
         verify(orderRepository).save(order);
     }
 
@@ -655,29 +679,398 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("completeOrder: Chuyển trạng thái từ SHIPPED sang COMPLETED và cập nhật paidAt")
+    @DisplayName("completeOrder: Chuyển trạng thái từ SHIPPING sang DELIVERED và cập nhật paidAt")
     void completeOrder_Success() {
-        Order order = Order.builder().id(7L).orderCode("PW-COMP-1").status("SHIPPED").build();
+        Order order = Order.builder().id(7L).orderCode("PW-COMP-1").status("SHIPPING").build();
         when(orderRepository.findByOrderCode("PW-COMP-1")).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Order result = orderService.completeOrder("pw-comp-1");
 
         assertNotNull(result);
-        assertEquals("COMPLETED", result.getStatus());
+        assertEquals("DELIVERED", result.getStatus());
         assertNotNull(result.getPaidAt());
         verify(orderRepository).save(order);
     }
 
     @Test
-    @DisplayName("completeOrder: Ném BadRequestException nếu đơn không ở trạng thái SHIPPED")
-    void completeOrder_ThrowsBadRequestException_WhenNotShipped() {
+    @DisplayName("completeOrder: Ném BadRequestException nếu đơn không ở trạng thái SHIPPING")
+    void completeOrder_ThrowsBadRequestException_WhenNotShipping() {
         Order order = Order.builder().id(8L).orderCode("PW-COMP-2").status("PROCESSING").build();
         when(orderRepository.findByOrderCode("PW-COMP-2")).thenReturn(Optional.of(order));
 
         assertThrows(BadRequestException.class, () -> orderService.completeOrder("PW-COMP-2"));
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+
+    // =========================================================================
+    // TASK 005: CONCURRENCY / TRANSACTION ROLLBACK SIMULATION TESTS
+    // =========================================================================
+
+    @Test
+    @DisplayName("Transaction Rollback: Giỏ hàng 2 món, món 1 trừ kho thành công, món 2 hết hàng -> Ném OutOfStockException, không lưu Order và không xóa Cart")
+    void createOrder_RollbackSimulation_WhenSecondItemOutOfStock() {
+        CartItem item1 = CartItem.builder()
+                .id(1L)
+                .user(sampleUser)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(1)
+                .build();
+
+        CartItem item2 = CartItem.builder()
+                .id(2L)
+                .user(sampleUser)
+                .product(sampleProductSet)
+                .purchaseType("WHOLE_SET")
+                .quantity(1) // 12 hộp lẻ
+                .build();
+
+        List<CartItem> cartList = List.of(item1, item2);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(cartList);
+
+        // Món 1: trừ kho 1 hộp -> Thành công (1 row updated)
+        when(productRepository.updateStock(sampleProductSingle.getId(), 1)).thenReturn(1);
+        // Món 2: trừ kho 12 hộp -> Hết hàng (0 row updated do race condition hoặc thiếu hàng)
+        when(productRepository.updateStock(sampleProductSet.getId(), 12)).thenReturn(0);
+
+        OutOfStockException ex = assertThrows(OutOfStockException.class, () ->
+                orderService.createOrder(
+                        1L, "Nguyen Van A", "0987654321",
+                        "Hà Nội", "Cầu Giấy", "Dịch Vọng",
+                        "Số 123 Đường Cầu Giấy", "COD", null
+                )
+        );
+
+        assertTrue(ex.getMessage().contains("đã hết hàng hoặc không đủ số lượng tồn kho"));
+        // Đảm bảo không tạo Order và không xóa Cart (Transaction sẽ rollback các thay đổi trước đó)
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(orderItemRepository, never()).saveAll(anyList());
+        verify(cartItemRepository, never()).deleteAll(anyList());
+    }
+
+    // =========================================================================
+    // TASK 005: WHOLE SET * 12 CONSISTENCY TESTS
+    // =========================================================================
+
+    @Test
+    @DisplayName("Whole Set Consistency: Mua 2 Whole Set thì phải trừ đúng 24 hộp đơn từ tồn kho")
+    void createOrder_WholeSet_DeductsTwentyFourUnitsFromStock() {
+        CartItem wholeSetItem = CartItem.builder()
+                .id(10L)
+                .user(sampleUser)
+                .product(sampleProductSet)
+                .purchaseType("WHOLE_SET")
+                .quantity(2) // 2 set * 12 = 24 boxes
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(List.of(wholeSetItem));
+        when(productRepository.updateStock(sampleProductSet.getId(), 24)).thenReturn(1);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order order = orderService.createOrder(
+                1L, "Nguyen Van A", "0987654321",
+                "Hà Nội", "Cầu Giấy", "Dịch Vọng",
+                "Số 123 Đường Cầu Giấy", "COD", null
+        );
+
+        assertNotNull(order);
+        // Verify updateStock được gọi với chính xác 24 đơn vị
+        verify(productRepository, times(1)).updateStock(sampleProductSet.getId(), 24);
+    }
+
+    @Test
+    @DisplayName("Whole Set Consistency: Hủy đơn hàng chứa 2 Whole Set thì phải hoàn trả đúng 24 hộp đơn vào tồn kho")
+    void cancelOrder_WholeSet_RestoresTwentyFourUnitsToStock() {
+        Order order = Order.builder()
+                .id(200L)
+                .orderCode("PW-200")
+                .user(sampleUser)
+                .status("TO_PAY")
+                .build();
+
+        OrderItem item = OrderItem.builder()
+                .id(20L)
+                .product(sampleProductSet)
+                .purchaseType("WHOLE_SET")
+                .quantity(2) // 2 set * 12 = 24 boxes
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-200")).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(200L)).thenReturn(List.of(item));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.cancelOrder(1L, "PW-200", "Đổi ý");
+
+        assertEquals("CANCELLED", result.getStatus());
+        // Verify hoàn đúng 24 hộp
+        verify(productRepository, times(1)).addStock(sampleProductSet.getId(), 24);
+    }
+
+    // =========================================================================
+    // TASK 005: ORDER STATE MACHINE INVARIANTS & TRANSITIONS
+    // =========================================================================
+
+    @Test
+    @DisplayName("cancelOrder: Hủy thành công từ trạng thái TO_PAY")
+    void cancelOrder_Success_FromToPayStatus() {
+        Order order = Order.builder()
+                .id(201L)
+                .orderCode("PW-201")
+                .user(sampleUser)
+                .status("TO_PAY")
+                .build();
+
+        OrderItem item = OrderItem.builder()
+                .id(21L)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(1)
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-201")).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(201L)).thenReturn(List.of(item));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.cancelOrder(1L, "PW-201", "Hủy đơn chờ thanh toán");
+
+        assertEquals("CANCELLED", result.getStatus());
+        verify(productRepository, times(1)).addStock(sampleProductSingle.getId(), 1);
+    }
+
+    @Test
+    @DisplayName("cancelOrder: Ném BadRequestException khi đơn đã bị hủy trước đó (CANCELLED)")
+    void cancelOrder_ThrowsBadRequestException_WhenAlreadyCancelled() {
+        Order order = Order.builder()
+                .id(202L)
+                .orderCode("PW-202")
+                .user(sampleUser)
+                .status("CANCELLED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-202")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-202", "Hủy tiếp lần 2")
+        );
+
+        assertTrue(ex.getMessage().contains("đã bị hủy"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("cancelOrder: Ném BadRequestException khi đơn đã giao hàng (DELIVERED)")
+    void cancelOrder_ThrowsBadRequestException_WhenDelivered() {
+        Order order = Order.builder()
+                .id(203L)
+                .orderCode("PW-203")
+                .user(sampleUser)
+                .status("DELIVERED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-203")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-203", "Hủy sau khi nhận hàng")
+        );
+
+        assertTrue(ex.getMessage().contains("Chờ thanh toán (TO_PAY)"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("cancelOrder: Ném BadRequestException khi đơn đã hết hạn 15 phút (EXPIRED)")
+    void cancelOrder_ThrowsBadRequestException_WhenExpired() {
+        Order order = Order.builder()
+                .id(204L)
+                .orderCode("PW-204")
+                .user(sampleUser)
+                .status("EXPIRED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-204")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-204", "Hủy đơn hết hạn")
+        );
+
+        assertTrue(ex.getMessage().contains("hết hạn thanh toán"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Admin hủy đơn TO_PAY thành công, hoàn kho và giải phóng coupon")
+    void adminCancelOrder_Success_FromToPayStatus() {
+        Coupon coupon = Coupon.builder().id(50L).code("SALE50").build();
+        Order order = Order.builder()
+                .id(301L)
+                .orderCode("PW-ADMIN-1")
+                .user(sampleUser)
+                .status("TO_PAY")
+                .coupon(coupon)
+                .build();
+
+        OrderItem item = OrderItem.builder()
+                .id(31L)
+                .product(sampleProductSet)
+                .purchaseType("WHOLE_SET")
+                .quantity(1)
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-1")).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(301L)).thenReturn(List.of(item));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.adminCancelOrder("PW-ADMIN-1", "Khách yêu cầu hủy qua hotline");
+
+        assertEquals("CANCELLED", result.getStatus());
+        assertTrue(result.getNote().contains("Admin hủy"));
+        assertTrue(result.getNote().contains("Khách yêu cầu hủy qua hotline"));
+
+        verify(productRepository, times(1)).addStock(sampleProductSet.getId(), 12);
+        verify(couponService, times(1)).releaseCoupon(50L, 1L);
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Admin hủy đơn PROCESSING thành công")
+    void adminCancelOrder_Success_FromProcessingStatus() {
+        Order order = Order.builder()
+                .id(302L)
+                .orderCode("PW-ADMIN-2")
+                .user(sampleUser)
+                .status("PROCESSING")
+                .build();
+
+        OrderItem item = OrderItem.builder()
+                .id(32L)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(3)
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-2")).thenReturn(Optional.of(order));
+        when(orderItemRepository.findByOrderId(302L)).thenReturn(List.of(item));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.adminCancelOrder("PW-ADMIN-2", "Hết hàng kho đột xuất");
+
+        assertEquals("CANCELLED", result.getStatus());
+        verify(productRepository, times(1)).addStock(sampleProductSingle.getId(), 3);
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Thất bại khi đơn đang SHIPPING")
+    void adminCancelOrder_ThrowsBadRequestException_WhenShipping() {
+        Order order = Order.builder()
+                .id(303L)
+                .orderCode("PW-ADMIN-3")
+                .status("SHIPPING")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-3")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.adminCancelOrder("PW-ADMIN-3", "Hủy ngang")
+        );
+
+        assertTrue(ex.getMessage().contains("SHIPPING") || ex.getMessage().contains("vận chuyển"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Thất bại khi đơn đã DELIVERED")
+    void adminCancelOrder_ThrowsBadRequestException_WhenDelivered() {
+        Order order = Order.builder()
+                .id(304L)
+                .orderCode("PW-ADMIN-4")
+                .status("DELIVERED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-4")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.adminCancelOrder("PW-ADMIN-4", "Hủy đơn đã giao thành công")
+        );
+
+        assertTrue(ex.getMessage().contains("DELIVERED") || ex.getMessage().contains("thành công"));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Thất bại khi đơn đã CANCELLED")
+    void adminCancelOrder_ThrowsBadRequestException_WhenAlreadyCancelled() {
+        Order order = Order.builder()
+                .id(305L)
+                .orderCode("PW-ADMIN-5")
+                .status("CANCELLED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-5")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.adminCancelOrder("PW-ADMIN-5", "Hủy lại")
+        );
+
+        assertTrue(ex.getMessage().contains("đã bị hủy"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("adminCancelOrder: Thất bại khi đơn đã EXPIRED")
+    void adminCancelOrder_ThrowsBadRequestException_WhenExpired() {
+        Order order = Order.builder()
+                .id(306L)
+                .orderCode("PW-ADMIN-6")
+                .status("EXPIRED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-ADMIN-6")).thenReturn(Optional.of(order));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                orderService.adminCancelOrder("PW-ADMIN-6", "Hủy đơn đã hết hạn")
+        );
+
+        assertTrue(ex.getMessage().contains("hết hạn thanh toán"));
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+    }
+
+    // =========================================================================
+    // TASK 005: IDEMPOTENCY INVARIANT TESTS (RESTORE STOCK CHÍNH XÁC MỘT LẦN)
+    // =========================================================================
+
+    @Test
+    @DisplayName("Idempotency: Hủy đơn lần 2 thì ném ngoại lệ và tuyệt đối không hoàn kho lần 2")
+    void cancelOrder_Idempotency_ThrowsExceptionAndNeverRestoresStockTwice() {
+        Order order = Order.builder()
+                .id(401L)
+                .orderCode("PW-IDEM-1")
+                .user(sampleUser)
+                .status("CANCELLED")
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-IDEM-1")).thenReturn(Optional.of(order));
+
+        assertThrows(BadRequestException.class, () ->
+                orderService.cancelOrder(1L, "PW-IDEM-1", "Hủy lại lần 2")
+        );
+
+        // Đảm bảo không tương tác hoàn kho lần 2
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+        verify(couponService, never()).releaseCoupon(anyLong(), anyLong());
+    }
 }
+
+
 
 

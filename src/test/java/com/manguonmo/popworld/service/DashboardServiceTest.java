@@ -46,9 +46,10 @@ class DashboardServiceTest {
         when(orderRepository.count()).thenReturn(120L);
         when(orderRepository.countByStatus("PROCESSING")).thenReturn(8L);
         when(orderRepository.countByStatus("TO_PAY")).thenReturn(5L);
-        when(orderRepository.countByStatus("SHIPPED")).thenReturn(15L);
-        when(orderRepository.countByStatus("COMPLETED")).thenReturn(90L);
+        when(orderRepository.countByStatus("SHIPPING")).thenReturn(15L);
+        when(orderRepository.countByStatus("DELIVERED")).thenReturn(90L);
         when(orderRepository.countByStatus("CANCELLED")).thenReturn(2L);
+
 
         when(productRepository.count()).thenReturn(60L);
         when(productRepository.countByActiveTrue()).thenReturn(50L);

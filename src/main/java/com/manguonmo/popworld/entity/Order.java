@@ -69,7 +69,7 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-    // TO_PAY, PROCESSING, SHIPPED, COMPLETED, CANCELLED
+    // TO_PAY, PROCESSING, SHIPPING, DELIVERED, CANCELLED, EXPIRED
     @Column(name = "status", nullable = false, length = 30)
     private String status;
 

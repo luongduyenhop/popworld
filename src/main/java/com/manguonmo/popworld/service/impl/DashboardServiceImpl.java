@@ -31,9 +31,10 @@ public class DashboardServiceImpl implements DashboardService {
         long totalOrders = orderRepository.count();
         long pendingOrders = orderRepository.countByStatus("PROCESSING");
         long toPayOrders = orderRepository.countByStatus("TO_PAY");
-        long shippedOrders = orderRepository.countByStatus("SHIPPED");
-        long completedOrders = orderRepository.countByStatus("COMPLETED");
+        long shippedOrders = orderRepository.countByStatus("SHIPPING");
+        long completedOrders = orderRepository.countByStatus("DELIVERED");
         long cancelledOrders = orderRepository.countByStatus("CANCELLED");
+
 
         long totalProducts = productRepository.count();
         long activeProducts = productRepository.countByActiveTrue();

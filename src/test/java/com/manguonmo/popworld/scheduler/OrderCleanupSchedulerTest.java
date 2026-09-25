@@ -21,12 +21,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit Test kiểm thử cơ chế tự động hủy đơn và hoàn trả tồn kho của OrderCleanupScheduler
+ * Unit Test kiểm thử cơ chế tự động chuyển trạng thái EXPIRED và hoàn trả tồn kho của OrderCleanupScheduler
  */
 @ExtendWith(MockitoExtension.class)
 class OrderCleanupSchedulerTest {
@@ -47,8 +48,8 @@ class OrderCleanupSchedulerTest {
     private OrderCleanupScheduler scheduler;
 
     @Test
-    @DisplayName("Dọn dẹp: Hủy đơn quá 15 phút và hoàn trả tồn kho đúng quy cách SINGLE_BOX vs WHOLE_SET")
-    void cleanupExpiredOrders_Success_RestoresStockCorrectly() {
+    @DisplayName("Dọn dẹp: Đơn quá 15 phút chuyển sang EXPIRED và hoàn trả tồn kho đúng quy cách SINGLE_BOX vs WHOLE_SET")
+    void cleanupExpiredOrders_Success_RestoresStockAndSetsExpiredStatus() {
         // --- 1. ARRANGE ---
         Order expiredOrder = Order.builder()
                 .id(10L)
@@ -84,8 +85,9 @@ class OrderCleanupSchedulerTest {
         scheduler.cleanupExpiredOrders();
 
         // --- 3. ASSERT ---
-        // Đơn hàng phải chuyển sang CANCELLED
-        assertEquals("CANCELLED", expiredOrder.getStatus());
+        // Đơn hàng phải chuyển sang EXPIRED (không phải CANCELLED)
+        assertEquals("EXPIRED", expiredOrder.getStatus());
+        assertTrue(expiredOrder.getNote().contains("hết hạn do quá hạn 15 phút"));
 
         // Kiểm tra hoàn kho cho SINGLE_BOX: 2 hộp -> gọi addStock(101L, 2)
         verify(productRepository, times(1)).addStock(101L, 2);
@@ -93,7 +95,7 @@ class OrderCleanupSchedulerTest {
         // Kiểm tra hoàn kho cho WHOLE_SET: 1 bộ -> gọi addStock(102L, 12)
         verify(productRepository, times(1)).addStock(102L, 12);
 
-        // Đã lưu lại danh sách đơn bị hủy
+        // Đã lưu lại danh sách đơn bị hết hạn
         verify(orderRepository, times(1)).saveAll(List.of(expiredOrder));
     }
 
@@ -135,13 +137,13 @@ class OrderCleanupSchedulerTest {
         scheduler.cleanupExpiredOrders();
 
         // --- 3. ASSERT ---
-        assertEquals("CANCELLED", expiredOrder.getStatus());
+        assertEquals("EXPIRED", expiredOrder.getStatus());
         verify(couponService, times(1)).releaseCoupon(50L, 99L);
         verify(orderRepository, times(1)).saveAll(List.of(expiredOrder));
     }
 
     @Test
-    @DisplayName("Dọn dẹp: Đơn quá hạn có Coupon nhưng user bị null thì releaseCoupon với userId = null (không bị NullPointerException)")
+    @DisplayName("Dọn dẹp: Đơn quá hạn có Coupon nhưng user bị null thì releaseCoupon với userId = null an toàn")
     void cleanupExpiredOrders_WithCouponAndNullUser_ReleasesCouponSafely() {
         // --- 1. ARRANGE ---
         Coupon coupon = Coupon.builder().id(55L).code("FREESHIP").build();
@@ -150,7 +152,7 @@ class OrderCleanupSchedulerTest {
                 .id(21L)
                 .orderCode("PW-1726000000021")
                 .status("TO_PAY")
-                .user(null) // Khách vãng lai / null user
+                .user(null)
                 .coupon(coupon)
                 .expiresAt(LocalDateTime.now().minusMinutes(20))
                 .build();
@@ -164,8 +166,39 @@ class OrderCleanupSchedulerTest {
         scheduler.cleanupExpiredOrders();
 
         // --- 3. ASSERT ---
-        assertEquals("CANCELLED", expiredOrder.getStatus());
+        assertEquals("EXPIRED", expiredOrder.getStatus());
         verify(couponService, times(1)).releaseCoupon(55L, null);
         verify(orderRepository, times(1)).saveAll(List.of(expiredOrder));
+    }
+
+    @Test
+    @DisplayName("Idempotency: Đơn đã EXPIRED thì scheduler lần sau không quét lại, không hoàn kho lần 2")
+    void cleanupExpiredOrders_Idempotency_DoesNotReExpireAlreadyExpiredOrders() {
+        // Giả sử scheduler quét lại, DB chỉ trả về đơn TO_PAY (đơn EXPIRED không nằm trong kết quả query)
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(Collections.emptyList());
+
+        scheduler.cleanupExpiredOrders();
+
+        // Không có thao tác hoàn kho hay cập nhật nào được thực thi
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+        verify(orderRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Scheduler Invariant: Scheduler chỉ tìm kiếm đơn TO_PAY, tuyệt đối không expire PROCESSING, SHIPPING, DELIVERED hay CANCELLED")
+    void cleanupExpiredOrders_OnlyQueriesToPayStatus() {
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(Collections.emptyList());
+
+        scheduler.cleanupExpiredOrders();
+
+        // Kiểm tra query chính xác tham số "TO_PAY"
+        verify(orderRepository, times(1)).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY"));
+        verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("PROCESSING"));
+        verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("SHIPPING"));
+        verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("DELIVERED"));
+        verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("CANCELLED"));
+        verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("EXPIRED"));
     }
 }

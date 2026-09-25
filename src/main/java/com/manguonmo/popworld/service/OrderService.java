@@ -15,15 +15,17 @@ public interface OrderService {
     Order getOrderByCode(String orderCode);
     List<Order> getOrdersByUser(Long userId);
     Order cancelOrder(Long userId, String orderCode, String reason);
+    Order adminCancelOrder(String orderCode, String reason);
 
     // 1. Lấy toàn bộ đơn hàng dạng DTO OrderResponse (kèm items), có hỗ trợ lọc theo status
     List<OrderResponse> getAllOrders(String status);
 
-    // 2. Chuyển trạng thái đơn sang ĐANG GIAO (PROCESSING -> SHIPPED)
+    // 2. Chuyển trạng thái đơn sang ĐANG GIAO (PROCESSING -> SHIPPING)
     Order shipOrder(String orderCode);
 
-    // 3. Chuyển trạng thái đơn sang HOÀN TẤT (SHIPPED -> COMPLETED)
+    // 3. Chuyển trạng thái đơn sang ĐÃ GIAO HÀNG / HOÀN TẤT (SHIPPING -> DELIVERED)
     Order completeOrder(String orderCode);
+
 
     // 4. Lấy danh sách sản phẩm theo mã định danh đơn hàng
     List<OrderItem> getOrderItems(Long orderId);

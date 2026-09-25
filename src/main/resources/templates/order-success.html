@@ -99,15 +99,15 @@
                         </div>
                     </div>
 
-                    <!-- TRƯỜNG HỢP 3: ĐANG XỬ LÝ / GIAO HÀNG / HOÀN TẤT (PROCESSING, SHIPPED, COMPLETED) -->
-                    <div th:if="${order.status != 'CANCELLED' && order.status != 'TO_PAY'}">
+                    <!-- TRƯỜNG HỢP 3: ĐANG XỬ LÝ / GIAO HÀNG / HOÀN TẤT (PROCESSING, SHIPPING, DELIVERED) -->
+                    <div th:if="${order.status != 'CANCELLED' && order.status != 'EXPIRED' && order.status != 'TO_PAY'}">
                         <div class="mb-3">
-                            <i th:if="${order.status == 'SHIPPED'}" class="bi bi-truck text-primary display-2"></i>
-                            <i th:if="${order.status == 'COMPLETED'}" class="bi bi-stars text-success display-2"></i>
+                            <i th:if="${order.status == 'SHIPPING' || order.status == 'SHIPPED'}" class="bi bi-truck text-primary display-2"></i>
+                            <i th:if="${order.status == 'DELIVERED' || order.status == 'COMPLETED'}" class="bi bi-stars text-success display-2"></i>
                             <i th:if="${order.status == 'PROCESSING' || order.status == null}" class="bi bi-check-circle-fill text-success display-2"></i>
                         </div>
                         <h1 class="fw-black text-uppercase mb-2" 
-                            th:text="${order.status == 'SHIPPED' ? 'ĐƠN HÀNG ĐANG ĐƯỢC GIAO!' : (order.status == 'COMPLETED' ? 'ĐƠN HÀNG ĐÃ HOÀN TẤT!' : 'ĐẶT HÀNG THÀNH CÔNG!')}">
+                            th:text="${order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'ĐƠN HÀNG ĐANG ĐƯỢC GIAO!' : (order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'ĐƠN HÀNG ĐÃ HOÀN TẤT!' : 'ĐẶT HÀNG THÀNH CÔNG!')}">
                             ĐẶT HÀNG THÀNH CÔNG!
                         </h1>
                         <p class="text-muted mb-4">
@@ -117,11 +117,11 @@
                     </div>
 
                     <!-- ======================================================= -->
-                    <!-- 2. THANH TIẾN TRÌNH ĐƠN HÀNG (CHO CÁC ĐƠN KHÔNG BỊ HỦY) -->
+                    <!-- 2. THANH TIẾN TRÌNH ĐƠN HÀNG (CHO CÁC ĐƠN KHÔNG BỊ HỦY/HẾT HẠN) -->
                     <!-- ======================================================= -->
-                    <div th:if="${order.status != 'CANCELLED'}" class="order-stepper mb-4">
+                    <div th:if="${order.status != 'CANCELLED' && order.status != 'EXPIRED'}" class="order-stepper mb-4">
                         <div class="order-stepper-progress" 
-                             th:style="${order.status == 'TO_PAY' ? 'width: 25%' : (order.status == 'PROCESSING' ? 'width: 50%' : (order.status == 'SHIPPED' ? 'width: 75%' : 'width: 100%'))}">
+                             th:style="${order.status == 'TO_PAY' ? 'width: 25%' : (order.status == 'PROCESSING' ? 'width: 50%' : (order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'width: 75%' : 'width: 100%'))}">
                         </div>
 
                         <!-- Bước 1: Đặt Đơn -->
@@ -137,28 +137,28 @@
                         </div>
 
                         <!-- Bước 3: Đóng Gói -->
-                        <div class="order-step" th:classappend="${order.status == 'PROCESSING' ? 'active' : (order.status == 'SHIPPED' || order.status == 'COMPLETED' ? 'completed' : '')}">
+                        <div class="order-step" th:classappend="${order.status == 'PROCESSING' ? 'active' : (order.status == 'SHIPPING' || order.status == 'SHIPPED' || order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'completed' : '')}">
                             <div class="order-step-icon"><i class="bi bi-box-seam"></i></div>
                             <span class="order-step-label">Đóng Gói Seal</span>
                         </div>
 
                         <!-- Bước 4: Vận Chuyển -->
-                        <div class="order-step" th:classappend="${order.status == 'SHIPPED' ? 'active' : (order.status == 'COMPLETED' ? 'completed' : '')}">
+                        <div class="order-step" th:classappend="${order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'active' : (order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'completed' : '')}">
                             <div class="order-step-icon"><i class="bi bi-truck"></i></div>
                             <span class="order-step-label">Vận Chuyển</span>
                         </div>
 
                         <!-- Bước 5: Hoàn Tất -->
-                        <div class="order-step" th:classappend="${order.status == 'COMPLETED' ? 'active completed' : ''}">
+                        <div class="order-step" th:classappend="${order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'active completed' : ''}">
                             <div class="order-step-icon"><i class="bi bi-check-lg"></i></div>
                             <span class="order-step-label">Hoàn Tất</span>
                         </div>
                     </div>
 
                     <!-- ======================================================= -->
-                    <!-- 3. KHỐI BÓC SEAL ONLINE (CHỈ HIỆN KHI ĐƠN KHÔNG BỊ HỦY)   -->
+                    <!-- 3. KHỐI BÓC SEAL ONLINE (CHỈ HIỆN KHI ĐƠN KHÔNG BỊ HỦY/HẾT HẠN)   -->
                     <!-- ======================================================= -->
-                    <div th:if="${order.status != 'CANCELLED'}" class="p-4 rounded-4 my-4 text-start border border-2 border-danger bg-danger-subtle">
+                    <div th:if="${order.status != 'CANCELLED' && order.status != 'EXPIRED'}" class="p-4 rounded-4 my-4 text-start border border-2 border-danger bg-danger-subtle">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <div>
                                 <h4 class="fw-black text-danger mb-1">
@@ -189,16 +189,20 @@
                             <span th:if="${order.status == 'PROCESSING'}" class="badge badge-status-processing px-3 py-2">
                                 <i class="bi bi-gear-wide-connected me-1"></i> Đang Xử Lý
                             </span>
-                            <span th:if="${order.status == 'SHIPPED'}" class="badge badge-status-shipped px-3 py-2">
+                            <span th:if="${order.status == 'SHIPPING' || order.status == 'SHIPPED'}" class="badge badge-status-shipped px-3 py-2">
                                 <i class="bi bi-truck me-1"></i> Đang Giao Hàng
                             </span>
-                            <span th:if="${order.status == 'COMPLETED'}" class="badge badge-status-completed px-3 py-2">
+                            <span th:if="${order.status == 'DELIVERED' || order.status == 'COMPLETED'}" class="badge badge-status-completed px-3 py-2">
                                 <i class="bi bi-check-circle me-1"></i> Hoàn Tất
                             </span>
                             <span th:if="${order.status == 'CANCELLED'}" class="badge badge-status-cancelled px-3 py-2">
                                 <i class="bi bi-x-circle me-1"></i> Đã Hủy
                             </span>
+                            <span th:if="${order.status == 'EXPIRED'}" class="badge badge-status-cancelled bg-secondary text-white px-3 py-2">
+                                <i class="bi bi-alarm me-1"></i> Hết Hạn
+                            </span>
                         </h5>
+
 
                         <div class="row g-3 mb-4">
                             <div class="col-sm-6 col-md-3">
