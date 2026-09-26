@@ -79,7 +79,7 @@
                                             <small class="text-muted text-uppercase fw-bold">Số tài khoản:</small>
                                             <div class="fw-black fs-5 text-dark" id="accNumber" th:text="${accountNumber}">0355416208</div>
                                         </div>
-                                        <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyText('accNumber')">
+                                        <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyText('accNumber')" title="Sao chép số tài khoản" aria-label="Sao chép số tài khoản">
                                             <i class="bi bi-clipboard"></i>
                                         </button>
                                     </div>
@@ -98,7 +98,8 @@
                                             </div>
                                         </div>
                                         <button class="btn btn-sm btn-outline-secondary copy-btn" 
-                                                th:onclick="'copyValue(' + ${order.totalAmount.longValue()} + ')'">
+                                                th:onclick="'copyValue(' + ${order.totalAmount.longValue()} + ')'"
+                                                title="Sao chép số tiền" aria-label="Sao chép số tiền">
                                             <i class="bi bi-clipboard"></i>
                                         </button>
                                     </div>
@@ -108,7 +109,7 @@
                                             <small class="text-danger fw-bold text-uppercase">Nội dung chuyển khoản (Bắt buộc):</small>
                                             <div class="fw-black fs-5 text-danger" id="orderCodeContent" th:text="${order.orderCode}">PW-12345</div>
                                         </div>
-                                        <button class="btn btn-sm btn-danger copy-btn" onclick="copyText('orderCodeContent')">
+                                        <button class="btn btn-sm btn-danger copy-btn" onclick="copyText('orderCodeContent')" title="Sao chép nội dung chuyển khoản" aria-label="Sao chép nội dung chuyển khoản">
                                             <i class="bi bi-clipboard-fill"></i>
                                         </button>
                                     </div>

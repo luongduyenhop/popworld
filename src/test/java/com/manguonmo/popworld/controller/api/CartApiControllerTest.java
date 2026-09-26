@@ -127,4 +127,24 @@ public class CartApiControllerTest {
         verify(cartService, times(1)).removeFromCart(1L, 99L);
         assertEquals(200, response.getStatusCode().value());
     }
+
+    @Test
+    @DisplayName("getCartItems ném BadRequestException khi Principal null (chưa đăng nhập)")
+    public void getCartItems_whenPrincipalNull_shouldThrowBadRequest() {
+        assertThrows(com.manguonmo.popworld.exception.BadRequestException.class,
+                () -> cartApiController.getCartItems(null));
+        verifyNoInteractions(cartService);
+    }
+
+    @Test
+    @DisplayName("addToCart ném BadRequestException khi tài khoản bị vô hiệu hóa (enabled=false)")
+    public void addToCart_whenUserDisabled_shouldThrowBadRequest() {
+        User disabledUser = User.builder().id(2L).email("disabled@popworld.com").enabled(false).build();
+        Principal disabledPrincipal = () -> "disabled@popworld.com";
+        when(userService.getUserByEmail("disabled@popworld.com")).thenReturn(disabledUser);
+
+        assertThrows(com.manguonmo.popworld.exception.BadRequestException.class,
+                () -> cartApiController.addToCart(100L, "SINGLE_BOX", 1, disabledPrincipal));
+        verifyNoInteractions(cartService);
+    }
 }

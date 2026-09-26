@@ -146,7 +146,7 @@
                                         <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
                                             <i class="bi bi-x-circle"></i> Đã hủy
                                         </span>
-                                        <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-cancelled bg-secondary text-white">
+                                        <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-expired">
                                             <i class="bi bi-alarm"></i> Hết hạn
                                         </span>
                                     </td>
@@ -191,7 +191,7 @@
                         <div class="d-flex align-items-center justify-content-between p-2 rounded-3 mb-2 hover-bg-light" 
                              th:each="ip : ${characterIps}">
                             <div class="d-flex align-items-center gap-3">
-                                <img th:src="${ip.avatarUrl}" class="rounded-circle border" width="40" height="40" style="object-fit:cover;">
+                                <img th:src="${ip.avatarUrl}" th:alt="${ip.name}" class="rounded-circle border" width="40" height="40" style="object-fit:cover;">
                                 <div>
                                     <div class="fw-bold" th:text="${ip.name}">Labubu</div>
                                     <small class="text-muted" th:text="${ip.artist != null ? ip.artist.name : 'POP MART Original'}"></small>

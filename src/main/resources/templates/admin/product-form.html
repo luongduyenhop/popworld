@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head(${isEdit ? 'Chỉnh Sửa Mẫu Art Toy' : 'Thêm Mới Mẫu Art Toy'})}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#productFormContent}, ${isEdit ? 'Chỉnh Sửa Mẫu Art Toy' : 'Thêm Mới Mẫu Art Toy'}, 'products')}">
+    <div id="productFormContent">
+        <!-- Breadcrumb & Title -->
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item"><a th:href="@{/admin/products}" class="text-decoration-none text-muted">Kho Hàng Art Toy</a></li>
+                        <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${isEdit ? 'Chỉnh Sửa' : 'Thêm Mới'}">Thao Tác</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-black text-dark mb-0 text-uppercase" th:text="${isEdit ? 'Chỉnh Sửa Mẫu Art Toy: ' + product.name : 'Thêm Mới Mẫu Art Toy & Hộp Mù'}"></h4>
+            </div>
+            <a th:href="@{/admin/products}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay Lại Danh Sách
+            </a>
+        </div>
+
+        <!-- Alert messages -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <form th:action="${isEdit ? '/admin/products/' + product.id : '/admin/products'}" 
+              th:object="${productForm}" 
+              method="post" 
+              enctype="multipart/form-data">
+
+            <div class="row g-4">
+                <!-- Cột trái: Thông tin sản phẩm -->
+                <div class="col-lg-8">
+                    <!-- 1. Thông tin chung -->
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header pb-2 mb-3 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Thông Tin Cơ Bản</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="name" class="form-label fw-bold small text-secondary">Tên Sản Phẩm / Hộp Mù <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{name}" id="name" class="form-control rounded-3" 
+                                       placeholder="Ví dụ: Hộp Mù Hirono Little Mischief Series" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="categoryId" class="form-label fw-bold small text-secondary">Danh Mục <span class="text-danger">*</span></label>
+                                <select th:field="*{categoryId}" id="categoryId" class="form-select rounded-3" required>
+                                    <option value="" disabled>-- Chọn danh mục --</option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Blind Box</option>
+                                </select>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="seriesId" class="form-label fw-bold small text-secondary">Bộ Sưu Tập (Series)</label>
+                                <select th:field="*{seriesId}" id="seriesId" class="form-select rounded-3">
+                                    <option value="">-- Không thuộc Series (Độc bản) --</option>
+                                    <option th:each="s : ${seriesList}" th:value="${s.id}" 
+                                            th:text="${s.name + (s.characterIp != null ? ' (' + s.characterIp.name + ')' : '')}">Series</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="description" class="form-label fw-bold small text-secondary">Câu Chuyện & Giới Thiệu Bộ Sưu Tập</label>
+                                <textarea th:field="*{description}" id="description" rows="4" class="form-control rounded-3" 
+                                          placeholder="Mô tả ý tưởng nghệ thuật, câu chuyện nhân vật và thông tin chi tiết..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Giá bán & Kho hàng -->
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header pb-2 mb-3 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-tag-fill me-2 text-success"></i>Giá Bán & Quản Lý Kho</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="singlePrice" class="form-label fw-bold small text-secondary">Giá Bán Hộp Lẻ (Single Box) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" th:field="*{singlePrice}" id="singlePrice" class="form-control rounded-start-3" 
+                                           placeholder="350000" min="1000" step="1000" required>
+                                    <span class="input-group-text rounded-end-3">₫</span>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('singlePrice')}" th:errors="*{singlePrice}"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="wholeSetPrice" class="form-label fw-bold small text-secondary">Giá Cả Thùng / Cả Set</label>
+                                <div class="input-group">
+                                    <input type="number" th:field="*{wholeSetPrice}" id="wholeSetPrice" class="form-control rounded-start-3" 
+                                           placeholder="2100000" min="1000" step="1000">
+                                    <span class="input-group-text rounded-end-3">₫</span>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('wholeSetPrice')}" th:errors="*{wholeSetPrice}"></div>
+                                <small class="text-muted">Để trống nếu không bán nguyên thùng</small>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stockQuantity" class="form-label fw-bold small text-secondary">Tồn Kho (Số hộp lẻ) <span class="text-danger">*</span></label>
+                                <input type="number" th:field="*{stockQuantity}" id="stockQuantity" class="form-control rounded-3" 
+                                       placeholder="100" min="0" required>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Thông số kỹ thuật Art Toy -->
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header pb-2 mb-3 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-sliders me-2 text-warning"></i>Quy Cách Đóng Gói & Thông Số</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="packagingType" class="form-label fw-bold small text-secondary">Quy Cách Hộp</label>
+                                <input type="text" th:field="*{packagingType}" id="packagingType" class="form-control rounded-3" 
+                                       placeholder="Ví dụ: 1 Hộp lẻ / 12 Hộp nguyên set">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="secretRatio" class="form-label fw-bold small text-secondary">Tỉ Lệ Mở Trúng Mẫu Secret</label>
+                                <input type="text" th:field="*{secretRatio}" id="secretRatio" class="form-control rounded-3" 
+                                       placeholder="Ví dụ: 1/72 hoặc 1/144">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="material" class="form-label fw-bold small text-secondary">Chất Liệu Mô Hình</label>
+                                <input type="text" th:field="*{material}" id="material" class="form-control rounded-3" 
+                                       placeholder="Ví dụ: PVC / ABS hoặc Vải bông Plush">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="sizeDimensions" class="form-label fw-bold small text-secondary">Kích Thước</label>
+                                <input type="text" th:field="*{sizeDimensions}" id="sizeDimensions" class="form-control rounded-3" 
+                                       placeholder="Ví dụ: Cao 7.5cm - 9.5cm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Media Cloudinary & Trạng thái -->
+                <div class="col-lg-4">
+                    <!-- Trạng thái sản phẩm -->
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header pb-2 mb-3 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-toggle-on me-2 text-info"></i>Trạng Thái Hiển Thị</h5>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="active" th:field="*{active}">
+                            <label class="form-check-label fw-bold small text-dark" for="active">Đang mở bán trực tuyến</label>
+                            <div class="text-muted small">Tắt để tạm ẩn sản phẩm khỏi khách mua</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="isFeatured" th:field="*{isFeatured}">
+                            <label class="form-check-label fw-bold small text-dark" for="isFeatured">Sản phẩm nổi bật (Hot)</label>
+                            <div class="text-muted small">Ưu tiên hiển thị trên banner & trang chủ</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="isNewRelease" th:field="*{isNewRelease}">
+                            <label class="form-check-label fw-bold small text-dark" for="isNewRelease">Hàng mới ra mắt (New Drop)</label>
+                            <div class="text-muted small">Gắn nhãn New Release thu hút người sưu tập</div>
+                        </div>
+                    </div>
+
+                    <!-- Quản lý Media & Cloudinary -->
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header pb-2 mb-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-cloud-arrow-up-fill me-2 text-danger"></i>Album Ảnh (Cloudinary)</h5>
+                        </div>
+
+                        <!-- Danh sách ảnh hiện có khi chỉnh sửa -->
+                        <div th:if="${isEdit and product.images != null and !product.images.isEmpty()}" class="mb-4">
+                            <label class="form-label fw-bold small text-secondary d-block">Ảnh Hiện Có Trong Album:</label>
+                            <div class="row g-2">
+                                <div class="col-6" th:each="img : ${product.images}">
+                                    <div class="border rounded-3 p-2 text-center position-relative bg-light">
+                                        <div class="ratio ratio-1x1 rounded-2 overflow-hidden mb-2">
+                                            <img th:src="${img.imageUrl}" class="w-100 h-100 object-fit-cover" alt="Image">
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between gap-1">
+                                            <!-- Chọn thumbnail -->
+                                            <div class="form-check text-start" title="Chọn làm ảnh đại diện">
+                                                <input class="form-check-input" type="radio" name="thumbnailImageId" 
+                                                       th:id="'thumb_' + ${img.id}" th:value="${img.id}" 
+                                                       th:checked="${img.isThumbnail}">
+                                                <label class="form-check-label small fw-bold" th:for="'thumb_' + ${img.id}">
+                                                    <span th:if="${img.isThumbnail}" class="text-success"><i class="bi bi-star-fill"></i> Đại diện</span>
+                                                    <span th:unless="${img.isThumbnail}" class="text-muted">Chọn</span>
+                                                </label>
+                                            </div>
+                                            <!-- Đánh dấu xóa -->
+                                            <div class="form-check" title="Đánh dấu xóa ảnh này">
+                                                <input class="form-check-input border-danger" type="checkbox" name="deleteImageIds" 
+                                                       th:id="'del_' + ${img.id}" th:value="${img.id}">
+                                                <label class="form-check-label small text-danger" th:for="'del_' + ${img.id}">
+                                                    <i class="bi bi-trash"></i>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="bi bi-info-circle me-1"></i> Tích chọn thùng rác để xóa ảnh khỏi Cloudinary khi Lưu.
+                            </small>
+                        </div>
+
+                        <!-- Tải ảnh mới lên Cloudinary -->
+                        <div>
+                            <label class="form-label fw-bold small text-secondary">
+                                <span th:text="${isEdit ? 'Tải Thêm Ảnh Mới Lên Cloudinary:' : 'Tải Lên Album Ảnh (Cloudinary):'}">Tải Ảnh</span>
+                            </label>
+                            <input type="file" 
+                                   th:name="${isEdit ? 'newImageFiles' : 'imageFiles'}" 
+                                   multiple 
+                                   accept="image/jpeg,image/png,image/webp" 
+                                   class="form-control rounded-3">
+                            <div class="form-text small text-muted mt-2">
+                                <i class="bi bi-shield-check me-1"></i> Định dạng: JPG, PNG, WEBP (Tối đa 5MB/ảnh). Ảnh đầu tiên tải lên sẽ tự động được chọn làm ảnh đại diện.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút thao tác hoàn tất -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-3 rounded-pill fw-bold fs-6 shadow">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span th:text="${isEdit ? 'LƯU THAY ĐỔI' : 'TẠO MẪU SẢN PHẨM'}">Lưu</span>
+                        </button>
+                        <a th:href="@{/admin/products}" class="btn btn-light py-2 rounded-pill fw-bold text-secondary">
+                            Hủy Bỏ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Toán Đơn Hàng - PopWorld</title>
     
+    <!-- CSRF Token Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
@@ -44,38 +48,73 @@
                             <i class="bi bi-geo-alt-fill text-danger me-2"></i> 1. Địa Chỉ Nhận Hàng
                         </h4>
                         
+                        <!-- Chọn từ sổ địa chỉ đã lưu -->
+                        <div class="mb-3 p-3 bg-light border rounded-3" th:if="${addresses != null && !addresses.isEmpty()}">
+                            <label class="form-label fw-bold small text-dark d-flex justify-content-between align-items-center mb-2">
+                                <span><i class="bi bi-journal-bookmark-fill text-danger me-1"></i> Chọn nhanh từ Sổ Địa Chỉ:</span>
+                                <span class="badge bg-secondary-subtle text-secondary" th:text="${addresses.size()} + ' địa chỉ'">0</span>
+                            </label>
+                            <select class="form-select rounded-3" id="savedAddressSelect" onchange="selectSavedAddress(this)">
+                                <option value="" th:selected="${defaultAddress == null}">-- Nhập địa chỉ mới bên dưới --</option>
+                                <option th:each="addr : ${addresses}"
+                                        th:value="${addr.id}"
+                                        th:data-name="${addr.recipientName}"
+                                        th:data-phone="${addr.recipientPhone}"
+                                        th:data-province="${addr.provinceCity}"
+                                        th:data-district="${addr.district}"
+                                        th:data-ward="${addr.ward}"
+                                        th:data-address="${addr.detailedAddress}"
+                                        th:selected="${defaultAddress != null && defaultAddress.id == addr.id}"
+                                        th:text="${addr.recipientName} + ' - ' + ${addr.recipientPhone} + ' (' + ${addr.detailedAddress} + ', ' + ${addr.district} + ', ' + ${addr.provinceCity} + ')' + (addr.isDefault ? ' [Mặc định]' : '')">
+                                </option>
+                            </select>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small">Họ và tên người nhận <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="recipientName" 
-                                       th:value="${user != null ? user.fullName : ''}" placeholder="Ví dụ: Nguyễn Văn A" required>
+                                <label class="form-label fw-bold small" for="recipientName">Họ và tên người nhận <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="recipientName" id="recipientName"
+                                       th:value="${defaultAddress != null ? defaultAddress.recipientName : (user != null ? user.fullName : '')}" placeholder="Ví dụ: Nguyễn Văn A" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control rounded-3" name="recipientPhone" 
-                                       th:value="${user != null ? user.phone : ''}" placeholder="Ví dụ: 0987654321" required>
+                                <label class="form-label fw-bold small" for="recipientPhone">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control rounded-3" name="recipientPhone" id="recipientPhone"
+                                       th:value="${defaultAddress != null ? defaultAddress.recipientPhone : (user != null ? user.phone : '')}" placeholder="Ví dụ: 0987654321" required>
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="provinceCity" 
+                                <label class="form-label fw-bold small" for="provinceCity">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="provinceCity" id="provinceCity"
+                                       th:value="${defaultAddress != null ? defaultAddress.provinceCity : ''}"
                                        placeholder="Hà Nội / TP.HCM" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="district" 
+                                <label class="form-label fw-bold small" for="district">Quận / Huyện <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="district" id="district"
+                                       th:value="${defaultAddress != null ? defaultAddress.district : ''}"
                                        placeholder="Cầu Giấy / Quận 1" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold small">Phường / Xã</label>
-                                <input type="text" class="form-control rounded-3" name="ward" 
+                                <label class="form-label fw-bold small" for="ward">Phường / Xã</label>
+                                <input type="text" class="form-control rounded-3" name="ward" id="ward"
+                                       th:value="${defaultAddress != null ? defaultAddress.ward : ''}"
                                        placeholder="Dịch Vọng / Bến Nghé">
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-bold small">Địa chỉ số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="detailedAddress" 
+                                <label class="form-label fw-bold small" for="detailedAddress">Địa chỉ số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control rounded-3" name="detailedAddress" id="detailedAddress"
+                                       th:value="${defaultAddress != null ? defaultAddress.detailedAddress : ''}"
                                        placeholder="Số 123 đường Cầu Giấy, Tòa nhà PopWorld" required>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="saveAddress" value="true" id="saveAddressCheck" checked>
+                                    <label class="form-check-label small text-muted" for="saveAddressCheck">
+                                        Lưu thông tin này vào Sổ Địa Chỉ của tôi để dùng cho các đơn hàng sau
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -115,19 +154,53 @@
                     </div>
 
                     <!-- Khối 3: Mã giảm giá -->
-                    <div class="card border rounded-4 p-4 shadow-sm">
+                    <div class="card border rounded-4 p-4 shadow-sm mb-4">
                         <h4 class="fw-bold mb-3 border-bottom pb-2">
                             <i class="bi bi-tag-fill text-danger me-2"></i> 3. Mã Giảm Giá / Coupon
                         </h4>
                         <div class="input-group">
-                            <input type="text" class="form-control text-uppercase" name="couponCode" id="couponInput" placeholder="POPWELCOME / FREESHIP">
+                            <input type="text" class="form-control text-uppercase" name="couponCode" id="couponInput" placeholder="POPWELCOME / FREESHIP" aria-label="Mã giảm giá coupon">
                             <button class="btn btn-dark fw-bold px-4" type="button" id="btnApplyCoupon" onclick="checkCoupon()">Kiểm Tra</button>
                         </div>
                         <!-- Vùng hiển thị thông báo kết quả kiểm tra mã -->
                         <div id="couponMessage" class="mt-2" style="display: none;"></div>
                         <small class="text-muted mt-2 d-block">Nhập mã ưu đãi của bạn nếu có để được giảm trực tiếp trên tổng đơn.</small>
                     </div>
+
+                    <!-- Khối 4: Điểm thưởng PopWorld -->
+                    <div class="card border rounded-4 p-4 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h4 class="fw-bold mb-0">
+                                <i class="bi bi-gift-fill text-danger me-2"></i> 4. Điểm Thưởng PopWorld
+                            </h4>
+                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1">
+                                <i class="bi bi-stars text-warning me-1"></i> <span th:text="${userPoints != null ? userPoints : 0}">0</span> điểm hiện có
+                            </span>
+                        </div>
+
+                        <div th:if="${maxPointsUsable != null && maxPointsUsable > 0}">
+                            <p class="small text-muted mb-2">
+                                Quy đổi: <strong>1 điểm = 100 đ</strong>. Tối đa dùng cho đơn này: <strong class="text-danger" th:text="${maxPointsUsable} + ' điểm'">0 điểm</strong> (tối đa 20% tiền hàng = <span th:text="${#numbers.formatDecimal(maxPointsUsable * 100, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>).
+                            </p>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control" name="pointsToUse" id="pointsInput"
+                                       min="0" th:max="${maxPointsUsable}" value="0"
+                                       placeholder="Nhập số điểm muốn đổi" oninput="applyPointsDiscount(this)">
+                                <button class="btn btn-outline-danger fw-bold px-3" type="button" onclick="useMaxPoints()">Dùng Tối Đa</button>
+                            </div>
+                            <small id="pointsMessage" class="text-success fw-semibold" style="display: none;"></small>
+                        </div>
+                        <div th:unless="${maxPointsUsable != null && maxPointsUsable > 0}">
+                            <div class="p-3 bg-light rounded-3 text-muted small">
+                                <i class="bi bi-info-circle me-1 text-secondary"></i>
+                                <span th:if="${userPoints == null || userPoints == 0}">Bạn hiện chưa có điểm thưởng. Mỗi 10.000 đ đơn hàng giao thành công sẽ tích lũy 1 điểm!</span>
+                                <span th:unless="${userPoints == null || userPoints == 0}">Đơn hàng hiện tại chưa đủ điều kiện áp dụng điểm thưởng.</span>
+                            </div>
+                            <input type="hidden" name="pointsToUse" value="0">
+                        </div>
+                    </div>
                 </div>
+
 
                 <!-- Cột phải: Tóm tắt đơn hàng -->
                 <div class="col-lg-5" style="align-self: flex-start;">
@@ -175,8 +248,14 @@
 
                         <!-- Dòng Giảm giá ưu đãi (mặc định ẩn, hiển thị khi áp dụng mã thành công) -->
                         <div id="discountRow" class="d-flex justify-content-between mb-2 text-success" style="display: none !important;">
-                            <span><i class="bi bi-tag-fill me-1"></i> Giảm giá ưu đãi:</span>
+                            <span><i class="bi bi-tag-fill me-1"></i> Giảm giá ưu đãi (Coupon):</span>
                             <span class="fw-bold" id="discountText">-0 đ</span>
+                        </div>
+
+                        <!-- Dòng Giảm giá điểm thưởng (mặc định ẩn, hiển thị khi dùng điểm) -->
+                        <div id="pointsRow" class="d-flex justify-content-between mb-2 text-warning" style="display: none !important;">
+                            <span><i class="bi bi-gift-fill me-1"></i> Giảm điểm thưởng:</span>
+                            <span class="fw-bold text-dark" id="pointsText">-0 đ</span>
                         </div>
 
                         <div class="border-top pt-3 mt-2 d-flex justify-content-between align-items-baseline">
@@ -211,6 +290,68 @@
         /*<![CDATA[*/
         const originalSubtotal = /*[[${subtotal}]]*/ 0;
         const shippingFee = /*[[${shippingFee}]]*/ 0;
+        let currentCouponDiscount = 0;
+        let currentPointsDiscount = 0;
+
+        function recalculateTotal() {
+            const finalTotal = Math.max(0, Number(originalSubtotal) + Number(shippingFee) - currentCouponDiscount - currentPointsDiscount);
+            const totalAmountText = document.getElementById('totalAmountText');
+            if (totalAmountText) {
+                totalAmountText.innerText = Number(finalTotal).toLocaleString('vi-VN') + ' đ';
+            }
+        }
+
+        function selectSavedAddress(selectEl) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            if (!selectedOpt || !selectedOpt.value) return;
+
+            document.getElementById('recipientName').value = selectedOpt.getAttribute('data-name') || '';
+            document.getElementById('recipientPhone').value = selectedOpt.getAttribute('data-phone') || '';
+            document.getElementById('provinceCity').value = selectedOpt.getAttribute('data-province') || '';
+            document.getElementById('district').value = selectedOpt.getAttribute('data-district') || '';
+            document.getElementById('ward').value = selectedOpt.getAttribute('data-ward') || '';
+            document.getElementById('detailedAddress').value = selectedOpt.getAttribute('data-address') || '';
+        }
+
+        function applyPointsDiscount(inputEl) {
+            const maxPoints = Number(inputEl.getAttribute('max')) || 0;
+            let val = parseInt(inputEl.value, 10);
+            if (isNaN(val) || val < 0) {
+                val = 0;
+                inputEl.value = 0;
+            }
+            if (val > maxPoints) {
+                val = maxPoints;
+                inputEl.value = maxPoints;
+            }
+
+            const pointsRow = document.getElementById('pointsRow');
+            const pointsText = document.getElementById('pointsText');
+            const pointsMsg = document.getElementById('pointsMessage');
+
+            if (val > 0) {
+                currentPointsDiscount = val * 100;
+                pointsRow.setAttribute("style", "display: flex !important;");
+                pointsText.innerText = '-' + Number(currentPointsDiscount).toLocaleString('vi-VN') + ' đ';
+                if (pointsMsg) {
+                    pointsMsg.style.display = 'block';
+                    pointsMsg.innerText = 'Đã áp dụng giảm ' + Number(currentPointsDiscount).toLocaleString('vi-VN') + ' đ từ ' + val + ' điểm.';
+                }
+            } else {
+                currentPointsDiscount = 0;
+                pointsRow.setAttribute("style", "display: none !important;");
+                if (pointsMsg) pointsMsg.style.display = 'none';
+            }
+            recalculateTotal();
+        }
+
+        function useMaxPoints() {
+            const input = document.getElementById('pointsInput');
+            if (!input) return;
+            const max = Number(input.getAttribute('max')) || 0;
+            input.value = max;
+            applyPointsDiscount(input);
+        }
 
         async function checkCoupon() {
             const couponInput = document.getElementById('couponInput');
@@ -218,7 +359,6 @@
             const messageBox = document.getElementById('couponMessage');
             const discountRow = document.getElementById('discountRow');
             const discountText = document.getElementById('discountText');
-            const totalAmountText = document.getElementById('totalAmountText');
             const btn = document.getElementById('btnApplyCoupon');
 
             if (!couponCode) {
@@ -233,12 +373,20 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang kiểm tra...';
 
+            // Đọc CSRF Token từ meta tags
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            const requestHeaders = {
+                'Content-Type': 'application/json'
+            };
+            if (csrfToken && csrfHeader) {
+                requestHeaders[csrfHeader] = csrfToken;
+            }
+
             try {
                 const response = await fetch('/api/coupons/validate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: requestHeaders,
                     body: JSON.stringify({
                         couponCode: couponCode,
                         subtotal: originalSubtotal
@@ -249,29 +397,24 @@
 
                 if (response.ok && result.success) {
                     const data = result.data;
-                    // 1. Hiển thị thông báo thành công màu xanh
                     messageBox.style.display = 'block';
                     messageBox.className = 'alert alert-success py-2 px-3 small mt-2';
                     messageBox.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${data.message || result.message || 'Áp dụng mã thành công!'}`;
 
-                    // 2. Cập nhật dòng giảm giá
+                    currentCouponDiscount = Number(data.discountAmount) || 0;
                     discountRow.setAttribute("style", "display: flex !important;");
-                    discountText.innerText = '-' + Number(data.discountAmount).toLocaleString('vi-VN') + ' đ';
+                    discountText.innerText = '-' + Number(currentCouponDiscount).toLocaleString('vi-VN') + ' đ';
 
-                    // 3. Cập nhật Tổng tiền mới = (subtotal - discountAmount) + shippingFee
-                    const finalTotal = Math.max(0, (Number(data.newTotal) + Number(shippingFee)));
-                    totalAmountText.innerText = Number(finalTotal).toLocaleString('vi-VN') + ' đ';
+                    recalculateTotal();
 
                 } else {
-                    // Hiển thị lỗi từ backend (hết hạn, hết lượt, chưa đủ tiền tối thiểu...)
                     messageBox.style.display = 'block';
                     messageBox.className = 'alert alert-danger py-2 px-3 small mt-2';
                     messageBox.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> ${result.message || 'Mã giảm giá không hợp lệ!'}`;
 
-                    // Reset lại giao diện tiền về ban đầu
+                    currentCouponDiscount = 0;
                     discountRow.setAttribute("style", "display: none !important;");
-                    const resetTotal = Number(originalSubtotal) + Number(shippingFee);
-                    totalAmountText.innerText = Number(resetTotal).toLocaleString('vi-VN') + ' đ';
+                    recalculateTotal();
                 }
             } catch (err) {
                 messageBox.style.display = 'block';
@@ -294,3 +437,4 @@
     </script>
 </body>
 </html>
+

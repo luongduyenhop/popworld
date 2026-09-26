@@ -25,8 +25,12 @@ public class OrderResponse {
     private BigDecimal shippingFee;
 
     private BigDecimal discountAmount;
+    private BigDecimal pointsDiscount;
+    private Integer pointsUsed;
+    private Integer pointsEarned;
 
     private BigDecimal totalAmount;
+
 
     private String status;
 

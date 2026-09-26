@@ -5,6 +5,7 @@ import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class AuthWebController {
@@ -37,16 +39,20 @@ public class AuthWebController {
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
         
-        if (bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "register";
         }
         try {
             userService.register(request);
-        }catch (Exception e){
+        } catch (BadRequestException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "register";
+        } catch (Exception e) {
+            log.error("Lỗi không mong muốn trong quá trình đăng ký tài khoản: ", e);
+            model.addAttribute("errorMessage", "Đã xảy ra lỗi trong quá trình xử lý đăng ký. Vui lòng thử lại sau!");
+            return "register";
         }
-        redirectAttributes.addFlashAttribute("successMessage","Đăng ký thành công vui lòng đăng nhập!");
+        redirectAttributes.addFlashAttribute("successMessage", "Đăng ký thành công vui lòng đăng nhập!");
         return "redirect:/login";
     }
 

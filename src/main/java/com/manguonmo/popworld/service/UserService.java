@@ -1,5 +1,7 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.dto.request.ChangePasswordRequest;
+import com.manguonmo.popworld.dto.request.ProfileUpdateRequest;
 import com.manguonmo.popworld.dto.request.RegisterRequest;
 import com.manguonmo.popworld.dto.response.CustomerStatsResponse;
 import com.manguonmo.popworld.entity.User;
@@ -11,4 +13,6 @@ public interface UserService {
     CustomerStatsResponse getCustomerStats();
     User register(RegisterRequest request);
     User getUserByEmail(String email);
+    User updateProfile(Long userId, ProfileUpdateRequest request);
+    void changePassword(Long userId, ChangePasswordRequest request);
 }

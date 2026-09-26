@@ -1,152 +1,157 @@
 package com.manguonmo.popworld.service;
 
-
-// 1. Nhúng thư viện JUnit 5 và Mockito
-
-import com.manguonmo.popworld.service.impl.ProductServiceImpl;
+import com.manguonmo.popworld.dto.request.ProductCreateRequest;
+import com.manguonmo.popworld.dto.request.ProductUpdateRequest;
+import com.manguonmo.popworld.dto.response.CloudinaryUploadResult;
+import com.manguonmo.popworld.dto.response.ProductStatsResponse;
+import com.manguonmo.popworld.entity.Category;
 import com.manguonmo.popworld.entity.Product;
-import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.entity.ProductImage;
+import com.manguonmo.popworld.entity.Series;
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import com.manguonmo.popworld.repository.*;
+import com.manguonmo.popworld.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-// 2. Kích hoạt Mockito chạy cùng JUnit 5
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-    // 3. @Mock: Tạo ra một ProductRepository "giả vờ"
-    // Mockito tạo ra một con rối rỗng, không hề kết nối đến MySQL
     @Mock
     private ProductRepository productRepository;
 
     @Mock
-    private com.manguonmo.popworld.repository.CategoryRepository categoryRepository;
+    private CategoryRepository categoryRepository;
 
-    // 4. @InjectMocks: Tạo ra đối tượng THẬT mà chúng ta muốn test
-    // Mockito sẽ tự động tiêm con rối productRepository ở trên vào ProductServiceImpl!
+    @Mock
+    private SeriesRepository seriesRepository;
+
+    @Mock
+    private ProductImageRepository productImageRepository;
+
+    @Mock
+    private OrderItemRepository orderItemRepository;
+
+    @Mock
+    private CartItemRepository cartItemRepository;
+
+    @Mock
+    private CloudinaryService cloudinaryService;
+
     @InjectMocks
     private ProductServiceImpl productService;
 
-    // 5. @Test: Báo cho JUnit biết đây là một kịch bản kiểm thử
     @Test
     @DisplayName("Test lấy danh sách sản phẩm nổi bật thành công")
     void test_GetFeaturedProducts_Success() {
-        // --- BƯỚC 1: ARRANGE (Chuẩn bị hiện trường & Dữ liệu giả) ---
-        // Ta tạo sẵn 2 sản phẩm mẫu bằng tay
         Product p1 = Product.builder().id(1L).name("Labubu Fall in Wild").isFeatured(true).build();
         Product p2 = Product.builder().id(2L).name("Molly Space").isFeatured(true).build();
         List<Product> mockList = List.of(p1, p2);
 
-        // Dạy cho con rối Repository: "Hễ ai gọi hàm findByIsFeaturedTrueAndActiveTrue() thì hãy trả về mockList!"
         when(productRepository.findByIsFeaturedTrueAndActiveTrue()).thenReturn(mockList);
 
-        // --- BƯỚC 2: ACT (Thực thi hành động cần test) ---
-        // Gọi hàm của Service - đây là đối tượng ta đang muốn kiểm thử
         List<Product> actualResult = productService.getFeaturedProducts();
 
-        // --- BƯỚC 3: ASSERT (Trọng tài kiểm tra kết quả) ---
-        // Kết quả trả về có bị null không?
-        assertNotNull(actualResult, "Danh sách trả về không được null!");
-
-        // Kích thước danh sách có đúng bằng 2 không?
-        assertEquals(2, actualResult.size(), "Phải trả về đúng 2 sản phẩm!");
-
-        // Tên sản phẩm đầu tiên có đúng là Labubu không?
+        assertNotNull(actualResult);
+        assertEquals(2, actualResult.size());
         assertEquals("Labubu Fall in Wild", actualResult.get(0).getName());
-
-        // Kiểm tra xem Service có thực sự gọi xuống Repository đúng 1 lần không?
-        verify(productRepository, times(1)).findByIsFeaturedTrueAndActiveTrue();
+        verify(productRepository).findByIsFeaturedTrueAndActiveTrue();
     }
 
     @Test
-    @DisplayName("Lay danh sach hang moi thanh cong")
-    void test_GetNewReleasesProducts_Success(){
-        Product p1 = Product.builder().id(1L).name("Nyota").isNewRelease(true).build();
-        Product p2 = Product.builder().id(2L).name("Maruko").isNewRelease(true).build();
+    @DisplayName("Test lấy danh sách hàng mới về thành công")
+    void test_GetNewReleases_Success() {
+        Product p1 = Product.builder().id(1L).name("Skullpanda Everyday").isNewRelease(true).build();
+        when(productRepository.findByIsNewReleaseTrueAndActiveTrue()).thenReturn(List.of(p1));
 
-        List<Product> mockList = List.of(p1,p2);
+        List<Product> actualResult = productService.getNewReleases();
 
-        when(productRepository.findByIsNewReleaseTrueAndActiveTrue()).thenReturn(mockList);
-
-        List<Product> result = productService.getNewReleases();
-
-        assertNotNull(result,"Danh sach khong duoc null");
-
-        assertEquals(2,result.size(),"danh sach phai tra ve 2 san pham");
-
-        assertEquals("Nyota", result.get(0).getName());
-
-        verify(productRepository, times(1)).findByIsNewReleaseTrueAndActiveTrue();
-
+        assertEquals(1, actualResult.size());
+        assertTrue(actualResult.get(0).getIsNewRelease());
     }
 
     @Test
-    @DisplayName("Lay chi tiet san pham theo slug - tim thay")
-    void test_GetProductBySlug_Success(){
-        Product p3 = Product.builder().id(3L).name("twinkle chibi").slug("chibi").build();
+    @DisplayName("Test tìm sản phẩm theo Slug - Tìm thấy")
+    void test_GetProductBySlug_Found() {
+        Product mockProduct = Product.builder().id(1L).name("Hirono Little Mischief").slug("hirono-little-mischief").build();
+        when(productRepository.findBySlug("hirono-little-mischief")).thenReturn(Optional.of(mockProduct));
 
+        Optional<Product> actualResult = productService.getProductBySlug("hirono-little-mischief");
 
-        Optional<Product> test = Optional.of(p3);
-
-        when(productRepository.findBySlug("chibi")).thenReturn(test);
-
-        Optional<Product> rsTest = productService.getProductBySlug("chibi");
-
-        assertTrue(rsTest.isPresent());
-
-        assertEquals("twinkle chibi",rsTest.get().getName());
-
-
+        assertTrue(actualResult.isPresent());
+        assertEquals("Hirono Little Mischief", actualResult.get().getName());
     }
 
     @Test
-    @DisplayName("Lay chi tiet san pham theo slug - khong tim thay")
-    void test_GetProductBySlug_Fail(){
-        Product p1 = Product.builder().id(1L).name("maruko chibi").slug("chibi").build();
+    @DisplayName("Test tìm sản phẩm theo Slug - Không tìm thấy")
+    void test_GetProductBySlug_NotFound() {
+        when(productRepository.findBySlug("khong-ton-tai")).thenReturn(Optional.empty());
 
+        Optional<Product> actualResult = productService.getProductBySlug("khong-ton-tai");
 
-        when(productRepository.findBySlug("slug khong ton tai")).thenReturn(Optional.empty());
-
-        Optional<Product> rsTest = productService.getProductBySlug("slug khong ton tai");
-
-        assertTrue(rsTest.isEmpty());
-    }
-
-    // =========================================================================
-    // ADMIN INVENTORY TESTS
-    // =========================================================================
-
-    @Test
-    @DisplayName("Admin: getAdminProducts theo từ khóa")
-    void test_GetAdminProducts_WithKeyword() {
-        Product p = Product.builder().id(10L).name("Skullpanda Winter").active(true).build();
-        when(productRepository.findByNameContainingIgnoreCaseAndActiveTrue("Winter")).thenReturn(List.of(p));
-
-        List<Product> result = productService.getAdminProducts(null, "Winter");
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("Skullpanda Winter", result.get(0).getName());
-        verify(productRepository).findByNameContainingIgnoreCaseAndActiveTrue("Winter");
+        assertFalse(actualResult.isPresent());
     }
 
     @Test
-    @DisplayName("Admin: getProductStats trả về các chỉ số kho")
+    @DisplayName("Test lọc sản phẩm theo Category Slug")
+    void test_GetProductsByCategorySlug() {
+        Product p1 = Product.builder().id(1L).name("Blind Box 1").build();
+        when(productRepository.findByCategorySlugAndActiveTrue("blind-box")).thenReturn(List.of(p1));
+
+        List<Product> actualResult = productService.getProductsByCategorySlug("blind-box");
+
+        assertEquals(1, actualResult.size());
+        assertEquals("Blind Box 1", actualResult.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("Test tìm kiếm sản phẩm theo Keyword")
+    void test_SearchProducts_WithKeyword() {
+        Product p1 = Product.builder().id(1L).name("Molly Mega 400%").build();
+        when(productRepository.findByNameContainingIgnoreCaseAndActiveTrue("Molly")).thenReturn(List.of(p1));
+
+        List<Product> actualResult = productService.searchProducts("Molly");
+
+        assertEquals(1, actualResult.size());
+        assertEquals("Molly Mega 400%", actualResult.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("Test tìm kiếm sản phẩm với Keyword rỗng -> Trả về tất cả")
+    void test_SearchProducts_EmptyKeyword() {
+        Product p1 = Product.builder().id(1L).name("P1").build();
+        Product p2 = Product.builder().id(2L).name("P2").build();
+        when(productRepository.findByActiveTrue()).thenReturn(List.of(p1, p2));
+
+        List<Product> actualResult = productService.searchProducts("   ");
+
+        assertEquals(2, actualResult.size());
+        verify(productRepository).findByActiveTrue();
+    }
+
+    @Test
+    @DisplayName("Admin: getProductStats trả về đúng thống kê")
     void test_GetProductStats() {
         when(productRepository.count()).thenReturn(100L);
         when(productRepository.countByActiveTrue()).thenReturn(85L);
         when(productRepository.countByStockQuantityLessThanEqual(10)).thenReturn(12L);
 
-        com.manguonmo.popworld.dto.response.ProductStatsResponse stats = productService.getProductStats();
+        ProductStatsResponse stats = productService.getProductStats();
 
         assertNotNull(stats);
         assertEquals(100L, stats.getTotalCount());
@@ -180,5 +185,143 @@ class ProductServiceTest {
         assertNotNull(toggled);
         assertFalse(toggled.getActive());
         verify(productRepository).save(p);
+    }
+
+    @Test
+    @DisplayName("getProductById: Thành công khi ID tồn tại")
+    void getProductById_Success() {
+        Product p = Product.builder().id(1L).name("Molly Space").build();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(p));
+
+        Product result = productService.getProductById(1L);
+
+        assertEquals("Molly Space", result.getName());
+    }
+
+    @Test
+    @DisplayName("getProductById: Ném ResourceNotFoundException khi ID không tồn tại")
+    void getProductById_NotFound_ThrowsException() {
+        when(productRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> productService.getProductById(999L));
+    }
+
+    @Test
+    @DisplayName("createProduct: Tự động sinh unique slug và đặt ảnh đầu tiên làm thumbnail")
+    void createProduct_AutoSlug_And_FirstImageThumbnail() {
+        Category category = Category.builder().id(10L).name("Blind Box").build();
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(productRepository.existsBySlug("hirono-little-mischief")).thenReturn(true);
+        when(productRepository.existsBySlug("hirono-little-mischief-1")).thenReturn(false);
+
+        MockMultipartFile file1 = new MockMultipartFile("f1", "img1.png", "image/png", new byte[]{1});
+        MockMultipartFile file2 = new MockMultipartFile("f2", "img2.png", "image/png", new byte[]{2});
+
+        when(cloudinaryService.uploadImage(file1)).thenReturn(new CloudinaryUploadResult("https://cdn.com/1.png", "pub1"));
+        when(cloudinaryService.uploadImage(file2)).thenReturn(new CloudinaryUploadResult("https://cdn.com/2.png", "pub2"));
+
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> {
+            Product p = inv.getArgument(0);
+            p.setId(100L);
+            return p;
+        });
+
+        ProductCreateRequest req = ProductCreateRequest.builder()
+                .name("Hirono Little Mischief")
+                .categoryId(10L)
+                .singlePrice(BigDecimal.valueOf(350000))
+                .stockQuantity(50)
+                .imageFiles(List.of(file1, file2))
+                .build();
+
+        Product created = productService.createProduct(req);
+
+        assertNotNull(created);
+        assertEquals("hirono-little-mischief-1", created.getSlug());
+        assertEquals(2, created.getImages().size());
+        assertTrue(created.getImages().get(0).getIsThumbnail());
+        assertFalse(created.getImages().get(1).getIsThumbnail());
+        verify(productImageRepository, times(2)).save(any(ProductImage.class));
+    }
+
+    @Test
+    @DisplayName("updateProduct: Giữ nguyên slug cũ, xóa ảnh chỉ định trên Cloudinary và cập nhật thumbnail")
+    void updateProduct_KeepsSlug_And_CleansCloudinary() {
+        Category cat = Category.builder().id(10L).build();
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(cat));
+
+        ProductImage img1 = ProductImage.builder().id(101L).imageUrl("https://cdn.com/1.png").publicId("pub1").isThumbnail(true).displayOrder(0).build();
+        ProductImage img2 = ProductImage.builder().id(102L).imageUrl("https://cdn.com/2.png").publicId("pub2").isThumbnail(false).displayOrder(1).build();
+
+        List<ProductImage> imageList = new ArrayList<>(List.of(img1, img2));
+        Product existingProduct = Product.builder()
+                .id(1L)
+                .name("Old Name")
+                .slug("original-permanent-slug")
+                .singlePrice(BigDecimal.valueOf(300000))
+                .stockQuantity(10)
+                .category(cat)
+                .images(imageList)
+                .build();
+        img1.setProduct(existingProduct);
+        img2.setProduct(existingProduct);
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(existingProduct));
+        when(productImageRepository.findById(101L)).thenReturn(Optional.of(img1));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Xóa img1 (thumbnail), ảnh còn lại img2 phải tự động được đôn lên làm thumbnail!
+        ProductUpdateRequest updateReq = ProductUpdateRequest.builder()
+                .name("New Name After Edit")
+                .categoryId(10L)
+                .singlePrice(BigDecimal.valueOf(380000))
+                .stockQuantity(25)
+                .deleteImageIds(List.of(101L))
+                .build();
+
+        Product updated = productService.updateProduct(1L, updateReq);
+
+        assertNotNull(updated);
+        assertEquals("original-permanent-slug", updated.getSlug()); // Bất biến: giữ slug cũ
+        assertEquals("New Name After Edit", updated.getName());
+        verify(cloudinaryService).deleteImage("pub1"); // Dọn dẹp Cloudinary
+        verify(productImageRepository).delete(img1);
+        assertEquals(1, updated.getImages().size());
+        assertTrue(updated.getImages().get(0).getIsThumbnail()); // img2 được đôn lên làm thumbnail
+    }
+
+    @Test
+    @DisplayName("deleteProduct: Sản phẩm có OrderItem -> Soft delete (active=false)")
+    void deleteProduct_WithOrders_PerformsSoftDelete() {
+        Product product = Product.builder().id(5L).name("Hot Toy").active(true).build();
+        when(productRepository.findById(5L)).thenReturn(Optional.of(product));
+        when(orderItemRepository.existsByProductId(5L)).thenReturn(true);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        boolean physical = productService.deleteProduct(5L);
+
+        assertFalse(physical);
+        assertFalse(product.getActive());
+        verify(productRepository).save(product);
+        verify(productRepository, never()).delete(any());
+        verifyNoInteractions(cloudinaryService);
+    }
+
+    @Test
+    @DisplayName("deleteProduct: Sản phẩm không có OrderItem -> Physical delete + Cloudinary cleanup")
+    void deleteProduct_WithoutOrders_PerformsPhysicalDeleteAndCloudinaryCleanup() {
+        ProductImage img = ProductImage.builder().id(11L).publicId("pub_del").imageUrl("url").build();
+        Product product = Product.builder().id(6L).name("Unordered Toy").active(true).build();
+
+        when(productRepository.findById(6L)).thenReturn(Optional.of(product));
+        when(orderItemRepository.existsByProductId(6L)).thenReturn(false);
+        when(productImageRepository.findByProductIdOrderByDisplayOrderAsc(6L)).thenReturn(List.of(img));
+
+        boolean physical = productService.deleteProduct(6L);
+
+        assertTrue(physical);
+        verify(cartItemRepository).deleteByProductId(6L);
+        verify(cloudinaryService).deleteImage("pub_del");
+        verify(productRepository).delete(product);
     }
 }

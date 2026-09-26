@@ -65,6 +65,15 @@ public class Order extends BaseEntity {
     @Column(name = "points_earned")
     private Integer pointsEarned = 0;
 
+    @Builder.Default
+    @Column(name = "points_used")
+    private Integer pointsUsed = 0;
+
+    @Builder.Default
+    @Column(name = "points_discount", precision = 12, scale = 2)
+    private BigDecimal pointsDiscount = BigDecimal.ZERO;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;

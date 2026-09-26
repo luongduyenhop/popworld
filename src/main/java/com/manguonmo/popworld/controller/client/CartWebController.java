@@ -40,6 +40,9 @@ public class CartWebController {
     @GetMapping
     public String viewCart(Model model, Principal principal) {
         addCommonAttributes(model);
+        if (principal == null) {
+            return "redirect:/login";
+        }
         String userName = principal.getName();
         User user = userService.getUserByEmail(userName);
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
@@ -60,6 +63,9 @@ public class CartWebController {
                             @RequestParam(defaultValue = "1") int quantity,
                             RedirectAttributes redirectAttributes,
                             Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
         try {
             String username = principal.getName();
             User user = userService.getUserByEmail(username);

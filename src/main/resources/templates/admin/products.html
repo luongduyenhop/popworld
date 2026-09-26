@@ -5,6 +5,16 @@
 
 <div th:replace="~{admin/layout :: admin-layout(~{::#productsContent}, 'Kho Hàng Art Toy & Hộp Mù', 'products')}">
     <div id="productsContent">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Thành công</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- ========================================================================= -->
         <!-- 1. STATS OVERVIEW CARDS                                                   -->
         <!-- ========================================================================= -->
@@ -62,21 +72,28 @@
                 </a>
             </div>
 
-            <!-- Search -->
-            <form th:action="@{/admin/products}" method="get" class="d-flex align-items-center gap-2" style="min-width: 280px;">
-                <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}">
-                <div class="input-group">
-                    <input type="search" name="keyword" class="form-control rounded-pill-start border-end-0 px-3" 
-                           placeholder="Tìm tên mô hình..." th:value="${keyword}">
-                    <button class="btn btn-dark rounded-pill-end px-3" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-                <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/products}" 
-                   class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm">
-                    <i class="bi bi-x-lg"></i>
+            <div class="d-flex align-items-center gap-2">
+                <!-- Search -->
+                <form th:action="@{/admin/products}" method="get" class="d-flex align-items-center gap-2" style="min-width: 260px;">
+                    <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}">
+                    <div class="input-group">
+                        <input type="search" name="keyword" class="form-control rounded-pill-start border-end-0 px-3" 
+                               placeholder="Tìm tên mô hình..." th:value="${keyword}" aria-label="Tìm kiếm sản phẩm mô hình">
+                        <button class="btn btn-dark rounded-pill-end px-3" type="submit" aria-label="Tìm kiếm">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/products}" 
+                       class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm" aria-label="Xóa bộ lọc tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
+
+                <!-- Nút Thêm Mới -->
+                <a th:href="@{/admin/products/new}" class="btn btn-danger rounded-pill px-3 fw-bold text-nowrap">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm Mới
                 </a>
-            </form>
+            </div>
         </div>
 
         <!-- ========================================================================= -->
@@ -140,8 +157,9 @@
                                            class="form-control form-control-sm text-center fw-bold rounded-3" 
                                            style="width: 75px;" 
                                            th:value="${product.stockQuantity}"
-                                           th:classappend="${product.stockQuantity <= 10 ? 'border-danger text-danger' : ''}">
-                                    <button type="submit" class="btn btn-sm btn-outline-dark rounded-3 px-2" title="Cập nhật số lượng">
+                                           th:classappend="${product.stockQuantity <= 10 ? 'border-danger text-danger' : ''}"
+                                           aria-label="Số lượng tồn kho">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark rounded-3 px-2" title="Cập nhật số lượng" aria-label="Cập nhật số lượng tồn kho">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                 </form>
@@ -156,13 +174,26 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1 align-items-center">
+                                    <!-- Nút Sửa -->
+                                    <a th:href="@{'/admin/products/' + ${product.id} + '/edit'}" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Chỉnh sửa sản phẩm">
+                                        <i class="bi bi-pencil-fill"></i> Sửa
+                                    </a>
+
                                     <!-- Nút Bật/Tắt Trạng thái -->
                                     <form th:action="@{'/admin/products/' + ${product.id} + '/toggle-active'}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-3 fw-bold"
-                                                th:classappend="${product.active ? 'btn-outline-danger' : 'btn-outline-success'}"
+                                        <button type="submit" class="btn btn-sm rounded-pill px-2 fw-bold"
+                                                th:classappend="${product.active ? 'btn-outline-warning' : 'btn-outline-success'}"
                                                 th:title="${product.active ? 'Tạm dừng bán' : 'Kích hoạt bán'}">
                                             <i class="bi" th:classappend="${product.active ? 'bi-pause-fill' : 'bi-play-fill'}"></i>
                                             <span th:text="${product.active ? 'Ẩn' : 'Bán'}"></span>
+                                        </button>
+                                    </form>
+
+                                    <!-- Nút Xóa -->
+                                    <form th:action="@{'/admin/products/' + ${product.id} + '/delete'}" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này? Nếu chưa có đơn hàng, sản phẩm và ảnh trên Cloudinary sẽ bị xóa vĩnh viễn; nếu đã có đơn hàng thì sản phẩm sẽ được chuyển sang tạm ẩn.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Xóa sản phẩm">
+                                            <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </form>
 

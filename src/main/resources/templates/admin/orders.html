@@ -58,13 +58,13 @@
                 <input type="hidden" name="status" th:value="${currentStatus}">
                 <div class="input-group">
                     <input type="search" name="keyword" class="form-control rounded-pill-start border-end-0 px-3" 
-                           placeholder="Tìm theo mã đơn, SĐT..." th:value="${keyword}">
-                    <button class="btn btn-dark rounded-pill-end px-3" type="submit">
+                           placeholder="Tìm theo mã đơn, SĐT..." th:value="${keyword}" aria-label="Tìm kiếm theo mã đơn hoặc số điện thoại">
+                    <button class="btn btn-dark rounded-pill-end px-3" type="submit" aria-label="Tìm kiếm đơn hàng">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
                 <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/orders(status=${currentStatus})}" 
-                   class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm">
+                   class="btn btn-outline-secondary rounded-circle p-2" title="Xóa tìm kiếm" aria-label="Xóa bộ lọc tìm kiếm">
                     <i class="bi bi-x-lg"></i>
                 </a>
             </form>
@@ -144,7 +144,7 @@
                                 <span th:if="${order.status == 'CANCELLED'}" class="badge-status badge-status-cancelled">
                                     <i class="bi bi-x-circle"></i> Đã hủy
                                 </span>
-                                <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-cancelled bg-secondary text-white">
+                                <span th:if="${order.status == 'EXPIRED'}" class="badge-status badge-status-expired">
                                     <i class="bi bi-alarm"></i> Hết hạn
                                 </span>
                             </td>
@@ -153,7 +153,7 @@
                                     <!-- Nút Bàn giao vận chuyển nếu đang Chờ xử lý -->
                                     <form th:if="${order.status == 'PROCESSING'}" 
                                           th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship'}" method="post" class="d-inline">
-                                        <button type="submit" class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển">
+                                        <button type="submit" class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển" aria-label="Bàn giao vận chuyển">
                                             <i class="bi bi-truck"></i> Giao Hàng
                                         </button>
                                     </form>
@@ -161,12 +161,12 @@
                                     <!-- Nút Hoàn tất nếu đang Giao hàng -->
                                     <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                                           th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
-                                        <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công">
+                                        <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công" aria-label="Xác nhận giao thành công">
                                             <i class="bi bi-check-lg"></i> Hoàn Tất
                                         </button>
                                     </form>
 
-                                    <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="btn-action-pill btn-action-detail" title="Xem chi tiết đơn">
+                                    <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="btn-action-pill btn-action-detail" title="Xem chi tiết đơn" aria-label="Xem chi tiết đơn hàng">
                                         <i class="bi bi-eye"></i> Chi Tiết
                                     </a>
                                 </div>

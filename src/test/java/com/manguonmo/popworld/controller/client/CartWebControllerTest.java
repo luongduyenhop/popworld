@@ -185,5 +185,19 @@ class CartWebControllerTest {
         verify(model, times(1)).addAttribute("totalAmount", expectedTotal);
         verify(model, times(1)).addAttribute("cartCount", 3);
     }
+
+    @Test
+    @DisplayName("viewCart: Khi chưa đăng nhập (principal == null) thì redirect về /login")
+    void viewCart_whenAnonymous_redirectsToLogin() {
+        String viewName = cartWebController.viewCart(model, null);
+        assertEquals("redirect:/login", viewName);
+    }
+
+    @Test
+    @DisplayName("addToCart: Khi chưa đăng nhập (principal == null) thì redirect về /login")
+    void addToCart_whenAnonymous_redirectsToLogin() {
+        String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 1, redirectAttributes, null);
+        assertEquals("redirect:/login", viewName);
+    }
 }
 

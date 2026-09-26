@@ -2,11 +2,12 @@ package com.manguonmo.popworld.scheduler;
 
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
+import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.OrderItemRepository;
+
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.service.CouponService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,11 +29,20 @@ public class OrderCleanupScheduler {
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
     private final CouponService couponService;
-    public OrderCleanupScheduler(OrderRepository orderRepository, ProductRepository productRepository, OrderItemRepository orderItemRepository, CouponService couponService) {
+    private final com.manguonmo.popworld.repository.UserRepository userRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public OrderCleanupScheduler(OrderRepository orderRepository,
+                                 ProductRepository productRepository,
+                                 OrderItemRepository orderItemRepository,
+                                 CouponService couponService,
+                                 com.manguonmo.popworld.repository.UserRepository userRepository) {
+
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.orderItemRepository = orderItemRepository;
         this.couponService = couponService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -55,12 +65,20 @@ public class OrderCleanupScheduler {
                     Long userId = order.getUser() != null ? order.getUser().getId() : null;
                     couponService.releaseCoupon(order.getCoupon().getId(), userId);
                 }
+                if (order.getPointsUsed() != null && order.getPointsUsed() > 0 && order.getUser() != null) {
+                    User orderUser = order.getUser();
+                    orderUser.setRewardPoints((orderUser.getRewardPoints() != null ? orderUser.getRewardPoints() : 0) + order.getPointsUsed());
+                    if (userRepository != null) {
+                        userRepository.save(orderUser);
+                    }
+                }
                 for (OrderItem item : orderList) {
                     if (item.getProduct() != null && item.getProduct().getId() != null) {
                         productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
                     }
                 }
             }
+
 
             orderRepository.saveAll(expiredOrders);
             log.info("✅ Đã tự động chuyển trạng thái EXPIRED và hoàn trả tồn kho thành công cho {} đơn hàng quá hạn.", expiredOrders.size());

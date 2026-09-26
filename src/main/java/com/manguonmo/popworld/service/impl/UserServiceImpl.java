@@ -75,4 +75,55 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public User updateProfile(Long userId, com.manguonmo.popworld.dto.request.ProfileUpdateRequest request) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng.");
+        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new com.manguonmo.popworld.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
+        );
+
+        if (request.getFullName() == null || request.getFullName().trim().isBlank()) {
+            throw new BadRequestException("Họ và tên không được để trống!");
+        }
+
+        user.setFullName(request.getFullName().trim());
+        if (request.getPhone() != null && !request.getPhone().trim().isBlank()) {
+            user.setPhone(request.getPhone().trim());
+        }
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long userId, com.manguonmo.popworld.dto.request.ChangePasswordRequest request) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng.");
+        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new com.manguonmo.popworld.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
+        );
+
+        if (request.getCurrentPassword() == null || !passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu hiện tại không chính xác!");
+        }
+
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
+            throw new BadRequestException("Mật khẩu mới phải có ít nhất 6 ký tự!");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BadRequestException("Mật khẩu mới và mật khẩu xác nhận không khớp!");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 }
+

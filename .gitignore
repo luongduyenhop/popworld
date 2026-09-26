@@ -39,4 +39,8 @@ build/
 ### Coach / Agent rules (Local only) ###
 COACHING_GUIDELINES.md
 AGENTS.md
+.env
+*.env
+qa_screenshots/
+
 

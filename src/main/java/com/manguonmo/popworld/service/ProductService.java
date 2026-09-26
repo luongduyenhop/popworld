@@ -18,6 +18,11 @@ public interface ProductService {
     List<Product> getAllActiveProducts();
 
     // Các phương thức phục vụ Quản trị Kho Hàng (Admin)
+    Product getProductById(Long id);
+    Product createProduct(com.manguonmo.popworld.dto.request.ProductCreateRequest request);
+    Product updateProduct(Long id, com.manguonmo.popworld.dto.request.ProductUpdateRequest request);
+    boolean deleteProduct(Long id);
+    void setThumbnailImage(Long productId, Long imageId);
     List<Product> getAdminProducts(Long categoryId, String keyword);
     ProductStatsResponse getProductStats();
     Product updateStock(Long id, Integer stockQuantity);

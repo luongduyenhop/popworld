@@ -29,7 +29,7 @@
             <div class="doodle-accent-right d-none d-md-block">★ ✦</div>
             <div class="banner-inner-card">
                 <div th:if="${currentCharacter != null}" class="mb-3 text-center">
-                    <img th:src="${currentCharacter.avatarUrl}" class="rounded-circle border border-3 border-white shadow" 
+                    <img th:src="${currentCharacter.avatarUrl}" th:alt="${currentCharacter.name}" class="rounded-circle border border-3 border-white shadow" 
                          width="84" height="84" style="object-fit: cover;">
                 </div>
                 <h1 class="fw-black text-uppercase mb-2 tracking-tight" style="font-size: 1.9rem; letter-spacing: -0.5px;" th:text="${pageTitle}">ALL PRODUCTS</h1>
@@ -62,7 +62,7 @@
                class="pop-tab-item py-1 px-3"
                style="font-size: 0.82rem;"
                th:classappend="${currentCharacter != null && currentCharacter.id == ip.id} ? 'active' : ''">
-                <img th:src="${ip.avatarUrl}" class="rounded-circle me-1 border" width="20" height="20" style="object-fit: cover;">
+                <img th:src="${ip.avatarUrl}" th:alt="${ip.name}" class="rounded-circle me-1 border" width="20" height="20" style="object-fit: cover;">
                 <span th:text="${ip.name}">Labubu</span>
             </a>
         </div>
@@ -79,8 +79,18 @@
              style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
             <div class="display-1 text-muted mb-3"><i class="bi bi-box2"></i></div>
             <h4 class="fw-bold">Chưa tìm thấy sản phẩm phù hợp</h4>
-            <p class="text-secondary">Rất tiếc, hiện tại danh mục này chưa có sản phẩm hoặc từ khóa không khớp.</p>
-            <a th:href="@{/}" class="btn btn-pop-red mt-2">Quay Lại Trang Chủ</a>
+            <p class="text-secondary" th:if="${keyword != null and !keyword.isEmpty()}">
+                Không tìm thấy sản phẩm nào khớp với từ khóa "<strong class="text-danger" th:text="${keyword}"></strong>". Hãy thử tìm các bộ sưu tập nổi tiếng như Labubu, Molly, Skullpanda!
+            </p>
+            <p class="text-secondary" th:unless="${keyword != null and !keyword.isEmpty()}">
+                Rất tiếc, hiện tại danh mục này chưa có sản phẩm.
+            </p>
+            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/products}" class="btn btn-outline-dark">
+                    <i class="bi bi-grid me-1"></i> Xem Tất Cả Sản Phẩm
+                </a>
+                <a th:href="@{/}" class="btn btn-pop-red">Quay Lại Trang Chủ</a>
+            </div>
         </div>
 
         <!-- Skeleton Product Grid (Vệt sáng nghiêng 15 độ chuẩn POP MART) -->

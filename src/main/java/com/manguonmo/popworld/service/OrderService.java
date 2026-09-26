@@ -8,9 +8,17 @@ import com.manguonmo.popworld.entity.OrderItem;
 import java.util.List;
 
 public interface OrderService {
+    default Order createOrder(Long userId, String recipientName, String recipientPhone,
+                      String provinceCity, String district, String ward,
+                      String detailedAddress, String paymentMethod, String couponCode) {
+        return createOrder(userId, recipientName, recipientPhone, provinceCity, district, ward, detailedAddress, paymentMethod, couponCode, 0);
+    }
+
     Order createOrder(Long userId, String recipientName, String recipientPhone,
                       String provinceCity, String district, String ward,
-                      String detailedAddress, String paymentMethod, String couponCode);
+                      String detailedAddress, String paymentMethod, String couponCode,
+                      Integer pointsToUse);
+
 
     Order getOrderByCode(String orderCode);
     List<Order> getOrdersByUser(Long userId);

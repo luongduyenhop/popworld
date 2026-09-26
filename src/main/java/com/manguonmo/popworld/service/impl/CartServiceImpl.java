@@ -53,6 +53,10 @@ public class CartServiceImpl implements CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm ID: " + productId));
 
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BadRequestException("Sản phẩm '" + product.getName() + "' hiện đang tạm dừng mở bán!");
+        }
+
         String type = (purchaseType != null && purchaseType.equalsIgnoreCase("WHOLE_SET")) 
                 ? "WHOLE_SET" : "SINGLE_BOX";
 

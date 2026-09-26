@@ -10,4 +10,6 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.product WHERE oi.order.id = :orderId")
     List<OrderItem> findByOrderId(@org.springframework.data.repository.query.Param("orderId") Long orderId);
+
+    boolean existsByProductId(Long productId);
 }

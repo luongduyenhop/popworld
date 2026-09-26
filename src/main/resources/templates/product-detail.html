@@ -27,6 +27,16 @@
             </ol>
         </nav>
 
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Thành công</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <div class="row g-5">
             <!-- Cột trái: Stage Trưng Bày & Album ảnh sản phẩm -->
             <div class="col-lg-6">
@@ -54,7 +64,7 @@
                              class="rounded-3 overflow-hidden border cursor-pointer thumbnail-box" 
                              style="width: 72px; height: 72px; transition: all 0.2s ease;"
                              onclick="changeMainImage(this.querySelector('img').src)">
-                            <img th:src="${img.imageUrl}" class="w-100 h-100 object-fit-cover">
+                            <img th:src="${img.imageUrl}" th:alt="${product.name}" class="w-100 h-100 object-fit-cover">
                         </div>
                     </div>
                 </div>
@@ -63,9 +73,16 @@
             <!-- Cột phải: Thông tin sản phẩm & Đặt mua -->
             <div class="col-lg-6">
                 <!-- IP / Series Tag -->
-                <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <a th:if="${product.series != null && product.series.characterIp != null}" 
+                       th:href="@{'/characters/' + ${product.series.characterIp.id}}" 
+                       class="badge bg-danger text-decoration-none text-uppercase px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-person-fill me-1"></i>
+                        <span th:text="${product.series.characterIp.name}">Character IP</span>
+                    </a>
                     <span class="badge bg-dark text-uppercase px-3 py-2 rounded-pill fw-bold"
                           th:text="${product.series != null ? product.series.name : 'PopWorld Exclusive'}">Series</span>
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" th:if="${product.isFeatured}">HOT</span>
                     <span class="badge bg-danger px-3 py-2 rounded-pill fw-bold" th:if="${product.isNewRelease}">NEW RELEASE</span>
                 </div>
 
@@ -126,13 +143,18 @@
                     <!-- Số lượng & Nút Mua -->
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="input-group" style="width: 140px;">
-                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(-1)">-</button>
-                            <input type="number" name="quantity" id="quantityInput" class="form-control text-center fw-bold border-0 bg-light" value="1" min="1" max="50">
-                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(1)">+</button>
+                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(-1)" aria-label="Giảm số lượng">-</button>
+                            <input type="number" name="quantity" id="quantityInput" class="form-control text-center fw-bold border-0 bg-light" value="1" min="1" max="50" aria-label="Số lượng đặt mua">
+                            <button class="btn btn-outline-secondary border-0 bg-light fw-bold" type="button" onclick="adjustQuantity(1)" aria-label="Tăng số lượng">+</button>
                         </div>
 
-                        <button type="submit" class="btn btn-pop-red flex-grow-1 py-3 fw-bold fs-6 shadow">
+                        <button th:if="${product.stockQuantity != null && product.stockQuantity > 0}" 
+                                type="submit" class="btn btn-pop-red flex-grow-1 py-3 fw-bold fs-6 shadow">
                             <i class="bi bi-bag-plus-fill me-2 fs-5"></i> THÊM VÀO GIỎ HÀNG
+                        </button>
+                        <button th:unless="${product.stockQuantity != null && product.stockQuantity > 0}" 
+                                type="button" class="btn btn-secondary flex-grow-1 py-3 fw-bold fs-6" disabled>
+                            <i class="bi bi-slash-circle me-2 fs-5"></i> TẠM HẾT HÀNG
                         </button>
                     </div>
                 </form>
@@ -145,6 +167,14 @@
                         <div class="col-4 text-secondary">Thương hiệu:</div>
                         <div class="col-8 fw-bold">POP MART Official</div>
 
+                        <div class="col-4 text-secondary" th:if="${product.series != null}">Bộ sưu tập:</div>
+                        <div class="col-8 fw-bold" th:if="${product.series != null}" th:text="${product.series.name}">Series Name</div>
+
+                        <div class="col-4 text-secondary" th:if="${product.series != null && product.series.characterIp != null}">Nhân vật (IP):</div>
+                        <div class="col-8 fw-bold" th:if="${product.series != null && product.series.characterIp != null}">
+                            <a th:href="@{'/characters/' + ${product.series.characterIp.id}}" class="text-decoration-none text-dark fw-bold" th:text="${product.series.characterIp.name}">Character</a>
+                        </div>
+
                         <div class="col-4 text-secondary" th:if="${product.packagingType != null}">Quy cách:</div>
                         <div class="col-8 fw-bold" th:text="${product.packagingType}">1 Hộp lẻ / 12 Hộp nguyên set</div>
 
@@ -155,8 +185,9 @@
                         <div class="col-8 fw-bold" th:text="${product.sizeDimensions}">Cao 7.5cm - 9.5cm</div>
 
                         <div class="col-4 text-secondary">Tình trạng:</div>
-                        <div class="col-8 fw-bold text-success">
-                            <i class="bi bi-check-circle-fill me-1"></i> Còn hàng sẵn (<span th:text="${product.stockQuantity}">100</span> hộp)
+                        <div class="col-8 fw-bold" th:classappend="${product.stockQuantity != null && product.stockQuantity > 0 ? 'text-success' : 'text-danger'}">
+                            <i th:class="${product.stockQuantity != null && product.stockQuantity > 0 ? 'bi bi-check-circle-fill me-1' : 'bi bi-x-circle-fill me-1'}"></i>
+                            <span th:text="${product.stockQuantity != null && product.stockQuantity > 0 ? 'Còn hàng sẵn (' + product.stockQuantity + ' hộp)' : 'Tạm hết hàng'}">Còn hàng</span>
                         </div>
                     </div>
                 </div>

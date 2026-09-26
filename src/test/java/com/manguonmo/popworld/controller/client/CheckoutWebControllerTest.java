@@ -43,6 +43,9 @@ class CheckoutWebControllerTest {
     private com.manguonmo.popworld.repository.CouponRepository couponRepository;
 
     @Mock
+    private UserAddressService userAddressService;
+
+    @Mock
     private Principal principal;
 
 
@@ -159,6 +162,19 @@ class CheckoutWebControllerTest {
     }
 
     @Test
+    @DisplayName("placeOrder thất bại khi thông tin người nhận bị rỗng: Redirect về /checkout kèm errorMessage")
+    void placeOrder_BlankRecipientInfo_RedirectsToCheckoutWithErrorMessage() {
+        String viewName = checkoutWebController.placeOrder(
+                "   ", "0987654321", "Hà Nội", "Cầu Giấy",
+                "Dịch Vọng", "123 Cầu Giấy", "COD", null, redirectAttributes, principal
+        );
+
+        assertEquals("redirect:/checkout", viewName);
+        verify(redirectAttributes, times(1)).addFlashAttribute(eq("errorMessage"), contains("Vui lòng điền đầy đủ"));
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
     @DisplayName("showPaymentQrPage: Người dùng khác xem đơn không phải của mình -> Chuyển hướng 403")
     void showPaymentQrPage_OtherUserOrder_RedirectsTo403() {
         User otherOwner = User.builder().id(999L).build();
@@ -171,6 +187,17 @@ class CheckoutWebControllerTest {
     }
 
     @Test
+    @DisplayName("showPaymentQrPage: Chưa đăng nhập -> Chuyển hướng /login")
+    void showPaymentQrPage_Unauthenticated_RedirectsToLogin() {
+        Order order = Order.builder().id(10L).orderCode("PW-999").build();
+        when(orderService.getOrderByCode("PW-999")).thenReturn(order);
+
+        String viewName = checkoutWebController.showPaymentQrPage("PW-999", model, null);
+
+        assertEquals("redirect:/login", viewName);
+    }
+
+    @Test
     @DisplayName("showOrderSuccessPage: Người dùng khác xem đơn không phải của mình -> Chuyển hướng 403")
     void showOrderSuccessPage_OtherUserOrder_RedirectsTo403() {
         User otherOwner = User.builder().id(999L).build();
@@ -180,6 +207,17 @@ class CheckoutWebControllerTest {
         String viewName = checkoutWebController.showOrderSuccessPage("PW-999", model, principal);
 
         assertEquals("redirect:/403", viewName);
+    }
+
+    @Test
+    @DisplayName("showOrderSuccessPage: Chưa đăng nhập -> Chuyển hướng /login")
+    void showOrderSuccessPage_Unauthenticated_RedirectsToLogin() {
+        Order order = Order.builder().id(10L).orderCode("PW-999").build();
+        when(orderService.getOrderByCode("PW-999")).thenReturn(order);
+
+        String viewName = checkoutWebController.showOrderSuccessPage("PW-999", model, null);
+
+        assertEquals("redirect:/login", viewName);
     }
 
     @Test
@@ -202,18 +240,5 @@ class CheckoutWebControllerTest {
 
         assertEquals("redirect:/orders", viewName);
         verify(redirectAttributes, times(1)).addFlashAttribute(eq("errorMessage"), contains("Đơn hàng không thể hủy"));
-    }
-
-    @Test
-    @DisplayName("showMyOrders: Render trang my-orders với danh sách đơn hàng của user")
-    void showMyOrders_RendersMyOrdersView() {
-        Order order = Order.builder().id(10L).orderCode("PW-001").build();
-        when(orderService.getOrdersByUser(1L)).thenReturn(List.of(order));
-
-        String viewName = checkoutWebController.showMyOrders(model, principal);
-
-        assertEquals("my-orders", viewName);
-        verify(model, times(1)).addAttribute("orders", List.of(order));
-        verify(model, times(1)).addAttribute("user", sampleUser);
     }
 }

@@ -360,6 +360,12 @@ body.admin-body {
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.badge-status-expired {
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
 /* Action Buttons */
 .btn-action-pill {
     padding: 6px 14px;

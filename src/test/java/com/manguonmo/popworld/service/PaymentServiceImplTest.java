@@ -70,14 +70,52 @@ class PaymentServiceImplTest {
     @DisplayName("Bảo mật: Từ chối request khi Authorization Header sai API Key")
     void processSePayWebhook_WrongApiKey_ShouldReturnFalse() {
         SePayWebhookRequest request = SePayWebhookRequest.builder()
-                .content("PW-1726000000000")
-                .transferAmount(new BigDecimal("250000"))
-                .build();
+            .content("PW-1726000000000")
+            .transferAmount(new BigDecimal("250000"))
+            .build();
 
         boolean result = paymentService.processSePayWebhook(request, "Apikey wrong_hacker_key");
 
         assertFalse(result, "Phải từ chối khi API Key không khớp");
         verify(orderRepository, never()).findByOrderCode(anyString());
+    }
+
+    @Test
+    @DisplayName("Bảo mật: Từ chối request khi Authorization Header chứa API Key dạng substring nối dài")
+    void processSePayWebhook_SubstringApiKey_ShouldReturnFalse() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+            .content("PW-1726000000000")
+            .transferAmount(new BigDecimal("250000"))
+            .build();
+
+        boolean result = paymentService.processSePayWebhook(request, "Apikey " + VALID_API_KEY + "_attacker_suffix");
+
+        assertFalse(result, "Phải từ chối khi API Key bị nối thêm ký tự");
+        verify(orderRepository, never()).findByOrderCode(anyString());
+    }
+
+    @Test
+    @DisplayName("Bảo mật: Chấp nhận request khi Authorization Header sử dụng scheme Bearer chuẩn")
+    void processSePayWebhook_BearerScheme_ShouldSucceed() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+            .content("PW-1726888888888")
+            .transferAmount(new BigDecimal("500000"))
+            .referenceCode("FT240999999")
+            .build();
+
+        Order order = Order.builder()
+            .orderCode("PW-1726888888888")
+            .status("TO_PAY")
+            .totalAmount(new BigDecimal("500000"))
+            .build();
+
+        when(orderRepository.findByOrderCode("PW-1726888888888")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, "Bearer " + VALID_API_KEY);
+
+        assertTrue(result, "Phải chấp nhận Bearer scheme hợp lệ");
+        assertEquals("PROCESSING", order.getStatus());
+        verify(orderRepository, times(1)).save(order);
     }
 
     // =========================================================================
@@ -259,5 +297,124 @@ class PaymentServiceImplTest {
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository, times(1)).save(orderCaptor.capture());
         assertEquals("PROCESSING", orderCaptor.getValue().getStatus());
+    }
+
+    // =========================================================================
+    // TEST CASE 7: Hardening Null Safety & API Key Bypass Prevention
+    // =========================================================================
+    @Test
+    @DisplayName("Bảo mật: Từ chối khi webhookData payload là null")
+    void processSePayWebhook_NullPayload_ShouldReturnFalse() {
+        boolean result = paymentService.processSePayWebhook(null, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải từ chối an toàn khi payload null mà không gây NPE");
+        verify(orderRepository, never()).findByOrderCode(anyString());
+    }
+
+    @Test
+    @DisplayName("Bảo mật: Từ chối khi apiKey cấu hình rỗng hoặc null trong hệ thống")
+    void processSePayWebhook_EmptyApiKeyConfig_ShouldReturnFalse() {
+        ReflectionTestUtils.setField(paymentService, "apiKey", "   ");
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726000000000")
+                .transferAmount(new BigDecimal("250000"))
+                .build();
+
+        boolean result = paymentService.processSePayWebhook(request, "Apikey any_key");
+
+        assertFalse(result, "Phải từ chối khi apiKey cấu hình không hợp lệ");
+        verify(orderRepository, never()).findByOrderCode(anyString());
+    }
+
+    @Test
+    @DisplayName("Đối soát: Từ chối khi transferAmount trong webhook là null")
+    void processSePayWebhook_NullTransferAmount_ShouldReturnFalse() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726000000003")
+                .transferAmount(null)
+                .build();
+
+        Order order = Order.builder()
+                .orderCode("PW-1726000000003")
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-1726000000003")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải từ chối khi transferAmount là null");
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("Idempotency: Trả về true ngay khi đơn đã DELIVERED để tránh ghi đè trạng thái")
+    void processSePayWebhook_AlreadyDelivered_ShouldReturnTrueWithoutUpdating() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726000000001")
+                .transferAmount(new BigDecimal("300000"))
+                .build();
+
+        Order order = Order.builder()
+                .orderCode("PW-1726000000001")
+                .status("DELIVERED")
+                .totalAmount(new BigDecimal("300000"))
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-1726000000001")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Phải trả về true khi đơn đã DELIVERED");
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("Trạng thái: Từ chối khi đơn hàng ở trạng thái không hợp lệ khác TO_PAY")
+    void processSePayWebhook_InvalidStatus_ShouldReturnFalse() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726000000005")
+                .transferAmount(new BigDecimal("300000"))
+                .build();
+
+        Order order = Order.builder()
+                .orderCode("PW-1726000000005")
+                .status("UNKNOWN_STATUS")
+                .totalAmount(new BigDecimal("300000"))
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-1726000000005")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải từ chối khi trạng thái đơn không phải TO_PAY");
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("Thành công: Tự động fallback sang mã code hoặc id khi referenceCode null")
+    void processSePayWebhook_FallbackReferenceCode_WhenRefCodeNull() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content("PW-1726999999999")
+                .transferAmount(new BigDecimal("400000"))
+                .referenceCode(null)
+                .code("SEPAY_CODE_123")
+                .id(999L)
+                .build();
+
+        Order order = Order.builder()
+                .orderCode("PW-1726999999999")
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("400000"))
+                .build();
+
+        when(orderRepository.findByOrderCode("PW-1726999999999")).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result);
+        assertEquals("SEPAY_CODE_123", order.getNote());
+        verify(orderRepository, times(1)).save(order);
     }
 }

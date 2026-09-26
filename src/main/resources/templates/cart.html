@@ -115,9 +115,9 @@
                                         <form th:action="@{/cart/update}" method="post" class="d-inline-flex align-items-center">
                                             <input type="hidden" name="cartItemId" th:value="${item.id}">
                                             <div class="input-group input-group-sm" style="width: 110px;">
-                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity - 1}">-</button>
-                                                <input type="text" class="form-control text-center fw-bold bg-white" readonly th:value="${item.quantity}">
-                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity + 1}">+</button>
+                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity - 1}" aria-label="Giảm số lượng">-</button>
+                                                <input type="text" class="form-control text-center fw-bold bg-white" readonly th:value="${item.quantity}" aria-label="Số lượng sản phẩm">
+                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity + 1}" aria-label="Tăng số lượng">+</button>
                                             </div>
                                         </form>
                                     </td>
@@ -132,7 +132,7 @@
                                     <!-- Xóa món -->
                                     <td class="text-center pe-4">
                                         <form th:action="@{'/cart/delete/' + ${item.id}}" method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ?')">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Xóa món">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Xóa món" aria-label="Xóa sản phẩm khỏi giỏ hàng">
                                                 <i class="bi bi-trash3-fill fs-6"></i>
                                             </button>
                                         </form>
@@ -177,9 +177,9 @@
 
                     <!-- Nhập mã giảm giá -->
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Mã Ưu Đãi / Coupon:</label>
+                        <label class="form-label small fw-bold text-muted" for="couponCode">Mã Ưu Đãi / Coupon:</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="POPWELCOME / FREESHIP" id="couponCode">
+                            <input type="text" class="form-control text-uppercase" placeholder="POPWELCOME / FREESHIP" id="couponCode" aria-label="Mã ưu đãi giảm giá">
                             <button class="btn btn-dark fw-bold" type="button" onclick="applyCoupon()">Áp Dụng</button>
                         </div>
                         <small class="text-success d-block mt-1" id="couponMsg" style="display:none !important;">

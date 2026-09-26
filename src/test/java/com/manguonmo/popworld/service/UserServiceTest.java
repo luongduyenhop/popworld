@@ -143,4 +143,89 @@ class UserServiceTest {
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @Test
+    @DisplayName("updateProfile: Cập nhật họ tên và số điện thoại thành công")
+    void updateProfile_Success() {
+        User user = User.builder().id(1L).fullName("Old Name").phone("0900000000").build();
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        com.manguonmo.popworld.dto.request.ProfileUpdateRequest req = com.manguonmo.popworld.dto.request.ProfileUpdateRequest.builder()
+                .fullName("New Name")
+                .phone("0988888888")
+                .build();
+
+        User updated = userService.updateProfile(1L, req);
+        assertEquals("New Name", updated.getFullName());
+        assertEquals("0988888888", updated.getPhone());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("updateProfile: Ném lỗi khi fullName bị rỗng")
+    void updateProfile_BlankFullName_ThrowsBadRequest() {
+        User user = User.builder().id(1L).fullName("Old Name").build();
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+        com.manguonmo.popworld.dto.request.ProfileUpdateRequest req = com.manguonmo.popworld.dto.request.ProfileUpdateRequest.builder()
+                .fullName("   ")
+                .phone("0988888888")
+                .build();
+
+        assertThrows(BadRequestException.class, () -> userService.updateProfile(1L, req));
+    }
+
+    @Test
+    @DisplayName("changePassword: Đổi mật khẩu thành công khi thông tin hợp lệ")
+    void changePassword_Success() {
+        User user = User.builder().id(1L).password("oldHash").build();
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+        when(passwordEncoder.matches("currentPass", "oldHash")).thenReturn(true);
+        when(passwordEncoder.matches("newPass123", "oldHash")).thenReturn(false);
+        when(passwordEncoder.encode("newPass123")).thenReturn("newHash");
+
+        com.manguonmo.popworld.dto.request.ChangePasswordRequest req = com.manguonmo.popworld.dto.request.ChangePasswordRequest.builder()
+                .currentPassword("currentPass")
+                .newPassword("newPass123")
+                .confirmPassword("newPass123")
+                .build();
+
+        userService.changePassword(1L, req);
+        assertEquals("newHash", user.getPassword());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("changePassword: Ném lỗi khi mật khẩu hiện tại không khớp")
+    void changePassword_WrongCurrentPassword_ThrowsBadRequest() {
+        User user = User.builder().id(1L).password("oldHash").build();
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+        when(passwordEncoder.matches("wrongPass", "oldHash")).thenReturn(false);
+
+        com.manguonmo.popworld.dto.request.ChangePasswordRequest req = com.manguonmo.popworld.dto.request.ChangePasswordRequest.builder()
+                .currentPassword("wrongPass")
+                .newPassword("newPass123")
+                .confirmPassword("newPass123")
+                .build();
+
+        assertThrows(BadRequestException.class, () -> userService.changePassword(1L, req));
+    }
+
+    @Test
+    @DisplayName("changePassword: Ném lỗi khi mật khẩu xác nhận không trùng với mật khẩu mới")
+    void changePassword_ConfirmPasswordMismatch_ThrowsBadRequest() {
+        User user = User.builder().id(1L).password("oldHash").build();
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+        when(passwordEncoder.matches("currentPass", "oldHash")).thenReturn(true);
+
+        com.manguonmo.popworld.dto.request.ChangePasswordRequest req = com.manguonmo.popworld.dto.request.ChangePasswordRequest.builder()
+                .currentPassword("currentPass")
+                .newPassword("newPass123")
+                .confirmPassword("differentPass")
+                .build();
+
+        assertThrows(BadRequestException.class, () -> userService.changePassword(1L, req));
+    }
 }
+

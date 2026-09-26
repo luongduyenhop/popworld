@@ -96,6 +96,20 @@ class CartServiceTest {
     }
 
     @Test
+    @DisplayName("Thêm sản phẩm đã bị vô hiệu hóa (active = false) -> Ném BadRequestException")
+    void test_AddToCart_InactiveProduct_ThrowsBadRequestException() {
+        User user = User.builder().id(1L).build();
+        Product inactiveProduct = Product.builder().id(10L).name("Disabled Toy").active(false).stockQuantity(50).build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(inactiveProduct));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> cartService.addToCart(1L, 10L, "SINGLE_BOX", 1));
+        assertTrue(ex.getMessage().contains("tạm dừng mở bán"));
+        verify(cartItemRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Tính tổng tiền các món được chọn trong giỏ")
     void test_CalculateSelectedTotal() {
         Product p1 = Product.builder().id(1L).singlePrice(new BigDecimal("100000")).build();

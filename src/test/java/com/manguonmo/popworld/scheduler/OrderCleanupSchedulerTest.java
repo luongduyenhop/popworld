@@ -8,7 +8,9 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.CouponService;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,8 +46,12 @@ class OrderCleanupSchedulerTest {
     @Mock
     private CouponService couponService;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private OrderCleanupScheduler scheduler;
+
 
     @Test
     @DisplayName("Dọn dẹp: Đơn quá 15 phút chuyển sang EXPIRED và hoàn trả tồn kho đúng quy cách SINGLE_BOX vs WHOLE_SET")
@@ -201,4 +207,28 @@ class OrderCleanupSchedulerTest {
         verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("CANCELLED"));
         verify(orderRepository, never()).findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("EXPIRED"));
     }
+
+    @Test
+    @DisplayName("Points Refund: Khi đơn quá hạn EXPIRED, hoàn trả điểm đã dùng cho user")
+    void cleanupExpiredOrders_RefundsPointsUsedToUser() {
+        User user = User.builder().id(5L).rewardPoints(20).build();
+        Order expiredOrder = Order.builder()
+                .id(20L)
+                .orderCode("PW-EXPIRED-POINTS")
+                .status("TO_PAY")
+                .expiresAt(LocalDateTime.now().minusMinutes(5))
+                .user(user)
+                .pointsUsed(50)
+                .build();
+
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(List.of(expiredOrder));
+        when(orderItemRepository.findByOrderId(20L)).thenReturn(Collections.emptyList());
+
+        scheduler.cleanupExpiredOrders();
+
+        assertEquals(70, user.getRewardPoints(), "User được hoàn trả 50 điểm");
+        verify(userRepository).save(user);
+    }
 }
+

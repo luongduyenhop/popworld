@@ -30,6 +30,13 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
+    private static final java.util.concurrent.atomic.AtomicInteger ORDER_SEQ =
+            new java.util.concurrent.atomic.AtomicInteger(100000);
+
+    public String generateOrderCode() {
+        int seq = ORDER_SEQ.updateAndGet(val -> (val >= 999999) ? 100000 : val + 1);
+        return "PW-" + System.currentTimeMillis() + seq;
+    }
 
     // [CHÚ THÍCH]: Constructor Injection chuẩn Spring Boot (dọn dẹp các tham số thừa)
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -60,12 +67,18 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(Long userId, String recipientName, String recipientPhone,
                              String provinceCity, String district, String ward,
                              String detailedAddress, String paymentMethod, String couponCode) {
+        return createOrder(userId, recipientName, recipientPhone, provinceCity, district, ward, detailedAddress, paymentMethod, couponCode, 0);
+    }
+
+    @Transactional
+    @Override
+    public Order createOrder(Long userId, String recipientName, String recipientPhone,
+                             String provinceCity, String district, String ward,
+                             String detailedAddress, String paymentMethod, String couponCode,
+                             Integer pointsToUse) {
 
         // =========================================================================
         // BƯỚC 1: Tìm thông tin người dùng trong CSDL bằng UserRepository
-        // [CHÚ THÍCH]: Phải gọi userRepository.findById(), KHÔNG gọi orderRepository.existsById().
-        // Nếu không tìm thấy User, ném ra IllegalArgumentException thay vì return null
-        // để tầng Controller biết chính xác nguyên nhân lỗi.
         // =========================================================================
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
@@ -73,7 +86,6 @@ public class OrderServiceImpl implements OrderService {
 
         // =========================================================================
         // BƯỚC 2: Lấy danh sách các món đồ ĐƯỢC CHỌN trong giỏ hàng của User
-        // [CHÚ THÍCH]: Chỉ tiến hành đặt hàng cho các món có isSelected == true.
         // =========================================================================
         List<CartItem> selectedCartItems = cartItemRepository.findByUserIdAndIsSelectedTrue(userId);
         if (selectedCartItems.isEmpty()) {
@@ -82,11 +94,6 @@ public class OrderServiceImpl implements OrderService {
 
         // =========================================================================
         // BƯỚC 3: Tính tiền hàng (subtotal) & Trừ tồn kho nguyên tử
-        // [CHÚ THÍCH QUAN TRỌNG VỀ JAVA STRING]:
-        // 1. Tuyệt đối KHÔNG dùng toán tử '==' để so sánh chuỗi (cart.getPurchaseType() == "Single").
-        //    '==' so sánh địa chỉ ô nhớ, không so sánh nội dung. Bắt buộc dùng .equalsIgnoreCase().
-        // 2. Giá trị quy cách chuẩn trong CSDL là "SINGLE_BOX" và "WHOLE_SET".
-        // 3. Getter giá hộp lẻ trong Product.java là getSinglePrice().
         // =========================================================================
         BigDecimal subtotal = BigDecimal.ZERO;
         for (CartItem cart : selectedCartItems) {
@@ -98,7 +105,6 @@ public class OrderServiceImpl implements OrderService {
                         ? cart.getProduct().getWholeSetPrice()
                         : cart.getProduct().getSinglePrice();
             }
-            // Cộng dồn tiền: subtotal = subtotal.add(...) vì BigDecimal là Immutable (bất biến)
             subtotal = subtotal.add(unitPrice.multiply(BigDecimal.valueOf(cart.getQuantity())));
             int updateRows = productRepository.updateStock(cart.getProduct().getId(), cart.getRequiredStockBoxes());
 
@@ -109,9 +115,6 @@ public class OrderServiceImpl implements OrderService {
 
         // =========================================================================
         // BƯỚC 4: Tính phí vận chuyển (shippingFee)
-        // [CHÚ THÍCH]: Chính sách PopWorld: Đơn hàng từ 500.000đ trở lên được FREESHIP (0đ).
-        // Đơn hàng dưới 500.000đ áp dụng phí tiêu chuẩn 30.000đ.
-        // Phí ship phải được tách riêng vào biến shippingFee để lưu vào cột shipping_fee của Order.
         // =========================================================================
         BigDecimal shippingFee = BigDecimal.ZERO;
         if (subtotal.compareTo(BigDecimal.valueOf(500000)) < 0) {
@@ -120,8 +123,6 @@ public class OrderServiceImpl implements OrderService {
 
         // =========================================================================
         // BƯỚC 5: Kiểm tra và áp dụng mã giảm giá (Coupon)
-        // [CHÚ THÍCH]: Kiểm tra xem mã coupon có tồn tại và còn active không,
-        // đã hết hạn sử dụng chưa (endDate), và đơn hàng có đạt giá trị tối thiểu không (minOrderAmount).
         // =========================================================================
         BigDecimal discount = BigDecimal.ZERO;
         Coupon appliedCoupon = null;
@@ -133,28 +134,44 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // =========================================================================
-        // BƯỚC 6: Tính tổng tiền thanh toán cuối cùng (totalAmount)
-        // [CHÚ THÍCH]: Tổng thanh toán = Tiền hàng (subtotal) + Tiền ship (shippingFee) - Giảm giá (discount)
-        // Đảm bảo tổng tiền không bao giờ âm (< 0).
+        // BƯỚC 6: Xử lý điểm thưởng (Reward Points: 10.000 VND = 1 point, 1 point = 100 VND, max 20% subtotal)
         // =========================================================================
-        BigDecimal totalAmount = subtotal.add(shippingFee).subtract(discount);
+        int pointsEarned = subtotal.divideToIntegralValue(BigDecimal.valueOf(10000)).intValue();
+        int finalPointsUsed = 0;
+        BigDecimal pointsDiscount = BigDecimal.ZERO;
+
+        if (pointsToUse != null && pointsToUse > 0) {
+            int currentPoints = user.getRewardPoints() != null ? user.getRewardPoints() : 0;
+            if (pointsToUse > currentPoints) {
+                throw new BadRequestException("Số điểm sử dụng (" + pointsToUse + ") vượt quá số điểm hiện có (" + currentPoints + ") của bạn!");
+            }
+
+            pointsDiscount = BigDecimal.valueOf(pointsToUse * 100L);
+            BigDecimal maxAllowedDiscount = subtotal.multiply(new BigDecimal("0.20"));
+            if (pointsDiscount.compareTo(maxAllowedDiscount) > 0) {
+                throw new BadRequestException("Điểm thưởng chỉ được giảm tối đa 20% giá trị tiền hàng (tối đa " + maxAllowedDiscount.intValue() + " đ)!");
+            }
+
+            finalPointsUsed = pointsToUse;
+            user.setRewardPoints(currentPoints - finalPointsUsed);
+            userRepository.save(user);
+        }
+
+        // =========================================================================
+        // BƯỚC 7: Tính tổng tiền thanh toán cuối cùng (totalAmount)
+        // =========================================================================
+        BigDecimal totalAmount = subtotal.add(shippingFee).subtract(discount).subtract(pointsDiscount);
         if (totalAmount.compareTo(BigDecimal.ZERO) < 0) {
             totalAmount = BigDecimal.ZERO;
         }
 
         // =========================================================================
-        // BƯỚC 7: Sinh mã đơn hàng duy nhất (orderCode)
-        // [CHÚ THÍCH]: Tiền tố "PW-" kết hợp dấu thời gian hiện tại
+        // BƯỚC 8: Sinh mã đơn hàng duy nhất (orderCode)
         // =========================================================================
-        String orderCode = "PW-" + System.currentTimeMillis();
+        String orderCode = generateOrderCode();
 
         // =========================================================================
-        // BƯỚC 8: Khởi tạo và Lưu Order vào CSDL
-        // [CHÚ THÍCH CÁC TRƯỜNG BẮT BUỘC NOT NULL]:
-        // 1. user: Bắt buộc truyền đối tượng user (khóa ngoại user_id)
-        // 2. status: Bắt buộc set "TO_PAY" (chờ thanh toán)
-        // 3. expiresAt: Đếm ngược 15 phút (LocalDateTime.now().plusMinutes(15))
-        // 4. shippingFee: Lưu riêng phí ship đã tính ở Bước 4
+        // BƯỚC 9: Khởi tạo và Lưu Order vào CSDL
         // =========================================================================
         Order newOrder = Order.builder()
                 .orderCode(orderCode)
@@ -168,6 +185,9 @@ public class OrderServiceImpl implements OrderService {
                 .subtotalAmount(subtotal)
                 .shippingFee(shippingFee)
                 .discountAmount(discount)
+                .pointsEarned(pointsEarned)
+                .pointsUsed(finalPointsUsed)
+                .pointsDiscount(pointsDiscount)
                 .totalAmount(totalAmount)
                 .paymentMethod(paymentMethod != null ? paymentMethod : "COD")
                 .status("TO_PAY")
@@ -176,6 +196,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         Order savedOrder = orderRepository.save(newOrder);
+
 
         // =========================================================================
         // BƯỚC 9: Tạo danh sách OrderItem và Lưu vào CSDL
@@ -259,12 +280,18 @@ public class OrderServiceImpl implements OrderService {
         if (order.getCoupon() != null) {
             couponService.releaseCoupon(order.getCoupon().getId(), userId);
         }
+        if (order.getPointsUsed() != null && order.getPointsUsed() > 0 && order.getUser() != null) {
+            User orderUser = order.getUser();
+            orderUser.setRewardPoints((orderUser.getRewardPoints() != null ? orderUser.getRewardPoints() : 0) + order.getPointsUsed());
+            userRepository.save(orderUser);
+        }
         order.setStatus("CANCELLED");
         String cancelNote = (reason != null && !reason.trim().isEmpty())
                 ? "Khách hàng hủy đơn: " + reason.trim()
                 : "Khách hàng chủ động hủy đơn.";
         order.setNote(cancelNote);
         return orderRepository.save(order);
+
     }
 
     @Override
@@ -294,6 +321,11 @@ public class OrderServiceImpl implements OrderService {
         if (order.getCoupon() != null) {
             Long userId = order.getUser() != null ? order.getUser().getId() : null;
             couponService.releaseCoupon(order.getCoupon().getId(), userId);
+        }
+        if (order.getPointsUsed() != null && order.getPointsUsed() > 0 && order.getUser() != null) {
+            User orderUser = order.getUser();
+            orderUser.setRewardPoints((orderUser.getRewardPoints() != null ? orderUser.getRewardPoints() : 0) + order.getPointsUsed());
+            userRepository.save(orderUser);
         }
 
         order.setStatus("CANCELLED");
@@ -369,8 +401,17 @@ public class OrderServiceImpl implements OrderService {
         if(order.getPaidAt()==null){
             order.setPaidAt(LocalDateTime.now());
         }
+
+        // Tích điểm thưởng cho khách hàng khi giao thành công (10.000 đ = 1 point)
+        if (order.getUser() != null && order.getPointsEarned() != null && order.getPointsEarned() > 0) {
+            User orderUser = order.getUser();
+            orderUser.setRewardPoints((orderUser.getRewardPoints() != null ? orderUser.getRewardPoints() : 0) + order.getPointsEarned());
+            userRepository.save(orderUser);
+        }
+
         return orderRepository.save(order);
     }
+
 
 
     @Override

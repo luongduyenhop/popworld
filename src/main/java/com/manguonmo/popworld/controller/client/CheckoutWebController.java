@@ -52,18 +52,33 @@ public class CheckoutWebController {
     @Value("${sepay.account-name:POPWORLD OFFICIAL STORE}")
     private String sepayAccountName;
 
+    private final com.manguonmo.popworld.service.UserAddressService userAddressService;
+
     public CheckoutWebController(OrderService orderService,
                                  CartService cartService,
                                  CategoryService categoryService,
                                  CharacterIpService characterIpService,
                                  UserService userService,
                                  com.manguonmo.popworld.repository.CouponRepository couponRepository) {
+        this(orderService, cartService, categoryService, characterIpService, userService, couponRepository, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public CheckoutWebController(OrderService orderService,
+                                 CartService cartService,
+                                 CategoryService categoryService,
+                                 CharacterIpService characterIpService,
+                                 UserService userService,
+                                 com.manguonmo.popworld.repository.CouponRepository couponRepository,
+                                 @org.springframework.lang.Nullable com.manguonmo.popworld.service.UserAddressService userAddressService) {
+
         this.orderService = orderService;
         this.cartService = cartService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.userService = userService;
         this.couponRepository = couponRepository;
+        this.userAddressService = userAddressService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -108,13 +123,46 @@ public class CheckoutWebController {
                 : BigDecimal.valueOf(30000);
         BigDecimal totalAmount = subtotal.add(shippingFee);
 
+        // Danh sách địa chỉ đã lưu của khách hàng
+        List<com.manguonmo.popworld.entity.UserAddress> addresses = userAddressService != null
+                ? userAddressService.getAddressesByUserId(user.getId())
+                : java.util.Collections.emptyList();
+
+        com.manguonmo.popworld.entity.UserAddress defaultAddress = addresses.stream()
+                .filter(a -> Boolean.TRUE.equals(a.getIsDefault()))
+                .findFirst()
+                .orElse(addresses.isEmpty() ? null : addresses.get(0));
+
+        // Điểm thưởng & mức tối đa được dùng (tối đa 20% merchandise subtotal, 1 point = 100 VND)
+        int currentPoints = user.getRewardPoints() != null ? user.getRewardPoints() : 0;
+        int maxPointsFromSubtotal = subtotal.multiply(new BigDecimal("0.20")).divideToIntegralValue(BigDecimal.valueOf(100)).intValue();
+        int maxPointsUsable = Math.max(0, Math.min(currentPoints, maxPointsFromSubtotal));
+
         model.addAttribute("user", user);
         model.addAttribute("cartItems", selectedItems);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("shippingFee", shippingFee);
         model.addAttribute("totalAmount", totalAmount);
+        model.addAttribute("addresses", addresses);
+        model.addAttribute("defaultAddress", defaultAddress);
+        model.addAttribute("userPoints", currentPoints);
+        model.addAttribute("maxPointsUsable", maxPointsUsable);
 
         return "checkout";
+    }
+
+    public String placeOrder(String recipientName,
+                             String recipientPhone,
+                             String provinceCity,
+                             String district,
+                             String ward,
+                             String detailedAddress,
+                             String paymentMethod,
+                             String couponCode,
+                             RedirectAttributes redirectAttributes,
+                             Principal principal) {
+        return placeOrder(recipientName, recipientPhone, provinceCity, district, ward, detailedAddress,
+                paymentMethod, couponCode, 0, false, redirectAttributes, principal);
     }
 
     /**
@@ -129,6 +177,8 @@ public class CheckoutWebController {
                              @RequestParam String detailedAddress,
                              @RequestParam(defaultValue = "COD") String paymentMethod,
                              @RequestParam(required = false) String couponCode,
+                             @RequestParam(required = false, defaultValue = "0") Integer pointsToUse,
+                             @RequestParam(required = false, defaultValue = "false") Boolean saveAddress,
                              RedirectAttributes redirectAttributes,
                              Principal principal) {
         try {
@@ -141,17 +191,63 @@ public class CheckoutWebController {
                 return "redirect:/login";
             }
 
-            Order order = orderService.createOrder(
-                    user.getId(),
-                    recipientName,
-                    recipientPhone,
-                    provinceCity,
-                    district,
-                    ward,
-                    detailedAddress,
-                    paymentMethod,
-                    couponCode
-            );
+            if (recipientName == null || recipientName.isBlank() ||
+                recipientPhone == null || recipientPhone.isBlank() ||
+                provinceCity == null || provinceCity.isBlank() ||
+                district == null || district.isBlank() ||
+                detailedAddress == null || detailedAddress.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng điền đầy đủ thông tin giao nhận hàng.");
+                return "redirect:/checkout";
+            }
+
+            Order order;
+            if (pointsToUse != null && pointsToUse > 0) {
+                order = orderService.createOrder(
+                        user.getId(),
+                        recipientName,
+                        recipientPhone,
+                        provinceCity,
+                        district,
+                        ward,
+                        detailedAddress,
+                        paymentMethod,
+                        couponCode,
+                        pointsToUse
+                );
+            } else {
+                order = orderService.createOrder(
+                        user.getId(),
+                        recipientName,
+                        recipientPhone,
+                        provinceCity,
+                        district,
+                        ward,
+                        detailedAddress,
+                        paymentMethod,
+                        couponCode
+                );
+            }
+
+
+            // Tùy chọn lưu địa chỉ vào sổ địa chỉ nếu chưa có
+            if (Boolean.TRUE.equals(saveAddress) && userAddressService != null) {
+                boolean exists = userAddressService.getAddressesByUserId(user.getId()).stream()
+                        .anyMatch(a -> a.getDetailedAddress().equalsIgnoreCase(detailedAddress.trim()) &&
+                                a.getProvinceCity().equalsIgnoreCase(provinceCity.trim()) &&
+                                a.getDistrict().equalsIgnoreCase(district.trim()));
+                if (!exists) {
+                    com.manguonmo.popworld.dto.request.AddressRequest addressReq = com.manguonmo.popworld.dto.request.AddressRequest.builder()
+                            .recipientName(recipientName.trim())
+                            .recipientPhone(recipientPhone.trim())
+                            .provinceCity(provinceCity.trim())
+                            .district(district.trim())
+                            .ward(ward != null ? ward.trim() : "")
+                            .detailedAddress(detailedAddress.trim())
+                            .isDefault(false)
+                            .build();
+                    userAddressService.createAddress(user.getId(), addressReq);
+                }
+            }
 
             if ("SEPAY".equalsIgnoreCase(paymentMethod)) {
                 return "redirect:/checkout/payment/" + order.getOrderCode();
@@ -169,6 +265,7 @@ public class CheckoutWebController {
         }
     }
 
+
     /**
      * Màn hình thanh toán chuyển khoản qua VietQR SePay động
      */
@@ -180,11 +277,14 @@ public class CheckoutWebController {
             return "redirect:/cart";
         }
 
-        if (principal != null) {
-            User user = userService.getUserByEmail(principal.getName());
-            if (user != null && order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
-                return "redirect:/403";
-            }
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        boolean isAdmin = user != null && ("ROLE_ADMIN".equals(user.getRole()) || "ADMIN".equals(user.getRole()));
+        boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
+        if (!isAdmin && !isOwner) {
+            return "redirect:/403";
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());
@@ -221,11 +321,14 @@ public class CheckoutWebController {
             return "redirect:/";
         }
 
-        if (principal != null) {
-            User user = userService.getUserByEmail(principal.getName());
-            if (user != null && order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
-                return "redirect:/403";
-            }
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        boolean isAdmin = user != null && ("ROLE_ADMIN".equals(user.getRole()) || "ADMIN".equals(user.getRole()));
+        boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
+        if (!isAdmin && !isOwner) {
+            return "redirect:/403";
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());

@@ -57,7 +57,7 @@ class AuthWebControllerTest {
     @DisplayName("POST /register: Thất bại khi Service quăng lỗi BadRequestException (trùng email)")
     void handleRegister_WhenServiceThrowsBadRequest_ShouldReturnRegisterViewWithErrorMessage() throws Exception {
         when(userService.register(any(RegisterRequest.class)))
-                .thenThrow(new BadRequestException("Email đã được đăng ký"));
+                .thenThrow(new BadRequestException("Email đã được đăng ký, vui lòng chọn email khác hoặc đăng nhập"));
 
         mockMvc.perform(post("/register")
                         .with(csrf())
@@ -68,7 +68,47 @@ class AuthWebControllerTest {
                         .param("confirmPassword", "password123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"))
-                .andExpect(model().attribute("errorMessage", "Email đã được đăng ký"));
+                .andExpect(model().attribute("errorMessage", "Email đã được đăng ký, vui lòng chọn email khác hoặc đăng nhập"));
+
+        verify(userService, times(1)).register(any(RegisterRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /register: Thất bại khi mật khẩu xác nhận không khớp (BadRequestException)")
+    void handleRegister_WhenPasswordsDoNotMatch_ShouldReturnRegisterViewWithErrorMessage() throws Exception {
+        when(userService.register(any(RegisterRequest.class)))
+                .thenThrow(new BadRequestException("Mật khẩu xác nhận không khớp"));
+
+        mockMvc.perform(post("/register")
+                        .with(csrf())
+                        .param("fullName", "Nguyễn Văn A")
+                        .param("email", "newuser@example.com")
+                        .param("phone", "0912345678")
+                        .param("password", "password123")
+                        .param("confirmPassword", "differentPassword"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("register"))
+                .andExpect(model().attribute("errorMessage", "Mật khẩu xác nhận không khớp"));
+
+        verify(userService, times(1)).register(any(RegisterRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /register: Bắt lỗi ngoại lệ bất ngờ, trả về thông báo lỗi an toàn, không rò rỉ chi tiết hệ thống")
+    void handleRegister_WhenServiceThrowsUnexpectedException_ShouldReturnRegisterViewWithGenericErrorMessage() throws Exception {
+        when(userService.register(any(RegisterRequest.class)))
+                .thenThrow(new RuntimeException("Database connection timeout or internal SQL error"));
+
+        mockMvc.perform(post("/register")
+                        .with(csrf())
+                        .param("fullName", "Nguyễn Văn A")
+                        .param("email", "valid@example.com")
+                        .param("phone", "0912345678")
+                        .param("password", "password123")
+                        .param("confirmPassword", "password123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("register"))
+                .andExpect(model().attribute("errorMessage", "Đã xảy ra lỗi trong quá trình xử lý đăng ký. Vui lòng thử lại sau!"));
 
         verify(userService, times(1)).register(any(RegisterRequest.class));
     }

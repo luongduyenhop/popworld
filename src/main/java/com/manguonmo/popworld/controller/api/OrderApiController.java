@@ -37,10 +37,36 @@ public class OrderApiController {
     }
 
     /**
-     * Lấy chi tiết đơn hàng theo mã đơn
+     * Lấy chi tiết đơn hàng theo mã đơn (Bảo vệ IDOR: chỉ chủ sở hữu đơn hàng hoặc Admin)
      */
     @GetMapping("/{orderCode}")
-    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(@PathVariable String orderCode) {
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(@PathVariable String orderCode, Principal principal) {
+        if (principal == null) {
+            throw new BadRequestException("Vui lòng đăng nhập để xem thông tin đơn hàng.");
+        }
+        Order order = orderService.getOrderByCode(orderCode);
+        if (order == null) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode);
+        }
+
+        User user = userService.getUserByEmail(principal.getName());
+        boolean isAdmin = user != null && ("ROLE_ADMIN".equals(user.getRole()) || "ADMIN".equals(user.getRole()));
+        boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
+
+        if (!isAdmin && !isOwner) {
+            throw new BadRequestException("Bạn không có quyền xem thông tin đơn hàng này.");
+        }
+
+        List<OrderItem> items = orderService.getOrderItems(order.getId());
+        OrderResponse response = orderMapper.toResponse(order, items);
+
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin đơn hàng thành công", response));
+    }
+
+    /**
+     * Overload hỗ trợ các gọi nội bộ / unit test đơn giản không có context bảo mật
+     */
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetail(String orderCode) {
         Order order = orderService.getOrderByCode(orderCode);
         if (order == null) {
             throw new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode);
@@ -54,12 +80,25 @@ public class OrderApiController {
 
     /**
      * API Polling trạng thái đơn hàng (phục vụ giao diện đếm ngược & thanh toán VietQR)
+     * [BẢO MẬT]: Chỉ chủ sở hữu đơn hàng hoặc Admin mới được phép poll trạng thái,
+     * tránh rò rỉ isPaid cho user khác qua orderCode enumeration.
      */
     @GetMapping("/{orderCode}/status")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatus(@PathVariable String orderCode) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatus(@PathVariable String orderCode,
+                                                                           Principal principal) {
         Order order = orderService.getOrderByCode(orderCode);
         if (order == null) {
             throw new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode);
+        }
+
+        if (principal == null) {
+            throw new BadRequestException("Vui lòng đăng nhập để xem trạng thái đơn hàng.");
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        boolean isAdmin = user != null && ("ROLE_ADMIN".equals(user.getRole()) || "ADMIN".equals(user.getRole()));
+        boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
+        if (!isAdmin && !isOwner) {
+            throw new BadRequestException("Bạn không có quyền xem trạng thái đơn hàng này.");
         }
 
         boolean isPaid = !"TO_PAY".equalsIgnoreCase(order.getStatus()) && !"CANCELLED".equalsIgnoreCase(order.getStatus());
@@ -72,6 +111,7 @@ public class OrderApiController {
 
         return ResponseEntity.ok(ApiResponse.success("Lấy trạng thái đơn hàng thành công", statusData));
     }
+
 
     /**
      * Lấy danh sách đơn hàng của người dùng hiện tại

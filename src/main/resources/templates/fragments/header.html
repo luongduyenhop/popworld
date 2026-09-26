@@ -84,7 +84,7 @@
                             <li th:each="ip : ${characterIps}">
                                 <a class="dropdown-item py-2 px-3 fw-bold rounded-3 d-flex align-items-center"
                                    th:href="@{'/characters/' + ${ip.id}}">
-                                    <img th:src="${ip.avatarUrl}" class="rounded-circle me-2 border" width="28" height="28" style="object-fit:cover;">
+                                    <img th:src="${ip.avatarUrl}" th:alt="${ip.name}" class="rounded-circle me-2 border" width="28" height="28" style="object-fit:cover;">
                                     <span th:text="${ip.name}">Labubu</span>
                                 </a>
                             </li>
@@ -93,11 +93,11 @@
                 </ul>
 
                 <!-- Search Form (Capsule Pill with circular black button like POP MART US) -->
-                <form class="d-flex me-3 my-2 my-lg-0" th:action="@{/search}" method="get" style="min-width: 220px; max-width: 280px;">
+                <form class="d-flex me-3 my-2 my-lg-0" th:action="@{/search}" method="get" style="min-width: 220px; max-width: 280px;" role="search">
                     <div class="pop-search-capsule">
                         <input class="pop-search-input-clean" type="search" name="keyword" 
-                               placeholder="Tìm Labubu, Molly..." th:value="${keyword}">
-                        <button type="submit" class="pop-search-submit-btn" title="Tìm kiếm">
+                               placeholder="Tìm Labubu, Molly..." th:value="${keyword}" aria-label="Tìm kiếm sản phẩm Art Toy">
+                        <button type="submit" class="pop-search-submit-btn" title="Tìm kiếm" aria-label="Nút tìm kiếm">
                             <i class="bi bi-search" style="font-size: 0.8rem;"></i>
                         </button>
                     </div>

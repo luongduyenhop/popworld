@@ -20,8 +20,11 @@ public class ProductImage extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "image_url", nullable = false, length = 255)
+    @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
+
+    @Column(name = "public_id", length = 255)
+    private String publicId;
 
     @Builder.Default
     @Column(name = "is_thumbnail")
