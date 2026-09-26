@@ -1625,3 +1625,82 @@ header.sticky-top,
     margin: 0;
     font-weight: 500;
 }
+
+/* ==========================================================================
+   POP MART NAVBAR USER HOVER DROPDOWN
+   ========================================================================== */
+
+.pop-user-dropdown-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pop-header-user-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--pop-radius-pill, 50px);
+    text-decoration: none;
+    color: #111113;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: background-color 0.15s ease;
+}
+
+.pop-header-user-link:hover {
+    background-color: #F4F5F7;
+    color: #111113;
+}
+
+.pop-user-hover-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 210px;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF2;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    padding: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 1050;
+}
+
+/* Pseudo element bridge so hover does not break over the 8px gap */
+.pop-user-dropdown-container::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 12px;
+}
+
+.pop-user-dropdown-container:hover .pop-user-hover-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.pop-user-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+    cursor: pointer;
+}
+
+.pop-user-menu-item:hover {
+    background-color: #F8F9FA;
+    color: #D1001F;
+}

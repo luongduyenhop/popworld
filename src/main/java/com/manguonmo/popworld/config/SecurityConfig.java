@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/cart/**", "/api/cart/**", "/checkout/**", "/orders", "/orders/**", "/api/orders/my-orders").authenticated()
+                        .requestMatchers("/cart/**", "/api/cart/**", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders/my-orders").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

@@ -5,6 +5,7 @@ import com.manguonmo.popworld.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductImageRepository productImageRepository;
     private final CouponRepository couponRepository;
     private final NewsRepository newsRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -45,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         User admin = User.builder()
                 .fullName("Quản Trị Viên PopWorld")
                 .email("admin@popworld.com")
-                .password("admin123")
+                .password(passwordEncoder.encode("admin123"))
                 .phone("0988888888")
                 .role("ROLE_ADMIN")
                 .membershipTier("VIP")
@@ -57,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
         User member = User.builder()
                 .fullName("Nguyễn Minh Anh")
                 .email("user@popworld.com")
-                .password("user123")
+                .password(passwordEncoder.encode("user123"))
                 .phone("0912345678")
                 .role("ROLE_USER")
                 .membershipTier("MEMBER")
@@ -69,7 +71,7 @@ public class DataInitializer implements CommandLineRunner {
         User member2 = User.builder()
                 .fullName("Trần Thảo Linh")
                 .email("thaolinh@gmail.com")
-                .password("user123")
+                .password(passwordEncoder.encode("user123"))
                 .phone("0987654321")
                 .role("ROLE_USER")
                 .membershipTier("VIP")

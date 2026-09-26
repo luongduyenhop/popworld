@@ -235,33 +235,6 @@ public class CheckoutWebController {
         return "order-success";
     }
 
-    /**
-     * Xem lịch sử đơn hàng của tôi
-     */
-    @GetMapping("/orders")
-    public String showMyOrders(Model model, Principal principal) {
-        addCommonAttributes(model);
-        if (principal == null) {
-            return "redirect:/login";
-        }
-        User user = userService.getUserByEmail(principal.getName());
-        if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
-            return "redirect:/login";
-        }
-        List<Order> orders = orderService.getOrdersByUser(user.getId());
-
-        // Lấy danh sách sản phẩm cho từng đơn hàng để hiển thị ảnh thumbnail và thông tin chi tiết
-        Map<Long, List<OrderItem>> orderItemsMap = orders.stream()
-                .collect(Collectors.toMap(Order::getId, order -> orderService.getOrderItems(order.getId()), (a, b) -> a));
-
-        model.addAttribute("user", user);
-        model.addAttribute("orders", orders);
-        model.addAttribute("orderItemsMap", orderItemsMap);
-        model.addAttribute("couponsCount", couponRepository.countByActiveTrue());
-
-        return "my-orders";
-    }
-
     @PostMapping("/orders/{orderCode}/cancel")
     public String cancelOrder(@PathVariable String orderCode,
                               @RequestParam(required = false, defaultValue = "") String reason,
