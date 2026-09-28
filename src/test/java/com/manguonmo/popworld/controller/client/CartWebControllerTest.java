@@ -5,6 +5,7 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
+import com.manguonmo.popworld.service.ProductService;
 import com.manguonmo.popworld.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,9 @@ class CartWebControllerTest {
     private UserService userService;
 
     @Mock
+    private ProductService productService;
+
+    @Mock
     private Principal principal;
 
     @Mock
@@ -55,7 +59,7 @@ class CartWebControllerTest {
 
     @BeforeEach
     void setUp() {
-        sampleUser = User.builder().id(1L).email("test@popworld.com").fullName("Test User").build();
+        sampleUser = User.builder().id(1L).email("test@popworld.com").fullName("Test User").enabled(true).build();
     }
 
     @Test
@@ -198,6 +202,27 @@ class CartWebControllerTest {
     void addToCart_whenAnonymous_redirectsToLogin() {
         String viewName = cartWebController.addToCart(100L, "SINGLE_BOX", 1, redirectAttributes, null);
         assertEquals("redirect:/login", viewName);
+    }
+
+    @Test
+    @DisplayName("selectAll: Khi đăng nhập thành công thì gọi cartService.selectAll và redirect về /cart")
+    void selectAll_whenLoggedIn_shouldCallServiceAndRedirectToCart() {
+        sampleUser.setEnabled(true);
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+
+        String viewName = cartWebController.selectAll(true, principal, redirectAttributes);
+
+        assertEquals("redirect:/cart", viewName);
+        verify(cartService, times(1)).selectAll(1L, true);
+    }
+
+    @Test
+    @DisplayName("selectAll: Khi chưa đăng nhập thì redirect về /login")
+    void selectAll_whenAnonymous_shouldRedirectToLogin() {
+        String viewName = cartWebController.selectAll(true, null, redirectAttributes);
+        assertEquals("redirect:/login", viewName);
+        verifyNoInteractions(cartService);
     }
 }
 

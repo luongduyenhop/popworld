@@ -3,23 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
     <title>Giỏ Hàng Art Toy - PopWorld</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+    <style>
+        /* POP MART Signature Circular Checkbox */
+        .popmart-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50% !important;
+            border: 2px solid #D1D5DB;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #FFFFFF;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .popmart-checkbox:checked {
+            background-color: #111827 !important;
+            border-color: #111827 !important;
+        }
+        .popmart-checkbox:checked::after {
+            content: '';
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        /* POP MART Tabs */
+        .popmart-cart-tab {
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding-bottom: 0.75rem;
+            color: #9CA3AF;
+            border-bottom: 2.5px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+        .popmart-cart-tab:hover {
+            color: #111827;
+        }
+        .popmart-cart-tab.active {
+            color: #111827 !important;
+            border-bottom-color: #111827;
+        }
+
+        /* Cart Item Card */
+        .popmart-cart-item {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        .popmart-cart-item:hover {
+            border-color: #D1D5DB;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Quantity Stepper */
+        .popmart-stepper {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #F9FAFB;
+        }
+        .popmart-stepper .btn {
+            background: transparent;
+            border: none;
+            color: #4B5563;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .popmart-stepper .btn:hover {
+            background: #E5E7EB;
+            color: #111827;
+        }
+        .popmart-stepper input {
+            border: none;
+            width: 38px;
+            height: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: transparent;
+        }
+
+        /* Recommended Art Toys Grid */
+        .pop-recommend-card {
+            border: 1px solid #F3F4F6;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #FFFFFF;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .pop-recommend-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        }
+        .pop-recommend-img {
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            background: #F9FAFB;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 
     <!-- Header Fragment -->
     <header th:replace="~{fragments/header :: header}"></header>
 
     <main class="container my-4">
         <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-dark fw-bold">Trang Chủ</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Giỏ Hàng</li>
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary">Trang Chủ</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Giỏ Hàng</li>
             </ol>
         </nav>
 
@@ -32,32 +149,23 @@
             <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        <!-- Dynamic JS Alert for Ajax operations -->
+        <div id="cartJsAlert" class="alert alert-danger alert-dismissible fade show rounded-4 d-none" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="cartJsAlertText"></span>
+            <button type="button" class="btn-close" onclick="dismissCartJsAlert()"></button>
+        </div>
 
-        <h1 class="fw-black text-uppercase mb-3">
-            <i class="bi bi-bag-heart-fill text-danger me-2"></i> Giỏ Hàng Của Bạn (<span th:text="${cartCount}">0</span> món)
-        </h1>
-
-        <!-- Freeship Progress Milestone (Chính sách Freeship đơn từ 500k chuẩn POP MART) -->
-        <div th:if="${cartItems != null && !cartItems.isEmpty()}">
-            <div th:if="${totalAmount >= 500000}" class="alert alert-success bg-success-subtle border-success-subtle rounded-4 p-3 d-flex align-items-center gap-3 mb-4 shadow-sm">
-                <i class="bi bi-truck text-success fs-3 flex-shrink-0"></i>
-                <div class="flex-grow-1">
-                    <strong class="text-success d-block">CHÚC MỪNG! ĐƠN HÀNG ĐẠT ĐIỀU KIỆN FREESHIP TOÀN QUỐC 🚀</strong>
-                    <small class="text-muted">PopWorld sẽ tài trợ 100% phí vận chuyển tiêu chuẩn cho kiện hàng này.</small>
-                </div>
-            </div>
-            <div th:if="${totalAmount < 500000}" class="alert alert-light border rounded-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-truck text-danger fs-3 flex-shrink-0"></i>
-                    <div>
-                        <span class="text-dark d-block">Mua thêm <strong class="text-danger fs-6" th:text="${#numbers.formatDecimal(500000 - totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">150.000 đ</strong> để được <strong>FREESHIP toàn quốc!</strong></span>
-                        <small class="text-muted">Chính sách ưu đãi miễn phí ship cho hóa đơn từ 500.000 đ.</small>
-                    </div>
-                </div>
-                <a th:href="@{/categories/blind-box}" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 fw-bold">
-                    <i class="bi bi-plus-circle me-1"></i> Săn Thêm Hộp Mù
-                </a>
-            </div>
+        <!-- POP MART Tabs Header (Pop Upon Delivery | POP NOW | Store Pickup) -->
+        <div class="popmart-cart-tabs d-flex align-items-center gap-4 mb-4 border-bottom">
+            <a th:href="@{/cart}" class="popmart-cart-tab active text-decoration-none">
+                Pop Upon Delivery (<span th:text="${cartCount}">0</span>)
+            </a>
+            <a th:href="@{/popnow/cabinet}" class="popmart-cart-tab text-decoration-none">
+                POP NOW
+            </a>
+            <a href="javascript:void(0)" class="popmart-cart-tab text-decoration-none disabled" style="cursor: not-allowed; opacity: 0.5;">
+                Store Pickup (0)
+            </a>
         </div>
 
         <!-- Empty Cart State -->
@@ -65,146 +173,172 @@
             <div class="display-1 text-muted mb-3"><i class="bi bi-cart-x"></i></div>
             <h3 class="fw-bold">Giỏ hàng của bạn đang trống!</h3>
             <p class="text-muted">Hãy lướt xem các bộ sưu tập Hộp Mù mới nhất để săn các nhân vật hiếm nhé.</p>
-            <a th:href="@{/categories/blind-box}" class="btn btn-pop-red mt-3 px-4 py-2">Khám Phá Ngay</a>
+            <a th:href="@{/categories/blind-box}" class="btn btn-dark rounded-pill px-5 py-2 fw-bold">Khám Phá Ngay</a>
         </div>
 
         <!-- Cart Has Items -->
         <div class="row g-4" th:if="${cartItems != null && !cartItems.isEmpty()}">
-            <!-- Danh sách món đồ trong giỏ -->
+            <!-- Cột trái: Danh sách sản phẩm trong giỏ -->
             <div class="col-lg-8">
-                <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr class="text-uppercase small fw-bold text-muted">
-                                    <th class="py-3 ps-4" style="width: 45%;">Sản Phẩm</th>
-                                    <th class="py-3 text-center" style="width: 20%;">Số Lượng</th>
-                                    <th class="py-3 text-end" style="width: 20%;">Tạm Tính</th>
-                                    <th class="py-3 text-center pe-4" style="width: 15%;">Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="item : ${cartItems}">
-                                    <!-- Sản phẩm -->
-                                    <td class="py-4 ps-4">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="rounded-3 overflow-hidden border flex-shrink-0" style="width: 75px; height: 75px;">
-                                                <img th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}" class="w-100 h-100 object-fit-cover">
-                                            </div>
-                                            <div>
-                                                <h6 class="fw-bold mb-1">
-                                                    <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none" th:text="${item.product.name}">
-                                                        Tên sản phẩm
-                                                    </a>
-                                                </h6>
-                                                <span class="badge" 
-                                                      th:classappend="${item.purchaseType == 'WHOLE_SET'} ? 'bg-warning text-dark' : 'bg-light text-dark border'"
-                                                      th:text="${item.purchaseType == 'WHOLE_SET' ? '📦 NGUYÊN THÙNG' : '🎲 HỘP LẺ'}">
-                                                    Hộp Lẻ
-                                                </span>
-                                                <div class="small text-danger fw-bold mt-1"
-                                                     th:text="${#numbers.formatDecimal(item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
-                                                    350.000 đ
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <!-- Số lượng -->
-                                    <td class="text-center">
-                                        <form th:action="@{/cart/update}" method="post" class="d-inline-flex align-items-center">
-                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
-                                            <div class="input-group input-group-sm" style="width: 110px;">
-                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity - 1}" aria-label="Giảm số lượng">-</button>
-                                                <input type="text" class="form-control text-center fw-bold bg-white" readonly th:value="${item.quantity}" aria-label="Số lượng sản phẩm">
-                                                <button class="btn btn-outline-dark" type="submit" name="quantity" th:value="${item.quantity + 1}" aria-label="Tăng số lượng">+</button>
-                                            </div>
-                                        </form>
-                                    </td>
-
-                                    <!-- Tạm tính món -->
-                                    <td class="text-end fw-bold fs-6 text-dark"
-                                        th:with="unitPrice=${item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice}"
-                                        th:text="${#numbers.formatDecimal(unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
-                                        700.000 đ
-                                    </td>
-
-                                    <!-- Xóa món -->
-                                    <td class="text-center pe-4">
-                                        <form th:action="@{'/cart/delete/' + ${item.id}}" method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ?')">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Xóa món" aria-label="Xóa sản phẩm khỏi giỏ hàng">
-                                                <i class="bi bi-trash3-fill fs-6"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Select All Bar (Chuẩn POP MART) -->
+                <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border mb-3 shadow-sm">
+                    <div class="d-flex align-items-center gap-3">
+                        <input class="popmart-checkbox" type="checkbox" id="selectAllCheckbox" 
+                               th:checked="${allSelected}" onchange="toggleSelectAll(this)" aria-label="Select all">
+                        <label class="fw-bold text-dark cursor-pointer user-select-none mb-0" for="selectAllCheckbox" style="font-size: 0.95rem;">
+                            Select all (<span id="selectedCountText" th:text="${selectedCount}">0</span>/<span th:text="${cartItems.size()}">0</span>)
+                        </label>
                     </div>
                 </div>
 
-                <!-- Nút quay lại mua tiếp -->
+                <!-- Danh sách món đồ trong giỏ (POP MART Card Rows) -->
+                <div class="popmart-cart-item mb-3"
+                     th:each="item : ${cartItems}"
+                     th:id="'cart-item-' + ${item.id}"
+                     th:data-item-id="${item.id}"
+                     th:data-unit-price="${item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice}"
+                     th:data-quantity="${item.quantity}">
+
+                    <!-- Nút xóa (Góc trên bên phải) -->
+                    <form th:action="@{'/cart/delete/' + ${item.id}}" method="post" class="position-absolute top-0 end-0 m-3"
+                          onsubmit="return confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ?')">
+                        <button type="submit" class="btn btn-sm text-secondary p-1 border-0" title="Xóa món" aria-label="Xóa">
+                            <i class="bi bi-trash3 fs-6"></i>
+                        </button>
+                    </form>
+
+                    <div class="d-flex align-items-start gap-3">
+                        <!-- Checkbox chọn item -->
+                        <div class="pt-2">
+                            <input class="popmart-checkbox item-checkbox" type="checkbox" 
+                                   th:checked="${item.isSelected}"
+                                   th:data-item-id="${item.id}"
+                                   onchange="toggleItemSelect(this)"
+                                   aria-label="Chọn sản phẩm">
+                        </div>
+
+                        <!-- Ảnh sản phẩm -->
+                        <div class="rounded-3 overflow-hidden border flex-shrink-0 bg-light position-relative" style="width: 90px; height: 90px;">
+                            <img th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}" class="w-100 h-100 object-fit-contain p-1">
+                            <span th:if="${!item.product.active}" class="badge bg-danger position-absolute bottom-0 start-0 w-100 rounded-0" style="font-size: 0.65rem;">
+                                HẾT HÀNG
+                            </span>
+                        </div>
+
+                        <!-- Thông tin sản phẩm -->
+                        <div class="flex-grow-1 min-w-0 pe-4">
+                            <h6 class="fw-bold mb-1">
+                                <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none text-truncate d-block" th:text="${item.product.name}">
+                                    Tên sản phẩm
+                                </a>
+                            </h6>
+                            <div class="text-muted small mb-2" th:text="${item.purchaseType == 'WHOLE_SET' ? 'Nguyên Thùng (Whole set)' : 'Hộp Đơn (Single box)'}">
+                                Single box
+                            </div>
+                            <div class="fw-black text-dark fs-6"
+                                 th:text="${#numbers.formatDecimal(item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                350.000 đ
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bộ điều chỉnh số lượng (Góc dưới bên phải) -->
+                    <div class="d-flex justify-content-end mt-2">
+                        <form th:action="@{/cart/update}" method="post" class="d-inline-flex align-items-center">
+                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                            <div class="popmart-stepper d-flex align-items-center">
+                                <button class="btn" type="submit" name="quantity" th:value="${item.quantity - 1}" aria-label="Giảm">-</button>
+                                <input type="text" readonly th:value="${item.quantity}" aria-label="Số lượng">
+                                <button class="btn" type="submit" name="quantity" th:value="${item.quantity + 1}" aria-label="Tăng">+</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Nút tiếp tục mua sắm -->
                 <div class="mt-3">
-                    <a th:href="@{/}" class="text-decoration-none text-dark fw-bold small">
-                        <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua sắm Art Toy
+                    <a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold small">
+                        <i class="bi bi-arrow-left me-1"></i> Tiếp tục khám phá Art Toy
                     </a>
                 </div>
             </div>
 
-            <!-- Cột phải: Tổng kết đơn hàng -->
+            <!-- Cột phải: Tổng kết đơn hàng (POP MART Style Order Summary) -->
             <div class="col-lg-4" style="align-self: flex-start;">
                 <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top: 105px;">
-                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom">Tóm Tắt Đơn Hàng</h5>
-
-                    <!-- Tiền tạm tính -->
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tổng tiền hàng:</span>
-                        <span class="fw-bold fs-6" 
+                    <!-- Subtotal -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted" style="font-size: 0.95rem;">Subtotal</span>
+                        <span class="fw-bold fs-6 text-dark" id="summarySubtotal"
                               th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                             0 đ
                         </span>
                     </div>
 
-                    <!-- Phí vận chuyển -->
-                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
-                        <span class="text-muted">Phí vận chuyển:</span>
-                        <span class="fw-bold" 
-                              th:classappend="${totalAmount >= 500000} ? 'text-success' : 'text-dark'"
-                              th:text="${totalAmount == 0 ? '0 đ' : (totalAmount >= 500000 ? 'MIỄN PHÍ' : '30.000 đ')}">
-                            MIỄN PHÍ
+                    <!-- Shipping -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <span class="text-muted" style="font-size: 0.95rem;">Shipping</span>
+                        <span class="text-muted small" id="summaryShipping"
+                              th:text="${isFreeShipping ? 'MIỄN PHÍ' : 'Tính ở bước tiếp theo'}">
+                            Tính ở bước tiếp theo
                         </span>
                     </div>
 
-                    <!-- Nhập mã giảm giá -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted" for="couponCode">Mã Ưu Đãi / Coupon:</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control text-uppercase" placeholder="POPWELCOME / FREESHIP" id="couponCode" aria-label="Mã ưu đãi giảm giá">
-                            <button class="btn btn-dark fw-bold" type="button" onclick="applyCoupon()">Áp Dụng</button>
-                        </div>
-                        <small class="text-success d-block mt-1" id="couponMsg" style="display:none !important;">
-                            <i class="bi bi-check-circle"></i> Đã kích hoạt mã giảm giá!
-                        </small>
-                    </div>
-
-                    <!-- Tổng cộng -->
-                    <div class="d-flex justify-content-between align-items-baseline mt-4 mb-4">
-                        <span class="fw-black text-uppercase">Tổng Thanh Toán:</span>
-                        <span class="display-6 fw-black text-danger"
-                              th:text="${#numbers.formatDecimal(totalAmount == 0 ? 0 : (totalAmount >= 500000 ? totalAmount : totalAmount + 30000), 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                    <!-- Total(N) -->
+                    <div class="d-flex justify-content-between align-items-baseline mb-3">
+                        <span class="fw-bold text-dark fs-5">
+                            Total(<span id="summarySelectedCount" th:text="${selectedCount}">0</span>)
+                        </span>
+                        <span class="fs-4 fw-black text-dark" id="summaryTotal"
+                              th:text="${#numbers.formatDecimal(totalAmount != null ? totalAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                             0 đ
                         </span>
                     </div>
 
-                    <!-- Nút Đặt Hàng -->
-                    <div class="d-grid">
-                        <a th:href="@{/checkout}" class="btn btn-pop-red py-3 fw-bold fs-6 shadow-sm text-center">
-                            TIẾN HÀNH THANH TOÁN (15 PHÚT) <i class="bi bi-arrow-right-short fs-5"></i>
-                        </a>
+                    <!-- Free shipping indicator -->
+                    <div class="small fw-bold mb-4 d-flex align-items-center gap-1" id="freeshipBadge">
+                        <th:block th:if="${isFreeShipping}">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <span class="text-success">Đã đạt điều kiện miễn phí vận chuyển!</span>
+                        </th:block>
+                        <th:block th:unless="${isFreeShipping}">
+                            <i class="bi bi-truck text-danger me-1"></i>
+                            <span class="text-danger"
+                                  th:text="'Mua thêm ' + ${#numbers.formatDecimal(freeShippingRemaining != null ? freeShippingRemaining : 0, 0, 'COMMA', 0, 'POINT')} + ' đ để được miễn phí vận chuyển'">
+                                Miễn phí vận chuyển cho đơn từ 500.000 đ
+                            </span>
+                        </th:block>
                     </div>
 
-                    <div class="text-center text-muted small mt-3">
-                        <i class="bi bi-shield-lock-fill text-warning me-1"></i> Thanh toán an toàn 100% bảo mật
+                    <!-- Checkout Button (POP MART Black Full-width Button) -->
+                    <div class="d-grid mb-2">
+                        <a th:href="@{/checkout}" id="btnCheckout" class="btn btn-dark py-3 fw-black text-uppercase tracking-wider rounded-3 text-center"
+                           th:classappend="${selectedCount == 0} ? 'disabled opacity-50' : ''">
+                            CHECK OUT
+                        </a>
+                    </div>
+                    <small class="text-danger d-block text-center mt-1" id="checkoutWarning" th:style="${selectedCount == 0} ? 'display:block;' : 'display:none;'">
+                        Vui lòng chọn ít nhất 1 sản phẩm để thanh toán
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- You May Also Like Section (Chuẩn POP MART) -->
+        <div th:if="${recommendedProducts != null && !recommendedProducts.isEmpty()}" class="my-5 pt-4 border-top">
+            <h5 class="fw-black text-uppercase text-dark mb-4">You May Also Like</h5>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+                <div class="col" th:each="rec : ${recommendedProducts}" th:if="${recStat.index < 5}">
+                    <div class="pop-recommend-card h-100 p-2 d-flex flex-column">
+                        <a th:href="@{'/products/' + ${rec.slug}}" class="text-decoration-none">
+                            <img th:src="${rec.mainImageUrl}" th:alt="${rec.name}" class="w-100 pop-recommend-img rounded-3 mb-2">
+                            <span class="badge bg-dark text-white fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">NEW</span>
+                            <h6 class="text-dark fw-bold small text-truncate mb-1" th:text="${rec.name}">Art Toy Name</h6>
+                            <div class="fw-bold text-dark small"
+                                 th:text="${#numbers.formatDecimal(rec.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                350.000 đ
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -215,21 +349,237 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function applyCoupon() {
-            const code = document.getElementById('couponCode').value.trim().toUpperCase();
-            const msg = document.getElementById('couponMsg');
-            if (code === 'POPWELCOME' || code === 'FREESHIP' || code === 'MEGAPOP500') {
-                msg.style.display = 'block';
-                msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Áp dụng thành công mã ' + code + '!';
-            } else {
-                alert('Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng!');
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        let selectionQueue = Promise.resolve();
+        let inFlightCount = 0;
+        let lastSyncFailed = false;
+
+        function formatVND(amount) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' đ';
+        }
+
+        function showCartError(msg) {
+            const alertBox = document.getElementById('cartJsAlert');
+            const alertText = document.getElementById('cartJsAlertText');
+            if (alertBox && alertText) {
+                alertText.innerText = msg;
+                alertBox.classList.remove('d-none');
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
 
-        function checkoutAlert() {
-            alert('Đơn hàng đã được khởi tạo thành công! Bạn có 15 phút để hoàn tất thanh toán trước khi hệ thống tự động hoàn kho.');
+        function dismissCartJsAlert() {
+            const alertBox = document.getElementById('cartJsAlert');
+            if (alertBox) {
+                alertBox.classList.add('d-none');
+            }
         }
+
+        function updateSyncingUi(isSyncing) {
+            const btnCheckout = document.getElementById('btnCheckout');
+            if (!btnCheckout) return;
+            if (isSyncing) {
+                btnCheckout.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>ĐANG ĐỒNG BỘ...';
+                btnCheckout.classList.add('disabled', 'opacity-75');
+            } else {
+                btnCheckout.innerHTML = 'CHECK OUT';
+                btnCheckout.classList.remove('opacity-75');
+                recalculateCart();
+            }
+        }
+
+        // Tự động tính toán lại Subtotal, Total(N) và cập nhật giao diện thời gian thực
+        function recalculateCart() {
+            let subtotal = 0;
+            let count = 0;
+            const items = document.querySelectorAll('.popmart-cart-item');
+            
+            items.forEach(item => {
+                const cb = item.querySelector('.item-checkbox');
+                if (cb && cb.checked) {
+                    const price = parseFloat(item.getAttribute('data-unit-price')) || 0;
+                    const qty = parseInt(item.getAttribute('data-quantity')) || 0;
+                    subtotal += price * qty;
+                    count++;
+                }
+            });
+
+            const summarySubtotal = document.getElementById('summarySubtotal');
+            if (summarySubtotal) summarySubtotal.innerText = formatVND(subtotal);
+
+            const summaryTotal = document.getElementById('summaryTotal');
+            if (summaryTotal) summaryTotal.innerText = formatVND(subtotal);
+
+            const summarySelectedCount = document.getElementById('summarySelectedCount');
+            if (summarySelectedCount) summarySelectedCount.innerText = count;
+
+            const selectedCountText = document.getElementById('selectedCountText');
+            if (selectedCountText) selectedCountText.innerText = count;
+
+            const summaryShipping = document.getElementById('summaryShipping');
+            if (summaryShipping) {
+                if (subtotal >= 500000) {
+                    summaryShipping.innerText = 'MIỄN PHÍ';
+                    summaryShipping.className = 'fw-bold text-success small';
+                } else {
+                    summaryShipping.innerText = 'Tính ở bước tiếp theo';
+                    summaryShipping.className = 'text-muted small';
+                }
+            }
+
+            const freeshipBadge = document.getElementById('freeshipBadge');
+            if (freeshipBadge) {
+                if (subtotal >= 500000) {
+                    freeshipBadge.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> <span class="text-success">Đã đạt điều kiện miễn phí vận chuyển!</span>';
+                } else {
+                    const remaining = 500000 - subtotal;
+                    freeshipBadge.innerHTML = '<i class="bi bi-truck text-danger me-1"></i> <span class="text-danger">Mua thêm ' + formatVND(remaining) + ' để được miễn phí vận chuyển</span>';
+                }
+            }
+
+            const btnCheckout = document.getElementById('btnCheckout');
+            const warning = document.getElementById('checkoutWarning');
+            if (btnCheckout) {
+                if (count === 0) {
+                    btnCheckout.classList.add('disabled', 'opacity-50');
+                    if (warning) warning.style.display = 'block';
+                } else if (inFlightCount === 0) {
+                    btnCheckout.classList.remove('disabled', 'opacity-50');
+                    if (warning) warning.style.display = 'none';
+                }
+            }
+
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if (selectAllCb) {
+                selectAllCb.checked = (count === items.length && items.length > 0);
+            }
+        }
+
+        // Xử lý khi click vào checkbox của từng món
+        function toggleItemSelect(checkbox) {
+            dismissCartJsAlert();
+            const cartItemId = checkbox.getAttribute('data-item-id');
+            const isSelected = checkbox.checked;
+            const previousState = !isSelected;
+
+            // Tính toán giao diện ngay lập tức
+            recalculateCart();
+
+            inFlightCount++;
+            updateSyncingUi(true);
+
+            // Xếp hàng đồng bộ tuần tự tránh race condition
+            selectionQueue = selectionQueue.then(async () => {
+                try {
+                    const response = await fetch(`/api/cart/items/${cartItemId}/selection?isSelected=${isSelected}`, {
+                        method: 'PATCH',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => null);
+                        throw new Error(errorData?.message || `Lỗi máy chủ (${response.status})`);
+                    }
+                    lastSyncFailed = false;
+                } catch (err) {
+                    lastSyncFailed = true;
+                    console.error("Lỗi cập nhật lựa chọn: ", err);
+                    checkbox.checked = previousState;
+                    recalculateCart();
+                    showCartError("Không thể cập nhật lựa chọn món hàng: " + (err.message || 'Lỗi kết nối'));
+                } finally {
+                    inFlightCount = Math.max(0, inFlightCount - 1);
+                    if (inFlightCount === 0) {
+                        updateSyncingUi(false);
+                    }
+                }
+            });
+        }
+
+        // Xử lý khi click "Select all"
+        function toggleSelectAll(selectAllCheckbox) {
+            dismissCartJsAlert();
+            const isSelected = selectAllCheckbox.checked;
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            const previousStates = Array.from(checkboxes).map(cb => ({ cb, checked: !isSelected }));
+
+            checkboxes.forEach(cb => {
+                cb.checked = isSelected;
+            });
+            recalculateCart();
+
+            inFlightCount++;
+            updateSyncingUi(true);
+
+            selectionQueue = selectionQueue.then(async () => {
+                try {
+                    const response = await fetch(`/api/cart/selection/all?isSelected=${isSelected}`, {
+                        method: 'PATCH',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => null);
+                        throw new Error(errorData?.message || `Lỗi máy chủ (${response.status})`);
+                    }
+                    lastSyncFailed = false;
+                } catch (err) {
+                    lastSyncFailed = true;
+                    console.error("Lỗi cập nhật tất cả lựa chọn: ", err);
+                    previousStates.forEach(item => {
+                        item.cb.checked = item.checked;
+                    });
+                    selectAllCheckbox.checked = !isSelected;
+                    recalculateCart();
+                    showCartError("Không thể cập nhật tất cả món hàng: " + (err.message || 'Lỗi kết nối'));
+                } finally {
+                    inFlightCount = Math.max(0, inFlightCount - 1);
+                    if (inFlightCount === 0) {
+                        updateSyncingUi(false);
+                    }
+                }
+            });
+        }
+
+        // Bắt sự kiện click Checkout - Chờ tất cả request đồng bộ hoàn tất trước khi chuyển trang
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnCheckout = document.getElementById('btnCheckout');
+            if (btnCheckout) {
+                btnCheckout.addEventListener('click', async function(e) {
+                    e.preventDefault();
+
+                    const selectedItems = Array.from(document.querySelectorAll('.item-checkbox')).filter(cb => cb.checked);
+                    if (selectedItems.length === 0) {
+                        const warning = document.getElementById('checkoutWarning');
+                        if (warning) warning.style.display = 'block';
+                        return;
+                    }
+
+                    if (inFlightCount > 0) {
+                        updateSyncingUi(true);
+                        try {
+                            await selectionQueue;
+                        } catch (err) {
+                            console.error("Lỗi chờ đồng bộ: ", err);
+                        }
+                    }
+
+                    const finalSelected = Array.from(document.querySelectorAll('.item-checkbox')).filter(cb => cb.checked);
+                    if (finalSelected.length > 0 && !lastSyncFailed) {
+                        window.location.href = btnCheckout.getAttribute('href') || '/checkout';
+                    } else {
+                        updateSyncingUi(false);
+                    }
+                });
+            }
+        });
+        /*]]>*/
     </script>
 </body>
 </html>

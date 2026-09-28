@@ -1,10 +1,12 @@
 package com.manguonmo.popworld.controller.client;
 
 import com.manguonmo.popworld.entity.CartItem;
+import com.manguonmo.popworld.entity.Product;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
+import com.manguonmo.popworld.service.ProductService;
 import com.manguonmo.popworld.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -23,13 +26,18 @@ public class CartWebController {
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
     private final UserService userService;
+    private final ProductService productService;
+
     public CartWebController(CartService cartService,
                              CategoryService categoryService,
-                             CharacterIpService characterIpService, UserService userService) {
+                             CharacterIpService characterIpService,
+                             UserService userService,
+                             ProductService productService) {
         this.cartService = cartService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.userService = userService;
+        this.productService = productService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -37,24 +45,64 @@ public class CartWebController {
         model.addAttribute("characterIps", characterIpService.getAllCharacterIps());
     }
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public String viewCart(Model model, Principal principal) {
         addCommonAttributes(model);
         if (principal == null) {
             return "redirect:/login";
         }
-        String userName = principal.getName();
-        User user = userService.getUserByEmail(userName);
+        User user;
+        try {
+            user = userService.getUserByEmail(principal.getName());
+        } catch (Exception e) {
+            return "redirect:/login";
+        }
+        if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+            return "redirect:/login";
+        }
         List<CartItem> cartItems = cartService.getCartItems(user.getId());
         BigDecimal totalAmount = cartService.calculateSelectedTotal(user.getId());
         int cartCount = cartService.getCartCount(user.getId());
+        long selectedCount = cartItems.stream().filter(item -> Boolean.TRUE.equals(item.getIsSelected())).count();
+        boolean allSelected = !cartItems.isEmpty() && selectedCount == cartItems.size();
+
+        BigDecimal freeShippingThreshold = BigDecimal.valueOf(500000);
+        boolean isFreeShipping = totalAmount != null && totalAmount.compareTo(freeShippingThreshold) >= 0;
+        BigDecimal freeShippingRemaining = isFreeShipping
+                ? BigDecimal.ZERO
+                : freeShippingThreshold.subtract(totalAmount != null ? totalAmount : BigDecimal.ZERO);
+
+        List<Product> recommendedProducts = productService != null
+                ? productService.getFeaturedProducts()
+                : Collections.emptyList();
 
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalAmount", totalAmount);
         model.addAttribute("cartCount", cartCount);
+        model.addAttribute("selectedCount", selectedCount);
+        model.addAttribute("allSelected", allSelected);
+        model.addAttribute("isFreeShipping", isFreeShipping);
+        model.addAttribute("freeShippingRemaining", freeShippingRemaining);
+        model.addAttribute("recommendedProducts", recommendedProducts);
         model.addAttribute("user", user);
 
         return "cart";
+    }
+
+    @PostMapping("/select-all")
+    public String selectAll(@RequestParam(defaultValue = "true") boolean selectAll,
+                            Principal principal,
+                            RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            cartService.selectAll(user.getId(), selectAll);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/cart";
     }
 
     @PostMapping("/add")

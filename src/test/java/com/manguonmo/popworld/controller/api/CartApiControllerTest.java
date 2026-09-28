@@ -120,6 +120,15 @@ public class CartApiControllerTest {
     }
 
     @Test
+    @DisplayName("updateAllSelection cập nhật chọn tất cả và truyền đúng userId")
+    public void updateAllSelection_shouldCallServiceWithUserId() {
+        ResponseEntity<ApiResponse<Void>> response = cartApiController.updateAllSelection(true, principal);
+
+        verify(cartService, times(1)).selectAll(1L, true);
+        assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
     @DisplayName("removeItem xóa sản phẩm và gọi service đúng userId")
     public void removeItem_shouldCallServiceWithUserId() {
         ResponseEntity<ApiResponse<Void>> response = cartApiController.removeItem(99L, principal);

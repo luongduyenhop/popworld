@@ -19,6 +19,10 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.user.id = :userId AND c.isSelected = true")
     List<CartItem> findByUserIdAndIsSelectedTrue(@org.springframework.data.repository.query.Param("userId") Long userId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.id = :id AND c.user.id = :userId")
+    Optional<CartItem> findByIdAndUserId(@org.springframework.data.repository.query.Param("id") Long id,
+                                         @org.springframework.data.repository.query.Param("userId") Long userId);
+
     void deleteByUserId(Long userId);
     void deleteByUserIdAndIsSelectedTrue(Long userId);
     void deleteByProductId(Long productId);

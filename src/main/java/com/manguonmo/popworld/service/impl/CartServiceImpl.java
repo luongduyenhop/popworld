@@ -135,6 +135,27 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    public void selectAll(Long userId, boolean selectAll) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
+        }
+        List<CartItem> items = cartItemRepository.findByUserId(userId);
+        if (items.isEmpty()) {
+            return;
+        }
+        boolean changed = false;
+        for (CartItem item : items) {
+            if (item.getIsSelected() == null || item.getIsSelected() != selectAll) {
+                item.setIsSelected(selectAll);
+                changed = true;
+            }
+        }
+        if (changed) {
+            cartItemRepository.saveAll(items);
+        }
+    }
+
+    @Override
     public void removeFromCart(Long userId, Long cartItemId) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để xóa sản phẩm khỏi giỏ.");

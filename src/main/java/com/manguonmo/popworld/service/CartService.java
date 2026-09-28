@@ -11,6 +11,7 @@ public interface CartService {
     CartItem addToCart(Long userId, Long productId, String purchaseType, int quantity);
     void updateQuantity(Long userId, Long cartItemId, int quantity);
     void updateSelection(Long userId, Long cartItemId, boolean isSelected);
+    void selectAll(Long userId, boolean selectAll);
     void removeFromCart(Long userId, Long cartItemId);
     BigDecimal calculateSelectedTotal(Long userId);
     int getCartCount(Long userId);

@@ -248,4 +248,104 @@ class CartServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> cartService.updateSelection(1L, 999L, false));
         assertThrows(ResourceNotFoundException.class, () -> cartService.removeFromCart(1L, 999L));
     }
+
+    @Test
+    @DisplayName("Chọn hoặc bỏ chọn tất cả các món trong giỏ (Select All)")
+    void selectAll_ShouldUpdateAllItemsAndSave() {
+        User owner = User.builder().id(1L).build();
+        CartItem item1 = CartItem.builder().id(10L).user(owner).isSelected(false).build();
+        CartItem item2 = CartItem.builder().id(11L).user(owner).isSelected(true).build();
+
+        when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(item1, item2));
+
+        cartService.selectAll(1L, true);
+
+        assertTrue(item1.getIsSelected());
+        assertTrue(item2.getIsSelected());
+        verify(cartItemRepository, times(1)).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("Select all khi tất cả các món đã trùng trạng thái -> Không cần saveAll")
+    void selectAll_WhenAlreadyMatching_ShouldNotSave() {
+        User owner = User.builder().id(1L).build();
+        CartItem item1 = CartItem.builder().id(10L).user(owner).isSelected(true).build();
+        CartItem item2 = CartItem.builder().id(11L).user(owner).isSelected(true).build();
+
+        when(cartItemRepository.findByUserId(1L)).thenReturn(List.of(item1, item2));
+
+        cartService.selectAll(1L, true);
+
+        verify(cartItemRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("Thêm WHOLE_SET thành công khi tồn kho đủ (1 set = 12 hộp)")
+    void test_AddToCart_WholeSet_Success() {
+        User user = User.builder().id(1L).build();
+        Product product = Product.builder().id(10L).name("Labubu Set").stockQuantity(30).active(true).build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+        when(cartItemRepository.findByUserIdAndProductIdAndPurchaseType(1L, 10L, "WHOLE_SET")).thenReturn(Optional.empty());
+        when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 2 sets * 12 = 24 boxes <= 30 available
+        CartItem saved = cartService.addToCart(1L, 10L, "WHOLE_SET", 2);
+
+        assertNotNull(saved);
+        assertEquals(2, saved.getQuantity());
+        assertEquals("WHOLE_SET", saved.getPurchaseType());
+        assertTrue(saved.getIsSelected());
+        verify(cartItemRepository, times(1)).save(any(CartItem.class));
+    }
+
+    @Test
+    @DisplayName("updateQuantity: WHOLE_SET vượt quá tồn kho -> Ném OutOfStockException")
+    void test_UpdateQuantity_WholeSet_ExceedsStock_ThrowsOutOfStock() {
+        User owner = User.builder().id(1L).build();
+        Product product = Product.builder().id(10L).name("Labubu Set").stockQuantity(20).build();
+        CartItem item = CartItem.builder().id(100L).user(owner).product(product).purchaseType("WHOLE_SET").quantity(1).build();
+
+        when(cartItemRepository.findById(100L)).thenReturn(Optional.of(item));
+
+        // 2 sets * 12 = 24 boxes > 20 available
+        assertThrows(OutOfStockException.class, () -> cartService.updateQuantity(1L, 100L, 2));
+        verify(cartItemRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("updateQuantity: WHOLE_SET trong phạm vi tồn kho -> Cập nhật thành công")
+    void test_UpdateQuantity_WholeSet_WithinStock_Success() {
+        User owner = User.builder().id(1L).build();
+        Product product = Product.builder().id(10L).name("Labubu Set").stockQuantity(36).build();
+        CartItem item = CartItem.builder().id(100L).user(owner).product(product).purchaseType("WHOLE_SET").quantity(1).build();
+
+        when(cartItemRepository.findById(100L)).thenReturn(Optional.of(item));
+
+        // 3 sets * 12 = 36 boxes <= 36 available
+        cartService.updateQuantity(1L, 100L, 3);
+
+        assertEquals(3, item.getQuantity());
+        verify(cartItemRepository, times(1)).save(item);
+    }
+
+    @Test
+    @DisplayName("updateSelection: Lần lượt chọn và bỏ chọn (toggles) cập nhật chính xác")
+    void test_UpdateSelection_RapidToggles_SavesCorrectState() {
+        User owner = User.builder().id(1L).build();
+        CartItem item = CartItem.builder().id(50L).user(owner).isSelected(false).build();
+
+        when(cartItemRepository.findById(50L)).thenReturn(Optional.of(item));
+
+        // Bật chọn
+        cartService.updateSelection(1L, 50L, true);
+        assertTrue(item.getIsSelected());
+
+        // Bỏ chọn
+        cartService.updateSelection(1L, 50L, false);
+        assertFalse(item.getIsSelected());
+
+        verify(cartItemRepository, times(2)).save(item);
+    }
 }

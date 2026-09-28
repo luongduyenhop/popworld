@@ -116,6 +116,17 @@ public class CartApiController {
     }
 
     /**
+     * Chọn hoặc bỏ chọn tất cả sản phẩm
+     */
+    @PatchMapping("/selection/all")
+    public ResponseEntity<ApiResponse<Void>> updateAllSelection(@RequestParam boolean isSelected,
+                                                                Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        cartService.selectAll(user.getId(), isSelected);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật tất cả trạng thái chọn thành công", null));
+    }
+
+    /**
      * Xóa sản phẩm khỏi giỏ hàng
      */
     @DeleteMapping("/items/{cartItemId}")
