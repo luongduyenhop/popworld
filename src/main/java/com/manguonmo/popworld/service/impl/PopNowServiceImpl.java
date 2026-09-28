@@ -1,7 +1,9 @@
 package com.manguonmo.popworld.service.impl;
 
 import com.manguonmo.popworld.dto.request.BoxReservationRequest;
+import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
+import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.BoxReservationResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
 import com.manguonmo.popworld.entity.*;
@@ -14,11 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,6 +42,9 @@ public class PopNowServiceImpl implements PopNowService {
     private final BoxReservationRepository boxReservationRepository;
     private final OwnedItemRepository ownedItemRepository;
     private final BlindBoxSlotRepository blindBoxSlotRepository;
+    private final UserAddressRepository userAddressRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -109,7 +118,8 @@ public class PopNowServiceImpl implements PopNowService {
             throw new BadRequestException("Mã giữ hộp không hợp lệ!");
         }
 
-        BoxReservation reservation = boxReservationRepository.findByReservationCode(reservationCode.trim())
+        // Khóa bi quan hàng BoxReservation để tuần tự hóa cancel với scheduler/payment
+        BoxReservation reservation = boxReservationRepository.findByReservationCodeForUpdate(reservationCode.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp với mã: " + reservationCode));
 
         if (!reservation.getUser().getId().equals(userId)) {
@@ -120,59 +130,52 @@ public class PopNowServiceImpl implements PopNowService {
             throw new BadRequestException("Chỉ có thể hủy phiếu giữ hộp đang ở trạng thái RESERVED!");
         }
 
+        if (reservation.isExpired()) {
+            reservation.setStatus(ReservationStatus.EXPIRED);
+            boxReservationRepository.save(reservation);
+            releaseSlotAndRestoreStock(reservation);
+            throw new BadRequestException("Phiếu giữ hộp đã hết thời gian hiệu lực (5 phút)! Không thể hủy.");
+        }
+
         reservation.setStatus(ReservationStatus.CANCELLED);
         boxReservationRepository.save(reservation);
 
-        // Giải phóng slot về AVAILABLE
-        BlindBoxSlot slot = reservation.getSlot();
-        if (slot == null && reservation.getBoxIndex() != null) {
-            slot = blindBoxSlotRepository.findByProductIdAndSlotIndex(reservation.getProduct().getId(), reservation.getBoxIndex()).orElse(null);
-        }
-        if (slot != null) {
-            slot.setStatus(SlotStatus.AVAILABLE);
-            slot.setCurrentReservation(null);
-            blindBoxSlotRepository.save(slot);
-        }
-
-        // Hoàn lại 1 tồn kho vào sản phẩm
-        productRepository.addStock(reservation.getProduct().getId(), 1);
+        // Giải phóng slot về AVAILABLE và hoàn lại tồn kho đúng 1 lần duy nhất
+        releaseSlotAndRestoreStock(reservation);
         log.info("Khách hàng ID={} đã chủ động hủy phiếu giữ hộp code={}. Đã hoàn lại 1 tồn kho và mở lại slot.", userId, reservationCode);
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = BadRequestException.class)
     public void markPurchased(String reservationCode, String orderCode) {
         if (reservationCode == null || reservationCode.isBlank()) {
             throw new BadRequestException("Mã giữ hộp không hợp lệ!");
         }
-        BoxReservation reservation = boxReservationRepository.findByReservationCode(reservationCode.trim())
+        // Khóa bi quan hàng BoxReservation để tuần tự hóa với cancel/expiry và các webhook đồng thời
+        BoxReservation reservation = boxReservationRepository.findByReservationCodeForUpdate(reservationCode.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp: " + reservationCode));
+
+        // Tính lũy đẳng cho callback thanh toán lặp lại (Idempotent payment callback)
+        if (reservation.getStatus() == ReservationStatus.PURCHASED) {
+            log.info("Phiếu giữ hộp code={} đã ở trạng thái PURCHASED. Bỏ qua xử lý lặp lại (Idempotent).", reservationCode);
+            return;
+        }
+        if (reservation.getStatus() == ReservationStatus.UNBOXED) {
+            log.info("Phiếu giữ hộp code={} đã ở trạng thái UNBOXED. Bỏ qua xử lý lặp lại (Idempotent).", reservationCode);
+            return;
+        }
 
         if (reservation.getStatus() == ReservationStatus.EXPIRED || reservation.isExpired()) {
             if (reservation.getStatus() == ReservationStatus.RESERVED) {
                 reservation.setStatus(ReservationStatus.EXPIRED);
                 boxReservationRepository.save(reservation);
-                productRepository.addStock(reservation.getProduct().getId(), 1);
-
-                BlindBoxSlot slot = reservation.getSlot();
-                if (slot == null && reservation.getBoxIndex() != null) {
-                    slot = blindBoxSlotRepository.findByProductIdAndSlotIndex(reservation.getProduct().getId(), reservation.getBoxIndex()).orElse(null);
-                }
-                if (slot != null) {
-                    slot.setStatus(SlotStatus.AVAILABLE);
-                    slot.setCurrentReservation(null);
-                    blindBoxSlotRepository.save(slot);
-                }
+                releaseSlotAndRestoreStock(reservation);
             }
             throw new BadRequestException("Phiếu giữ hộp đã hết hạn, không thể thanh toán!");
         }
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new BadRequestException("Phiếu giữ hộp đã bị hủy, không thể thanh toán!");
-        }
-
-        if (reservation.getStatus() == ReservationStatus.UNBOXED || reservation.getStatus() == ReservationStatus.PURCHASED) {
-            throw new BadRequestException("Phiếu giữ hộp đã được thanh toán hoặc đã mở trước đó!");
         }
 
         if (reservation.getStatus() != ReservationStatus.RESERVED) {
@@ -313,27 +316,26 @@ public class PopNowServiceImpl implements PopNowService {
     @Transactional
     public int releaseExpiredReservations() {
         LocalDateTime now = LocalDateTime.now();
-        List<BoxReservation> expiredList = boxReservationRepository.findByStatusAndExpiresAtBefore(
+        List<BoxReservation> expiredCandidates = boxReservationRepository.findByStatusAndExpiresAtBefore(
                 ReservationStatus.RESERVED, now
         );
 
         int count = 0;
-        for (BoxReservation res : expiredList) {
+        for (BoxReservation candidate : expiredCandidates) {
+            // Khóa bi quan từng hàng để tránh race condition với cancel/payment đồng thời
+            BoxReservation res = boxReservationRepository.findByIdForUpdate(candidate.getId())
+                    .orElse(candidate);
+
+            // Re-check trạng thái dưới khóa bi quan: nếu luồng khác đã cancel/purchase thì bỏ qua
+            if (res.getStatus() != ReservationStatus.RESERVED) {
+                continue;
+            }
+
             res.setStatus(ReservationStatus.EXPIRED);
             boxReservationRepository.save(res);
 
-            // Giải phóng slot về AVAILABLE
-            BlindBoxSlot slot = res.getSlot();
-            if (slot == null && res.getBoxIndex() != null) {
-                slot = blindBoxSlotRepository.findByProductIdAndSlotIndex(res.getProduct().getId(), res.getBoxIndex()).orElse(null);
-            }
-            if (slot != null) {
-                slot.setStatus(SlotStatus.AVAILABLE);
-                slot.setCurrentReservation(null);
-                blindBoxSlotRepository.save(slot);
-            }
-
-            productRepository.addStock(res.getProduct().getId(), 1);
+            // Giải phóng slot về AVAILABLE và hoàn tồn kho đúng 1 lần duy nhất
+            releaseSlotAndRestoreStock(res);
             count++;
         }
 
@@ -342,6 +344,23 @@ public class PopNowServiceImpl implements PopNowService {
                     count, RESERVATION_TTL_MINUTES);
         }
         return count;
+    }
+
+    /**
+     * Giải phóng ô hộp về AVAILABLE và hoàn lại 1 tồn kho vào sản phẩm đúng 1 lần duy nhất
+     */
+    private void releaseSlotAndRestoreStock(BoxReservation res) {
+        BlindBoxSlot slot = res.getSlot();
+        if (slot == null && res.getBoxIndex() != null) {
+            slot = blindBoxSlotRepository.findByProductIdAndSlotIndex(res.getProduct().getId(), res.getBoxIndex()).orElse(null);
+        }
+        if (slot != null && slot.getStatus() == SlotStatus.HELD) {
+            slot.setStatus(SlotStatus.AVAILABLE);
+            slot.setCurrentReservation(null);
+            blindBoxSlotRepository.save(slot);
+        }
+
+        productRepository.addStock(res.getProduct().getId(), 1);
     }
 
     /**
@@ -385,6 +404,86 @@ public class PopNowServiceImpl implements PopNowService {
         return items.get(0);
     }
 
+    @Override
+    public List<BlindBoxSlotResponse> getProductSlots(Long productId) {
+        if (productId == null) {
+            throw new BadRequestException("ID sản phẩm không được để trống!");
+        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        List<BlindBoxSlot> existingSlots = blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(productId);
+        Map<Integer, BlindBoxSlot> slotMap = existingSlots.stream()
+                .collect(Collectors.toMap(BlindBoxSlot::getSlotIndex, s -> s, (s1, s2) -> s1));
+
+        int totalSlots = 12; // Mặc định 12 ô chuẩn POP MART
+        if (product.getPackagingType() != null && !product.getPackagingType().isBlank()) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\s*(?:box|hộp|mẫu|piece|case|slot)", java.util.regex.Pattern.CASE_INSENSITIVE)
+                    .matcher(product.getPackagingType());
+            int foundCount = 0;
+            while (m.find()) {
+                int count = Integer.parseInt(m.group(1));
+                if (count > 1) {
+                    foundCount = count;
+                }
+            }
+            if (foundCount > 0) {
+                totalSlots = foundCount;
+            }
+        }
+
+        int maxIndex = existingSlots.stream()
+                .mapToInt(BlindBoxSlot::getSlotIndex)
+                .max()
+                .orElse(0);
+        totalSlots = Math.max(totalSlots, maxIndex);
+
+        List<BlindBoxSlotResponse> result = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (int i = 1; i <= totalSlots; i++) {
+            BlindBoxSlot slot = slotMap.get(i);
+            String status = "AVAILABLE";
+            if (slot != null) {
+                if (slot.getStatus() == SlotStatus.SOLD) {
+                    status = "SOLD";
+                } else if (slot.getStatus() == SlotStatus.HELD) {
+                    if (slot.getCurrentReservation() != null && slot.getCurrentReservation().getExpiresAt() != null
+                            && now.isAfter(slot.getCurrentReservation().getExpiresAt())) {
+                        status = "AVAILABLE";
+                    } else {
+                        status = "HELD";
+                    }
+                } else {
+                    status = "AVAILABLE";
+                }
+            }
+            if ("AVAILABLE".equals(status) && (product.getStockQuantity() == null || product.getStockQuantity() <= 0)) {
+                status = "SOLD";
+            }
+            result.add(BlindBoxSlotResponse.builder()
+                    .slotIndex(i)
+                    .status(status)
+                    .build());
+        }
+        return result;
+    }
+
+    @Override
+    public BoxReservationResponse getReservationByCode(Long userId, String reservationCode) {
+        if (reservationCode == null || reservationCode.isBlank()) {
+            throw new BadRequestException("Mã giữ hộp không hợp lệ!");
+        }
+        BoxReservation reservation = boxReservationRepository.findByReservationCode(reservationCode.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp: " + reservationCode));
+
+        if (userId != null && !reservation.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền xem phiếu giữ hộp này!");
+        }
+
+        return mapToReservationResponse(reservation);
+    }
+
     private BoxReservationResponse mapToReservationResponse(BoxReservation res) {
         return BoxReservationResponse.builder()
                 .reservationCode(res.getReservationCode())
@@ -395,6 +494,7 @@ public class PopNowServiceImpl implements PopNowService {
                 .reservedAt(res.getReservedAt())
                 .expiresAt(res.getExpiresAt())
                 .price(res.getProduct().getSinglePrice())
+                .orderCode(res.getOrderCode())
                 .build();
     }
 
@@ -411,5 +511,120 @@ public class PopNowServiceImpl implements PopNowService {
                 .unboxedAt(item.getUnboxedAt())
                 .reservationCode(item.getReservation() != null ? item.getReservation().getReservationCode() : null)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public Order requestShipment(Long userId, Long addressId, List<Long> ownedItemIds) {
+        ShipCabinetRequest request = ShipCabinetRequest.builder()
+                .addressId(addressId)
+                .ownedItemIds(ownedItemIds)
+                .build();
+        return requestShipment(userId, request);
+    }
+
+    @Override
+    @Transactional
+    public Order requestShipment(Long userId, ShipCabinetRequest request) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực tài khoản!");
+        }
+        if (request == null) {
+            throw new BadRequestException("Thông tin yêu cầu giao hàng không hợp lệ!");
+        }
+        if (request.getAddressId() == null) {
+            throw new BadRequestException("Vui lòng chọn địa chỉ nhận hàng!");
+        }
+
+        List<Long> itemIds = request.resolveItemIds();
+        if (itemIds == null || itemIds.isEmpty()) {
+            throw new BadRequestException("Vui lòng chọn ít nhất một mô hình để yêu cầu giao hàng!");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+
+        // 1. Kiểm tra IDOR địa chỉ nhận hàng và snapshot địa chỉ bất biến
+        UserAddress address = userAddressRepository.findByIdAndUserId(request.getAddressId(), userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ hoặc bạn không có quyền truy cập địa chỉ này!"));
+
+        // 2. Khóa bi quan và kiểm tra từng vật phẩm (IDOR, Concurrency, Duplicate shipping)
+        List<Long> distinctItemIds = itemIds.stream().distinct().toList();
+        List<OwnedItem> itemsToShip = new ArrayList<>();
+
+        for (Long itemId : distinctItemIds) {
+            if (itemId == null) continue;
+            OwnedItem item = ownedItemRepository.findByIdForUpdate(itemId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mô hình với ID: " + itemId));
+
+            // IDOR check: Vật phẩm phải thuộc về người dùng đang đăng nhập
+            if (!item.getUser().getId().equals(userId)) {
+                throw new BadRequestException("Bạn không có quyền yêu cầu giao hàng cho mô hình với ID: " + itemId);
+            }
+
+            // Status invariant check: Chỉ vật phẩm IN_CABINET mới được giao hàng
+            if (item.getStatus() != OwnedItemStatus.IN_CABINET) {
+                throw new BadRequestException("Mô hình '" + item.getBlindBoxItem().getName() + "' (ID: " + itemId + ") không ở trong tủ đồ hoặc đã được yêu cầu giao hàng trước đó!");
+            }
+
+            itemsToShip.add(item);
+        }
+
+        if (itemsToShip.isEmpty()) {
+            throw new BadRequestException("Không có mô hình hợp lệ nào được chọn để giao hàng!");
+        }
+
+        // 3. Tạo mã đơn hàng giao vận
+        String orderCode = "ORD" + System.currentTimeMillis() + String.format("%04d", secureRandom.nextInt(10000));
+
+        // 4. Tạo Order với snapshot địa chỉ bất biến và POP NOW delivery semantics
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .user(user)
+                .recipientName(address.getRecipientName())
+                .recipientPhone(address.getRecipientPhone())
+                .provinceCity(address.getProvinceCity())
+                .district(address.getDistrict())
+                .ward(address.getWard() != null ? address.getWard() : "")
+                .detailedAddress(address.getDetailedAddress())
+                .deliveryMethod("POP_NOW_SHIP")
+                .subtotalAmount(BigDecimal.ZERO)
+                .shippingFee(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
+                .totalAmount(BigDecimal.ZERO)
+                .pointsEarned(0)
+                .pointsUsed(0)
+                .pointsDiscount(BigDecimal.ZERO)
+                .status("PROCESSING")
+                .paymentMethod("POP_NOW")
+                .paidAt(LocalDateTime.now())
+                .note("Đơn giao hàng POP NOW Virtual Cabinet (" + itemsToShip.size() + " mô hình)")
+                .build();
+
+        order = orderRepository.save(order);
+
+        // 5. Tạo OrderItem cho từng mô hình và chuyển trạng thái OwnedItem sang REQUESTED_SHIPPING
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OwnedItem item : itemsToShip) {
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .product(item.getProduct())
+                    .quantity(1)
+                    .unitPrice(BigDecimal.ZERO)
+                    .totalPrice(BigDecimal.ZERO)
+                    .purchaseType("POP_NOW")
+                    .build();
+            orderItems.add(orderItem);
+
+            item.setStatus(OwnedItemStatus.REQUESTED_SHIPPING);
+            ownedItemRepository.save(item);
+        }
+
+        orderItemRepository.saveAll(orderItems);
+
+        log.info("Yêu cầu giao hàng Virtual Cabinet thành công: User ID={}, OrderCode={}, ItemsCount={}",
+                userId, orderCode, itemsToShip.size());
+
+        return order;
     }
 }

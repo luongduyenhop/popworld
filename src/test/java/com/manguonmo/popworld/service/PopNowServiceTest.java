@@ -1,7 +1,9 @@
 package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.dto.request.BoxReservationRequest;
+import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
+import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.BoxReservationResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
 import com.manguonmo.popworld.entity.*;
@@ -19,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +50,15 @@ class PopNowServiceTest {
 
     @Mock
     private BlindBoxSlotRepository blindBoxSlotRepository;
+
+    @Mock
+    private UserAddressRepository userAddressRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private OrderItemRepository orderItemRepository;
 
     @InjectMocks
     private PopNowServiceImpl popNowService;
@@ -144,7 +156,7 @@ class PopNowServiceTest {
                 .build();
         slot.setCurrentReservation(res);
 
-        when(boxReservationRepository.findByReservationCode("PN-CANCEL01")).thenReturn(Optional.of(res));
+        when(boxReservationRepository.findByReservationCodeForUpdate("PN-CANCEL01")).thenReturn(Optional.of(res));
 
         popNowService.cancelReservation(1L, "PN-CANCEL01");
 
@@ -166,7 +178,7 @@ class PopNowServiceTest {
                 .reservationCode("PN-RES-IDOR")
                 .status(ReservationStatus.RESERVED)
                 .build();
-        when(boxReservationRepository.findByReservationCode("PN-RES-IDOR")).thenReturn(Optional.of(res));
+        when(boxReservationRepository.findByReservationCodeForUpdate("PN-RES-IDOR")).thenReturn(Optional.of(res));
 
         assertThrows(BadRequestException.class, () -> popNowService.cancelReservation(999L, "PN-RES-IDOR"));
         verify(productRepository, never()).addStock(any(), any());
@@ -303,7 +315,7 @@ class PopNowServiceTest {
     void markPurchased_Success() {
         BlindBoxSlot slot = BlindBoxSlot.builder().id(1L).product(sampleProduct).slotIndex(3).status(SlotStatus.HELD).build();
         BoxReservation res = BoxReservation.builder().id(401L).status(ReservationStatus.RESERVED).slot(slot).build();
-        when(boxReservationRepository.findByReservationCode("PN-BUY")).thenReturn(Optional.of(res));
+        when(boxReservationRepository.findByReservationCodeForUpdate("PN-BUY")).thenReturn(Optional.of(res));
 
         popNowService.markPurchased("PN-BUY", "PW-ORDER-001");
 
@@ -318,12 +330,12 @@ class PopNowServiceTest {
     @DisplayName("markPurchased: Phiếu đã hết hạn hoặc bị hủy -> Ném ngoại lệ, không cho phép thanh toán")
     void markPurchased_WhenExpiredOrCancelled_ThrowsBadRequestException() {
         BoxReservation expiredRes = BoxReservation.builder().id(402L).status(ReservationStatus.EXPIRED).build();
-        when(boxReservationRepository.findByReservationCode("PN-EXPIRED")).thenReturn(Optional.of(expiredRes));
+        when(boxReservationRepository.findByReservationCodeForUpdate("PN-EXPIRED")).thenReturn(Optional.of(expiredRes));
 
         assertThrows(BadRequestException.class, () -> popNowService.markPurchased("PN-EXPIRED", "PW-1"));
 
         BoxReservation cancelledRes = BoxReservation.builder().id(403L).status(ReservationStatus.CANCELLED).build();
-        when(boxReservationRepository.findByReservationCode("PN-CANCEL")).thenReturn(Optional.of(cancelledRes));
+        when(boxReservationRepository.findByReservationCodeForUpdate("PN-CANCEL")).thenReturn(Optional.of(cancelledRes));
 
         assertThrows(BadRequestException.class, () -> popNowService.markPurchased("PN-CANCEL", "PW-2"));
     }
@@ -377,5 +389,171 @@ class PopNowServiceTest {
         assertEquals(1, series.size());
         assertEquals("The Monster", series.get(0).getName());
         assertFalse(Boolean.TRUE.equals(series.get(0).getIsSecret()));
+    }
+
+    @Test
+    @DisplayName("getProductSlots: Tự động điều chỉnh số lượng slot linh hoạt khi series có 6 hộp")
+    void getProductSlots_When6SlotsConfigured_Returns6Slots() {
+        Product sixBoxProduct = Product.builder().id(10L).name("Hirono After Dark").active(true)
+                .packagingType("6 Boxes per Set").singlePrice(BigDecimal.valueOf(350000)).stockQuantity(20).build();
+        when(productRepository.findById(10L)).thenReturn(Optional.of(sixBoxProduct));
+
+        List<BlindBoxSlot> sixSlots = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) {
+            sixSlots.add(BlindBoxSlot.builder().id((long) i).product(sixBoxProduct).slotIndex(i).status(SlotStatus.AVAILABLE).build());
+        }
+        when(blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(10L)).thenReturn(sixSlots);
+
+        List<BlindBoxSlotResponse> result = popNowService.getProductSlots(10L);
+
+        assertEquals(6, result.size());
+        assertEquals(1, result.get(0).getSlotIndex());
+        assertEquals(6, result.get(5).getSlotIndex());
+        assertEquals("AVAILABLE", result.get(0).getStatus());
+    }
+
+    @Test
+    @DisplayName("getProductSlots: Tự động dự phòng 12 slot chuẩn khi chưa cấu hình slot trong DB")
+    void getProductSlots_WhenNoSlotsConfigured_DefaultsTo12Slots() {
+        when(productRepository.findById(10L)).thenReturn(Optional.of(sampleProduct));
+        when(blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(10L)).thenReturn(Collections.emptyList());
+
+        List<BlindBoxSlotResponse> result = popNowService.getProductSlots(10L);
+
+        assertEquals(12, result.size());
+    }
+
+    @Test
+    @DisplayName("requestShipment: Happy path - 1 item + địa chỉ chính chủ -> Tạo đúng 1 đơn hàng giao vận, chuyển trạng thái REQUESTED_SHIPPING và không đổi tồn kho")
+    void requestShipment_HappyPath_CreatesOrderAndTransitionsItem() {
+        UserAddress address = UserAddress.builder()
+                .id(100L)
+                .user(sampleUser)
+                .recipientName("Nguyễn Văn A")
+                .recipientPhone("0987654321")
+                .provinceCity("Hà Nội")
+                .district("Cầu Giấy")
+                .ward("Dịch Vọng Hậu")
+                .detailedAddress("123 Duy Tân")
+                .build();
+
+        BlindBoxItem bbItem = BlindBoxItem.builder().id(50L).name("Crybaby Crying Again").rarity(RarityType.REGULAR).build();
+        OwnedItem ownedItem = OwnedItem.builder()
+                .id(200L)
+                .user(sampleUser)
+                .product(sampleProduct)
+                .blindBoxItem(bbItem)
+                .status(OwnedItemStatus.IN_CABINET)
+                .unboxedAt(LocalDateTime.now())
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(userAddressRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(address));
+        when(ownedItemRepository.findByIdForUpdate(200L)).thenReturn(Optional.of(ownedItem));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order o = invocation.getArgument(0);
+            o.setId(999L);
+            return o;
+        });
+
+        ShipCabinetRequest request = ShipCabinetRequest.builder()
+                .addressId(100L)
+                .ownedItemId(200L)
+                .build();
+
+        Order createdOrder = popNowService.requestShipment(1L, request);
+
+        assertNotNull(createdOrder);
+        assertEquals("POP_NOW_SHIP", createdOrder.getDeliveryMethod());
+        assertEquals("PROCESSING", createdOrder.getStatus());
+        assertEquals("POP_NOW", createdOrder.getPaymentMethod());
+        assertEquals("Nguyễn Văn A", createdOrder.getRecipientName());
+        assertEquals("0987654321", createdOrder.getRecipientPhone());
+        assertEquals("Hà Nội", createdOrder.getProvinceCity());
+        assertEquals("Cầu Giấy", createdOrder.getDistrict());
+        assertEquals("Dịch Vọng Hậu", createdOrder.getWard());
+        assertEquals("123 Duy Tân", createdOrder.getDetailedAddress());
+        assertEquals(BigDecimal.ZERO, createdOrder.getTotalAmount());
+
+        // Trạng thái vật phẩm được cập nhật
+        assertEquals(OwnedItemStatus.REQUESTED_SHIPPING, ownedItem.getStatus());
+        verify(ownedItemRepository, times(1)).save(ownedItem);
+        verify(orderRepository, times(1)).save(any(Order.class));
+        verify(orderItemRepository, times(1)).saveAll(anyList());
+
+        // Invariant: Tồn kho sản phẩm tuyệt đối không bị thay đổi (không trừ / không cộng lại)
+        verify(productRepository, never()).updateStock(any(), anyInt());
+        verify(productRepository, never()).addStock(any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("requestShipment: Từ chối khi vật phẩm thuộc về người dùng khác (IDOR)")
+    void requestShipment_ForeignOwnedItem_ThrowsBadRequest() {
+        User otherUser = User.builder().id(2L).email("other@test.com").build();
+        UserAddress address = UserAddress.builder().id(100L).user(sampleUser).recipientName("A").recipientPhone("1").provinceCity("HN").district("CG").detailedAddress("123").build();
+
+        BlindBoxItem bbItem = BlindBoxItem.builder().id(50L).name("Secret").rarity(RarityType.SECRET).build();
+        OwnedItem foreignItem = OwnedItem.builder()
+                .id(200L)
+                .user(otherUser) // Không phải sampleUser
+                .product(sampleProduct)
+                .blindBoxItem(bbItem)
+                .status(OwnedItemStatus.IN_CABINET)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(userAddressRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(address));
+        when(ownedItemRepository.findByIdForUpdate(200L)).thenReturn(Optional.of(foreignItem));
+
+        ShipCabinetRequest request = ShipCabinetRequest.builder().addressId(100L).ownedItemId(200L).build();
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> popNowService.requestShipment(1L, request));
+        assertTrue(ex.getMessage().contains("Bạn không có quyền yêu cầu giao hàng"));
+        verify(orderRepository, never()).save(any());
+        assertEquals(OwnedItemStatus.IN_CABINET, foreignItem.getStatus());
+    }
+
+    @Test
+    @DisplayName("requestShipment: Từ chối khi địa chỉ giao hàng không thuộc về người dùng (Address IDOR)")
+    void requestShipment_ForeignAddress_ThrowsResourceNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(userAddressRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
+
+        ShipCabinetRequest request = ShipCabinetRequest.builder().addressId(999L).ownedItemId(200L).build();
+
+        assertThrows(ResourceNotFoundException.class, () -> popNowService.requestShipment(1L, request));
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("requestShipment: Từ chối khi vật phẩm đã yêu cầu giao hàng trước đó (Idempotency / State Invariant)")
+    void requestShipment_AlreadyRequestedShippingItem_ThrowsBadRequest() {
+        UserAddress address = UserAddress.builder().id(100L).user(sampleUser).recipientName("A").recipientPhone("1").provinceCity("HN").district("CG").detailedAddress("123").build();
+
+        BlindBoxItem bbItem = BlindBoxItem.builder().id(50L).name("Mô hình").rarity(RarityType.REGULAR).build();
+        OwnedItem alreadyShippedItem = OwnedItem.builder()
+                .id(200L)
+                .user(sampleUser)
+                .product(sampleProduct)
+                .blindBoxItem(bbItem)
+                .status(OwnedItemStatus.REQUESTED_SHIPPING) // Đã chuyển trạng thái
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(userAddressRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(address));
+        when(ownedItemRepository.findByIdForUpdate(200L)).thenReturn(Optional.of(alreadyShippedItem));
+
+        ShipCabinetRequest request = ShipCabinetRequest.builder().addressId(100L).ownedItemId(200L).build();
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> popNowService.requestShipment(1L, request));
+        assertTrue(ex.getMessage().contains("đã được yêu cầu giao hàng"));
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("requestShipment: Từ chối khi danh sách vật phẩm rỗng")
+    void requestShipment_EmptyItems_ThrowsBadRequest() {
+        ShipCabinetRequest request = ShipCabinetRequest.builder().addressId(100L).ownedItemIds(Collections.emptyList()).build();
+        assertThrows(BadRequestException.class, () -> popNowService.requestShipment(1L, request));
     }
 }

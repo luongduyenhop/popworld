@@ -63,7 +63,7 @@
                     </li>
                     <!-- POP NOW Signature Highlight (Trải nghiệm bóc túi/hộp online đặc sản POP MART) -->
                     <li class="nav-item">
-                        <a class="nav-link nav-link-custom px-2 px-xl-3 pop-now-nav-item" th:href="@{/categories/blind-box}" title="Trải nghiệm bóc seal online chuẩn POP MART">
+                        <a class="nav-link nav-link-custom px-2 px-xl-3 pop-now-nav-item" th:href="@{/popnow}" title="Trải nghiệm bóc seal online chuẩn POP MART">
                             <span class="pop-now-dot"></span>
                             <span>POP NOW</span>
                         </a>
@@ -131,6 +131,9 @@
                             </a>
                             <a th:href="@{/orders}" class="pop-user-menu-item">
                                 <i class="bi bi-box-seam me-2 text-primary"></i> My Orders
+                            </a>
+                            <a th:href="@{/popnow/cabinet}" class="pop-user-menu-item">
+                                <i class="bi bi-collection-fill me-2 text-warning"></i> My Cabinet
                             </a>
                             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="pop-user-menu-item text-danger fw-bold">
                                 <i class="bi bi-speedometer2 me-2"></i> Admin Portal

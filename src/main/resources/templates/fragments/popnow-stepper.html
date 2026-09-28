@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><title>Stepper Fragment</title></head>
+<body>
+
+<!--
+  POP NOW Progress Stepper Fragment
+  Usage: th:replace="~{fragments/popnow-stepper :: stepper(currentStep='pick')}"
+  currentStep values: 'pick' | 'shake' | 'unbox'
+-->
+<div th:fragment="stepper(currentStep)">
+    <div class="popnow-stepper-bar">
+        <div class="container-fluid px-3 px-md-4">
+            <div class="popnow-stepper-inner">
+
+                <!-- Step 1: Chọn Hộp -->
+                <div class="popnow-step"
+                     th:classappend="${currentStep == 'pick'} ? 'active' : (${currentStep == 'shake' or currentStep == 'unbox'} ? 'completed' : '')">
+                    <div class="popnow-step-icon">
+                        <!-- completed: check icon -->
+                        <i class="bi bi-check-lg" th:if="${currentStep == 'shake' or currentStep == 'unbox'}"></i>
+                        <!-- active/pending: box icon -->
+                        <i class="bi bi-box-seam" th:unless="${currentStep == 'shake' or currentStep == 'unbox'}"></i>
+                    </div>
+                    <span class="popnow-step-label">Chọn Hộp</span>
+                </div>
+
+                <!-- Connector -->
+                <div class="popnow-step-connector"
+                     th:classappend="${currentStep == 'shake' or currentStep == 'unbox'} ? 'filled' : ''"></div>
+
+                <!-- Step 2: Lắc & Đoán -->
+                <div class="popnow-step"
+                     th:classappend="${currentStep == 'shake'} ? 'active' : (${currentStep == 'unbox'} ? 'completed' : '')">
+                    <div class="popnow-step-icon">
+                        <i class="bi bi-check-lg" th:if="${currentStep == 'unbox'}"></i>
+                        <i class="bi bi-stars" th:unless="${currentStep == 'unbox'}"></i>
+                    </div>
+                    <span class="popnow-step-label">Lắc &amp; Đoán</span>
+                </div>
+
+                <!-- Connector -->
+                <div class="popnow-step-connector"
+                     th:classappend="${currentStep == 'unbox'} ? 'filled' : ''"></div>
+
+                <!-- Step 3: Khui Hộp -->
+                <div class="popnow-step"
+                     th:classappend="${currentStep == 'unbox'} ? 'active' : ''">
+                    <div class="popnow-step-icon">
+                        <i class="bi bi-gift"></i>
+                    </div>
+                    <span class="popnow-step-label">Khui Hộp</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .popnow-stepper-bar {
+            background: #FFFFFF;
+            border-bottom: 1px solid #F1F5F9;
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 70px; /* below main navbar */
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .popnow-stepper-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .popnow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .popnow-step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #F1F5F9;
+            color: #94A3B8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .popnow-step.active .popnow-step-icon {
+            background: #7C3AED;
+            color: #FFFFFF;
+            border-color: #7C3AED;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+        }
+        .popnow-step.completed .popnow-step-icon {
+            background: #10B981;
+            color: #FFFFFF;
+            border-color: #10B981;
+        }
+        .popnow-step-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #94A3B8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .popnow-step.active .popnow-step-label {
+            color: #7C3AED;
+        }
+        .popnow-step.completed .popnow-step-label {
+            color: #10B981;
+        }
+        .popnow-step-connector {
+            flex: 1;
+            height: 2px;
+            background: #E2E8F0;
+            margin: 0 8px;
+            margin-bottom: 18px; /* align with icon center */
+            border-radius: 2px;
+            min-width: 32px;
+            max-width: 80px;
+            transition: background 0.3s ease;
+        }
+        .popnow-step-connector.filled {
+            background: #10B981;
+        }
+        @media (max-width: 400px) {
+            .popnow-step-label { font-size: 0.6rem; }
+            .popnow-step-icon { width: 30px; height: 30px; font-size: 0.85rem; }
+            .popnow-step-connector { min-width: 20px; }
+        }
+    </style>
+</div>
+
+</body>
+</html>

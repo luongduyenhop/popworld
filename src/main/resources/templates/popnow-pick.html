@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+    <title th:text="'Chọn Hộp POP NOW - ' + ${product.name} + ' - PopWorld'">Chọn Hộp POP NOW - PopWorld</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    <style>
+        .popnow-tray-container {
+            background: #18181B;
+            border-radius: 28px;
+            padding: 2.5rem 1.5rem;
+            color: #FFFFFF;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+            border: 2px solid #27272A;
+            position: relative;
+        }
+        .popnow-tray-title {
+            color: #FACC15;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .popnow-slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 16px;
+        }
+        @media (max-width: 991px) {
+            .popnow-slot-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 12px;
+            }
+        }
+        @media (max-width: 575px) {
+            .popnow-slot-grid {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 8px;
+            }
+        }
+        .popnow-slot-card {
+            background: #27272A;
+            border: 2px solid #3F3F46;
+            border-radius: 18px;
+            padding: 1.25rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+        }
+        .popnow-slot-card.status-AVAILABLE {
+            border-color: #EAB308;
+            background: linear-gradient(180deg, #27272A 0%, #1F2937 100%);
+        }
+        .popnow-slot-card.status-AVAILABLE:hover {
+            transform: translateY(-5px) scale(1.03);
+            border-color: #FDE047;
+            box-shadow: 0 10px 24px rgba(234, 179, 8, 0.35);
+        }
+        .popnow-slot-card.status-HELD {
+            background: #1E1B4B;
+            border-color: #6366F1;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+        .popnow-slot-card.status-SOLD {
+            background: #18181B;
+            border-color: #27272A;
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+        .popnow-slot-card.selected-mine {
+            background: linear-gradient(135deg, #FF1E27 0%, #B91C1C 100%) !important;
+            border-color: #FFFFFF !important;
+            box-shadow: 0 0 0 4px rgba(255, 30, 39, 0.5), 0 12px 28px rgba(255, 30, 39, 0.5) !important;
+            transform: translateY(-6px) scale(1.05) !important;
+        }
+        .popnow-box-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.25rem;
+            transition: transform 0.2s ease;
+        }
+        .popnow-slot-num {
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        .popnow-status-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+        .badge-available { background: rgba(234, 179, 8, 0.2); color: #FDE047; border: 1px solid #EAB308; }
+        .badge-held { background: rgba(99, 102, 241, 0.25); color: #A5B4FC; border: 1px solid #6366F1; }
+        .badge-sold { background: rgba(255, 255, 255, 0.1); color: #9CA3AF; }
+        .badge-mine { background: #FFFFFF; color: #FF1E27; font-weight: 900; }
+
+        .popnow-active-panel {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 1.75rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E2E8F0;
+        }
+        .popnow-timer-badge {
+            font-family: monospace;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #DC2626;
+            background: #FEE2E2;
+            padding: 0.4rem 1.25rem;
+            border-radius: 16px;
+            display: inline-block;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+        .popnow-timer-badge.urgent {
+            animation: timer-pulse 0.8s infinite ease-in-out;
+            background: #DC2626;
+            color: #FFFFFF;
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+        }
+        @keyframes timer-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); transform: scale(1); }
+            50%  { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); transform: scale(1.04); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); transform: scale(1); }
+        }
+        .series-lineup-card {
+            border-radius: 16px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            padding: 8px;
+            text-align: center;
+        }
+        .series-lineup-img {
+            width: 100%;
+            height: 90px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <!-- POP NOW Progress Stepper -->
+    <div th:replace="~{fragments/popnow-stepper :: stepper('pick')}"></div>
+
+    <main class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb" style="font-size: 0.86rem;">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/popnow}" class="text-decoration-none text-secondary fw-semibold">POP NOW</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${product.name}">Chọn Hộp</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4 mb-5">
+            <!-- Cột trái: Khay 12 hộp bốc trực tuyến (Pick a Box Tray) -->
+            <div class="col-lg-8">
+                <div class="popnow-tray-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase">
+                                    <i class="bi bi-box2-fill me-1"></i> KHAY NGUYÊN SEAL <span th:if="${slots != null}">• <span th:text="${slots.size()} + ' HỘP'">12 HỘP</span></span>
+                                </span>
+                                <span class="badge bg-dark border border-secondary text-warning font-monospace px-3 py-2 fw-bold"
+                                      th:text="${setCode != null ? setCode : 'No.PW' + product.id}">
+                                    No.PW6KPSYR
+                                </span>
+                            </div>
+                            <h3 class="popnow-tray-title mb-0" th:text="${product.name}">TÊN BỘ SƯU TẬP</h3>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-secondary small d-block">Giá bốc 1 hộp:</span>
+                            <span class="fs-4 fw-black text-warning"
+                                  th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                350.000 ₫
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-dark border-secondary bg-dark text-light small py-2 px-3 rounded-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-5"></i>
+                            <span><strong>Cam kết chống trùng:</strong> Không trùng lặp mẫu khi bốc trong cùng 1 SET (No duplicates from SAME SET).</span>
+                        </div>
+                        <span class="text-warning small font-monospace"><i class="bi bi-hourglass-split me-1"></i>Giữ hộp 5 phút</span>
+                    </div>
+
+                    <!-- Lưới 12 ô hộp -->
+                    <div class="popnow-slot-grid" id="slotGrid">
+                        <div th:each="slot : ${slots}"
+                             class="popnow-slot-card"
+                             th:classappend="'status-' + ${slot.status} + (${activeReservation != null && activeReservation.boxIndex == slot.slotIndex} ? ' selected-mine' : '')"
+                             th:data-slot-index="${slot.slotIndex}"
+                             th:data-status="${slot.status}"
+                             onclick="handleSlotClick(this)">
+                            <div class="popnow-box-icon">
+                                <i th:if="${slot.status == 'AVAILABLE'}" class="bi bi-gift-fill text-warning"></i>
+                                <i th:if="${slot.status == 'HELD' && !(activeReservation != null && activeReservation.boxIndex == slot.slotIndex)}" class="bi bi-lock-fill text-indigo-400" style="color: #A5B4FC;"></i>
+                                <i th:if="${slot.status == 'SOLD'}" class="bi bi-check-circle-fill text-secondary"></i>
+                                <i th:if="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}" class="bi bi-stars text-white"></i>
+                            </div>
+                            <div class="popnow-slot-num text-white">
+                                Hộp #<span th:text="${slot.slotIndex}">1</span>
+                            </div>
+                            <span th:if="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}" class="popnow-status-badge badge-mine">
+                                BẠN ĐANG GIỮ
+                            </span>
+                            <span th:unless="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}"
+                                  class="popnow-status-badge"
+                                  th:classappend="${slot.status == 'AVAILABLE' ? 'badge-available' : (slot.status == 'HELD' ? 'badge-held' : 'badge-sold')}"
+                                  th:text="${slot.status == 'AVAILABLE' ? 'BỐC NGAY' : (slot.status == 'HELD' ? 'ĐANG GIỮ' : 'ĐÃ BÁN')}">
+                                BỐC NGAY
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Bảng thông tin giữ hộp & Đếm ngược 5 phút -->
+            <div class="col-lg-4">
+                <div class="popnow-active-panel">
+                    <div id="reservationEmptyState" th:style="${activeReservation == null ? 'display: block;' : 'display: none;'}">
+                        <div class="text-center py-4">
+                            <i class="bi bi-cursor-fill text-danger display-3 mb-3 d-block"></i>
+                            <h5 class="fw-black text-uppercase mb-2">CHỌN 1 HỘP ĐỂ BẮT ĐẦU</h5>
+                            <p class="text-secondary small mb-4">
+                                Nhấn vào một ô hộp màu vàng trong khay bên trái để hệ thống khóa giữ hộp và bắt đầu đếm ngược 5 phút.
+                            </p>
+                            <div class="p-3 bg-light rounded-4 text-start small border">
+                                <div class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-1"></i> Cam kết POP WORLD:</div>
+                                <ul class="mb-0 ps-3 text-muted">
+                                    <li>Hộp nguyên seal bạc chưa bóc.</li>
+                                    <li>Xác suất ngẫu nhiên bảo đảm bởi máy chủ.</li>
+                                    <li>Mở trực tuyến tức thì ngay sau thanh toán.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="reservationActiveState" th:style="${activeReservation != null ? 'display: block;' : 'display: none;'}">
+                        <div class="text-center mb-3">
+                            <span class="badge bg-danger text-white px-3 py-1 rounded-pill fw-bold text-uppercase mb-2">
+                                <i class="bi bi-lightning-fill me-1"></i> ĐÃ GIỮ HỘP THÀNH CÔNG
+                            </span>
+                            <h4 class="fw-black text-dark text-uppercase mb-1" id="displayBoxTitle">
+                                HỘP SỐ #<span id="resBoxIndex" th:text="${activeReservation != null ? activeReservation.boxIndex : ''}">1</span>
+                            </h4>
+                            <small class="text-muted font-monospace d-block" id="displayResCode"
+                                   th:text="${activeReservation != null ? activeReservation.reservationCode : ''}">
+                                PN-XXXXXXXXXX
+                            </small>
+                        </div>
+
+                        <!-- Đồng hồ đếm ngược 5 phút -->
+                        <div class="text-center mb-4">
+                            <small class="text-secondary fw-bold text-uppercase d-block mb-1">Thời gian thanh toán còn lại:</small>
+                            <div class="popnow-timer-badge" id="countdownTimer">05:00</div>
+                            <small class="text-danger d-block mt-1" id="timerNotice">
+                                <i class="bi bi-clock-history"></i> Quá 5 phút, vị trí sẽ tự động nhả.
+                            </small>
+                        </div>
+
+                        <div class="border-top pt-3 mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Sản phẩm:</span>
+                                <span class="fw-bold text-dark text-end" th:text="${product.name}">Series</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Số lượng:</span>
+                                <span class="fw-bold text-dark">1 hộp đơn</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Tổng thanh toán:</span>
+                                <span class="fw-black text-danger fs-5"
+                                      th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                    350.000 ₫
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Nút Thanh toán ngay -->
+                        <form id="checkoutForm" th:action="@{/popnow/checkout/{code}(code=${activeReservation != null ? activeReservation.reservationCode : ''})}" method="post" class="mb-2">
+                            <input type="hidden" name="paymentMethod" value="SEPAY">
+                            <button type="submit" id="btnPayNow" class="btn btn-pop-red w-100 py-3 fw-bold text-uppercase shadow">
+                                <i class="bi bi-qr-code-scan me-2"></i> THANH TOÁN NGAY (VIETQR)
+                            </button>
+                        </form>
+
+                        <!-- Nút Hủy giữ hộp -->
+                        <button type="button" id="btnCancelRes" onclick="handleCancelReservation()" class="btn btn-outline-secondary w-100 py-2 small fw-bold">
+                            <i class="bi bi-x-circle me-1"></i> Hủy Giữ Hộp
+                        </button>
+                    </div>
+
+                    <!-- Trạng thái Hết hạn -->
+                    <div id="reservationExpiredState" style="display: none;" class="text-center py-4">
+                        <i class="bi bi-exclamation-circle-fill text-secondary display-3 mb-2 d-block"></i>
+                        <h5 class="fw-bold text-dark text-uppercase">ĐÃ HẾT THỜI GIAN GIỮ HỘP</h5>
+                        <p class="text-muted small mb-3">Phiếu giữ hộp 5 phút của bạn đã hết hạn. Vị trí đã được hoàn lại cho người khác.</p>
+                        <button type="button" onclick="resetToEmpty()" class="btn btn-dark w-100 py-2 fw-bold">
+                            <i class="bi bi-arrow-repeat me-1"></i> Chọn Lại Hộp Khác
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Series Lineup Preview (Danh sách các nhân vật có thể bóc trúng) -->
+        <div class="card border-0 rounded-4 shadow-sm p-4 bg-white mb-5" th:if="${seriesItems != null && !seriesItems.isEmpty()}">
+            <h5 class="fw-black text-uppercase mb-3">
+                <i class="bi bi-trophy-fill text-warning me-2"></i> BỘ SƯU TẬP NHÂN VẬT TRONG SERIES NÀY
+            </h5>
+            <div class="row g-3">
+                <div class="col-4 col-md-3 col-lg-2" th:each="item : ${seriesItems}">
+                    <div class="series-lineup-card">
+                        <img th:src="${item.imageUrl}" th:alt="${item.name}" class="series-lineup-img mb-2">
+                        <h6 class="fw-bold small text-truncate mb-1" th:text="${item.name}">Character</h6>
+                        <span class="badge" th:classappend="${item.rarity == 'SECRET' ? 'bg-warning text-dark' : 'bg-light text-dark border'}"
+                              th:text="${item.rarity == 'SECRET' ? '★ SECRET' : 'REGULAR'}">
+                            REGULAR
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const productId = /*[[${product.id}]]*/ 0;
+        const isAuthenticated = /*[[${currentUser != null}]]*/ false;
+        let currentReservationCode = /*[[${activeReservation != null ? activeReservation.reservationCode : ''}]]*/ '';
+        let expiresAtStr = /*[[${activeReservation != null && activeReservation.expiresAt != null ? activeReservation.expiresAt.toString() : ''}]]*/ '';
+
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        let timerInterval = null;
+
+        // Khởi động đồng hồ đếm ngược nếu đã có reservation từ server
+        if (currentReservationCode && expiresAtStr) {
+            startCountdown(new Date(expiresAtStr));
+        }
+
+        function startCountdown(targetDate) {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const timerEl = document.getElementById('countdownTimer');
+
+            function update() {
+                const now = new Date();
+                const diffMs = targetDate - now;
+
+                if (diffMs <= 0) {
+                    clearInterval(timerInterval);
+                    timerEl.innerText = "00:00";
+                    timerEl.classList.add('urgent');
+                    showExpiredState();
+                    return;
+                }
+
+                const totalSec = Math.floor(diffMs / 1000);
+                const minutes = Math.floor(totalSec / 60);
+                const seconds = totalSec % 60;
+                timerEl.innerText =
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Bật urgent khi còn < 60 giây
+                if (totalSec < 60) {
+                    timerEl.classList.add('urgent');
+                } else {
+                    timerEl.classList.remove('urgent');
+                }
+            }
+
+            update();
+            timerInterval = setInterval(update, 1000);
+        }
+
+        function showExpiredState() {
+            document.getElementById('reservationActiveState').style.display = 'none';
+            document.getElementById('reservationEmptyState').style.display = 'none';
+            document.getElementById('reservationExpiredState').style.display = 'block';
+            refreshSlots();
+        }
+
+        function resetToEmpty() {
+            currentReservationCode = '';
+            document.getElementById('reservationActiveState').style.display = 'none';
+            document.getElementById('reservationExpiredState').style.display = 'none';
+            document.getElementById('reservationEmptyState').style.display = 'block';
+            refreshSlots();
+        }
+
+        // Click chọn slot
+        function handleSlotClick(card) {
+            const status = card.getAttribute('data-status');
+            const slotIndex = parseInt(card.getAttribute('data-slot-index'), 10);
+
+            if (card.classList.contains('selected-mine')) {
+                // Đã chọn rồi
+                return;
+            }
+
+            if (status !== 'AVAILABLE') {
+                if (status === 'HELD') {
+                    alert("Vị trí hộp số " + slotIndex + " hiện đang có người khác giữ.");
+                } else if (status === 'SOLD') {
+                    alert("Vị trí hộp số " + slotIndex + " đã được bán.");
+                }
+                return;
+            }
+
+            if (!isAuthenticated) {
+                alert("Vui lòng đăng nhập để tham gia chọn hộp POP NOW!");
+                window.location.href = '/login';
+                return;
+            }
+
+            // Gọi API giữ hộp
+            fetch('/api/popnow/reserve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    productId: productId,
+                    boxIndex: slotIndex
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    const data = response.data;
+                    currentReservationCode = data.reservationCode;
+
+                    // Cập nhật giao diện
+                    document.getElementById('resBoxIndex').innerText = data.boxIndex;
+                    document.getElementById('displayResCode').innerText = data.reservationCode;
+                    document.getElementById('checkoutForm').action = '/popnow/checkout/' + data.reservationCode;
+
+                    document.getElementById('reservationEmptyState').style.display = 'none';
+                    document.getElementById('reservationExpiredState').style.display = 'none';
+                    document.getElementById('reservationActiveState').style.display = 'block';
+
+                    // Cập nhật class ô hộp
+                    document.querySelectorAll('.popnow-slot-card').forEach(c => c.classList.remove('selected-mine'));
+                    card.classList.add('selected-mine');
+
+                    if (data.expiresAt) {
+                        startCountdown(new Date(data.expiresAt));
+                    }
+                } else {
+                    alert(response.message || "Không thể giữ hộp. Vui lòng thử lại!");
+                    refreshSlots();
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi reserveBox: ", err);
+                alert("Đã xảy ra lỗi khi giữ hộp. Vui lòng thử lại!");
+            });
+        }
+
+        // Hủy giữ hộp
+        function handleCancelReservation() {
+            if (!currentReservationCode) return;
+            if (!confirm("Bạn có chắc chắn muốn hủy giữ hộp này không?")) return;
+
+            fetch(`/api/popnow/cancel?reservationCode=${encodeURIComponent(currentReservationCode)}`, {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    if (timerInterval) clearInterval(timerInterval);
+                    resetToEmpty();
+                } else {
+                    alert(response.message || "Hủy giữ hộp thất bại.");
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi cancelReservation: ", err);
+                alert("Đã xảy ra lỗi khi hủy giữ hộp.");
+            });
+        }
+
+        // Polling cập nhật trạng thái các slot định kỳ mỗi 8s
+        setInterval(refreshSlots, 8000);
+
+        function refreshSlots() {
+            fetch(`/api/popnow/slots/${productId}`)
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success && response.data) {
+                        const slots = response.data;
+                        slots.forEach(s => {
+                            const card = document.querySelector(`.popnow-slot-card[data-slot-index="${s.slotIndex}"]`);
+                            if (card) {
+                                card.setAttribute('data-status', s.status);
+                                card.className = `popnow-slot-card status-${s.status}`;
+                                if (currentReservationCode && card.querySelector('.popnow-slot-num').innerText.includes(document.getElementById('resBoxIndex')?.innerText)) {
+                                    card.classList.add('selected-mine');
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.log("Lỗi polling slots: ", err));
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

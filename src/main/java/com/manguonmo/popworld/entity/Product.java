@@ -99,4 +99,8 @@ public class Product extends BaseEntity {
         }
         return "https://placehold.co/400x400?text=No+Image";
     }
+
+    public String getThumbnailUrl() {
+        return getMainImageUrl();
+    }
 }

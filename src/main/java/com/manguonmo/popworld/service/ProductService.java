@@ -1,5 +1,7 @@
 package com.manguonmo.popworld.service;
 
+import com.manguonmo.popworld.dto.request.ProductCreateRequest;
+import com.manguonmo.popworld.dto.request.ProductUpdateRequest;
 import com.manguonmo.popworld.dto.response.ProductStatsResponse;
 import com.manguonmo.popworld.entity.Product;
 
@@ -19,8 +21,8 @@ public interface ProductService {
 
     // Các phương thức phục vụ Quản trị Kho Hàng (Admin)
     Product getProductById(Long id);
-    Product createProduct(com.manguonmo.popworld.dto.request.ProductCreateRequest request);
-    Product updateProduct(Long id, com.manguonmo.popworld.dto.request.ProductUpdateRequest request);
+    Product createProduct(ProductCreateRequest request);
+    Product updateProduct(Long id, ProductUpdateRequest request);
     boolean deleteProduct(Long id);
     void setThumbnailImage(Long productId, Long imageId);
     List<Product> getAdminProducts(Long categoryId, String keyword);

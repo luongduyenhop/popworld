@@ -19,4 +19,5 @@ public class BoxReservationResponse {
     private LocalDateTime reservedAt;
     private LocalDateTime expiresAt;
     private BigDecimal price;
+    private String orderCode;
 }

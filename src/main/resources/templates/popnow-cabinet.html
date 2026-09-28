@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tủ Đồ Ảo (Virtual Cabinet) - PopWorld Art Toy</title>
+    
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    <style>
+        .cabinet-shelf {
+            background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
+            border-radius: 28px;
+            padding: 2.5rem;
+            color: #FFFFFF;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+            border: 2px solid #312E81;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card-cabinet {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            text-align: center;
+        }
+        .item-card-cabinet {
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid #F1F5F9;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .item-card-cabinet:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.1);
+        }
+        .item-img-wrap {
+            position: relative;
+            background: #F8FAFC;
+            padding-top: 100%;
+            overflow: hidden;
+        }
+        .item-img-wrap img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 1rem;
+            transition: transform 0.3s ease;
+        }
+        .item-card-cabinet:hover .item-img-wrap img {
+            transform: scale(1.08);
+        }
+        .badge-cabinet-secret {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #FFFFFF;
+            font-weight: 800;
+        }
+        .badge-cabinet-regular {
+            background: #F1F5F9;
+            color: #334155;
+            font-weight: 700;
+            border: 1px solid #CBD5E1;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb" style="font-size: 0.86rem;">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/account}" class="text-decoration-none text-secondary fw-semibold">Tài Khoản</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Tủ Đồ Ảo (Cabinet)</li>
+            </ol>
+        </nav>
+
+        <!-- Shelf Hero Header -->
+        <div class="cabinet-shelf">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                    <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase rounded-pill mb-2">
+                        <i class="bi bi-collection-fill me-1"></i> BỘ SƯU TẬP CỦA BẠN
+                    </span>
+                    <h1 class="fw-black text-uppercase display-6 text-white mb-2" style="letter-spacing: -0.5px;">
+                        TỦ TRƯNG BÀY VIRTUAL CABINET
+                    </h1>
+                    <p class="text-white-50 fs-6 mb-0">
+                        Nơi lưu trữ tất cả các mô hình Art Toy bạn đã tự tay bóc trực tuyến trên POP NOW.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="stat-card-cabinet">
+                                <span class="fs-2 fw-black text-white d-block" th:text="${totalCount}">0</span>
+                                <small class="text-white-50 text-uppercase fw-bold" style="font-size: 0.72rem;">Tổng Mô Hình</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-card-cabinet">
+                                <span class="fs-2 fw-black text-warning d-block" th:text="${secretCount}">0</span>
+                                <small class="text-warning text-uppercase fw-bold" style="font-size: 0.72rem;">Bản Secret</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-card-cabinet">
+                                <span class="fs-2 fw-black text-info d-block" th:text="${regularCount}">0</span>
+                                <small class="text-info text-uppercase fw-bold" style="font-size: 0.72rem;">Bản Regular</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trạng thái trống (Empty State) -->
+        <div th:if="${cabinetItems.isEmpty()}" class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white my-5">
+            <div class="py-4">
+                <i class="bi bi-box2 text-secondary display-1 mb-3 d-block"></i>
+                <h4 class="fw-black text-dark text-uppercase mb-2">TỦ ĐỒ ẢO CỦA BẠN ĐANG TRỐNG</h4>
+                <p class="text-muted small mb-4" style="max-width: 480px; margin: 0 auto;">
+                    Bạn chưa sở hữu mô hình nào trong tủ đồ ảo. Hãy tham gia trải nghiệm POP NOW để bóc hộp và lật mở nhân vật bí ẩn ngay hôm nay!
+                </p>
+                <a th:href="@{/popnow}" class="btn btn-pop-red btn-lg px-5 py-3 fw-bold rounded-pill shadow">
+                    <i class="bi bi-stars me-2"></i> BẮT ĐẦU BÓC HỘP POP NOW
+                </a>
+            </div>
+        </div>
+
+        <!-- Danh sách mô hình trong tủ (Gallery Grid) -->
+        <div th:unless="${cabinetItems.isEmpty()}" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-black text-uppercase text-dark mb-0">
+                    <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i> DANH SÁCH MÔ HÌNH ĐANG TRƯNG BÀY
+                </h5>
+                <a th:href="@{/popnow}" class="btn btn-outline-dark btn-sm px-3 py-2 fw-bold rounded-pill">
+                    <i class="bi bi-plus-lg me-1"></i> Bốc Thêm Hộp Mới
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-6 col-md-4 col-lg-3" th:each="item : ${cabinetItems}">
+                    <div class="item-card-cabinet">
+                        <div class="item-img-wrap">
+                            <span class="badge position-absolute top-0 start-0 m-3"
+                                  th:classappend="${item.rarity == 'SECRET' ? 'badge-cabinet-secret' : 'badge-cabinet-regular'}"
+                                  th:text="${item.rarity == 'SECRET' ? '★ SECRET' : 'REGULAR'}">
+                                REGULAR
+                            </span>
+                            <img th:src="${item.imageUrl}" th:alt="${item.itemName}">
+                        </div>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <small class="text-secondary text-uppercase fw-bold mb-1" th:text="${item.productName}">Series Name</small>
+                            <h6 class="fw-bold text-dark text-truncate mb-2" th:text="${item.itemName}">Tên Mô Hình</h6>
+                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center small text-muted">
+                                <span th:if="${item.status == 'IN_CABINET'}"><i class="bi bi-archive me-1"></i> Trong tủ</span>
+                                <span th:if="${item.status == 'REQUESTED_SHIPPING'}" class="text-warning fw-bold"><i class="bi bi-truck me-1"></i> Chờ xuất kho</span>
+                                <span th:if="${item.status == 'SHIPPED'}" class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i> Đã gửi</span>
+                                <span th:if="${item.unboxedAt != null}"
+                                      th:text="${#temporals.format(item.unboxedAt, 'dd/MM/yyyy')}">
+                                    01/01/2026
+                                </span>
+                            </div>
+                            <button th:if="${item.status == 'IN_CABINET'}"
+                                    type="button" class="btn btn-outline-danger btn-sm w-100 fw-bold rounded-pill mt-2"
+                                    th:data-item-id="${item.id}"
+                                    th:data-item-name="${item.itemName}"
+                                    th:data-series-name="${item.productName}"
+                                    th:data-image-url="${item.imageUrl}"
+                                    th:data-rarity="${item.rarity}"
+                                    onclick="openShipModal(this)">
+                                <i class="bi bi-truck me-1"></i> Giao Hàng Ngay
+                            </button>
+                            <button th:if="${item.status == 'REQUESTED_SHIPPING'}"
+                                    type="button" class="btn btn-secondary btn-sm w-100 fw-bold rounded-pill mt-2" disabled>
+                                <i class="bi bi-clock-history me-1"></i> Đang Xử Lý Giao Hàng
+                            </button>
+                            <button th:if="${item.status == 'SHIPPED'}"
+                                    type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-pill mt-2" disabled>
+                                <i class="bi bi-box-seam me-1"></i> Đã Giao Hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ship Now Modal -->
+    <div class="modal fade" id="shipNowModal" tabindex="-1" aria-labelledby="shipNowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-black text-uppercase" id="shipNowModalLabel">
+                        <i class="bi bi-box-seam-fill text-danger me-2"></i> Yêu Cầu Giao Hàng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Item Preview -->
+                    <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 mb-3">
+                        <img id="shipModalItemImg" src="" alt="Item" class="rounded-3" style="width: 64px; height: 64px; object-fit: contain; background: #fff; padding: 4px;">
+                        <div>
+                            <span id="shipModalRarityBadge" class="badge bg-secondary mb-1">REGULAR</span>
+                            <h6 class="fw-bold mb-0 text-dark" id="shipModalItemName">Tên mô hình</h6>
+                            <small class="text-secondary" id="shipModalSeriesName">Series name</small>
+                        </div>
+                    </div>
+
+                    <!-- Address Selection -->
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Chọn địa chỉ nhận hàng:</label>
+                    <div th:if="${userAddresses != null && !userAddresses.isEmpty()}">
+                        <select id="shipModalAddressSelect" class="form-select rounded-3 mb-3">
+                            <option th:each="addr : ${userAddresses}"
+                                    th:value="${addr.id}"
+                                    th:text="${addr.recipientName + ' - ' + addr.recipientPhone + ' (' + addr.detailedAddress + ', ' + addr.ward + ', ' + addr.district + ', ' + addr.provinceCity + ')' + (addr.isDefault ? ' [Mặc định]' : '')}">
+                                Nguyễn Văn A - 0901234567 (123 Đường A, Quận 1, TP.HCM)
+                            </option>
+                        </select>
+                    </div>
+                    <div th:if="${userAddresses == null || userAddresses.isEmpty()}" class="alert alert-warning rounded-3 small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Bạn chưa lưu địa chỉ nào trong sổ địa chỉ.
+                        <a th:href="@{/account/addresses}" class="fw-bold text-dark d-block mt-1">Thêm địa chỉ giao hàng &rarr;</a>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 small text-secondary mb-0">
+                        <i class="bi bi-info-circle me-1"></i> <strong>Lưu ý:</strong> Đơn hàng sẽ được xuất kho và giao tận nơi nguyên seal kèm hộp bảo vệ. Phí vận chuyển tiêu chuẩn có thể áp dụng theo chính sách.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" id="shipModalConfirmBtn" class="btn btn-pop-red rounded-pill px-4 fw-bold" onclick="confirmShipRequest()">
+                        <i class="bi bi-check-circle me-1"></i> Xác Nhận Yêu Cầu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentShipItemId = null;
+
+        function openShipModal(btn) {
+            currentShipItemId = btn.getAttribute('data-item-id');
+            const itemName = btn.getAttribute('data-item-name');
+            const seriesName = btn.getAttribute('data-series-name');
+            const imageUrl = btn.getAttribute('data-image-url');
+            const rarity = btn.getAttribute('data-rarity');
+
+            document.getElementById('shipModalItemName').innerText = itemName;
+            document.getElementById('shipModalSeriesName').innerText = seriesName;
+            document.getElementById('shipModalItemImg').src = imageUrl || 'https://placehold.co/100x100?text=Item';
+
+            const badge = document.getElementById('shipModalRarityBadge');
+            if (rarity === 'SECRET') {
+                badge.className = 'badge bg-warning text-dark';
+                badge.innerText = '★ SECRET';
+            } else {
+                badge.className = 'badge bg-secondary';
+                badge.innerText = 'REGULAR';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('shipNowModal'));
+            modal.show();
+        }
+
+        let isSubmittingShip = false;
+        function confirmShipRequest() {
+            if (isSubmittingShip) return;
+
+            const addrSelect = document.getElementById('shipModalAddressSelect');
+            if (!addrSelect || !addrSelect.value) {
+                alert('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi gửi yêu cầu vận chuyển!');
+                return;
+            }
+
+            if (!currentShipItemId) {
+                alert('Không xác định được mô hình cần giao hàng. Vui lòng thử lại!');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('shipModalConfirmBtn');
+            const originalBtnHtml = confirmBtn ? confirmBtn.innerHTML : '';
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang tạo đơn vận...';
+            }
+            isSubmittingShip = true;
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            fetch('/api/popnow/ship', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    ownedItemId: parseInt(currentShipItemId),
+                    addressId: parseInt(addrSelect.value)
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    const orderCode = response.data.orderCode;
+                    alert(`Yêu cầu giao hàng thành công!\nMã đơn vận: ${orderCode}\nĐơn hàng đang được đóng gói xuất kho.`);
+                    const modalEl = document.getElementById('shipNowModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    window.location.href = response.data.redirectUrl || ('/orders/' + orderCode);
+                } else {
+                    alert(response.message || 'Yêu cầu giao hàng thất bại. Vui lòng thử lại!');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = originalBtnHtml;
+                    }
+                    isSubmittingShip = false;
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi khi gửi yêu cầu giao hàng:", err);
+                alert('Đã xảy ra lỗi kết nối. Vui lòng thử lại sau!');
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalBtnHtml;
+                }
+                isSubmittingShip = false;
+            });
+        }
+    </script>
+</body>
+</html>

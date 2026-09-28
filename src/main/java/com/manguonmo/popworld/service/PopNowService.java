@@ -1,9 +1,12 @@
 package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.dto.request.BoxReservationRequest;
+import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
+import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.BoxReservationResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
+import com.manguonmo.popworld.entity.Order;
 
 import java.util.List;
 
@@ -46,4 +49,22 @@ public interface PopNowService {
      * Quét và giải phóng các phiếu giữ hộp đã hết hạn TTL (hồi lại tồn kho).
      */
     int releaseExpiredReservations();
+
+    /**
+     * Lấy danh sách trạng thái các ô hộp (1-12) trong khay của sản phẩm.
+     */
+    List<BlindBoxSlotResponse> getProductSlots(Long productId);
+
+    /**
+     * Lấy thông tin chi tiết của một phiếu giữ hộp (kèm IDOR check).
+     */
+    BoxReservationResponse getReservationByCode(Long userId, String reservationCode);
+
+    /**
+     * Yêu cầu giao hàng cho vật phẩm trong tủ đồ ảo (Ship Now).
+     * Tạo đơn hàng giao vận, snapshot địa chỉ bất biến và chuyển trạng thái vật phẩm sang REQUESTED_SHIPPING.
+     */
+    Order requestShipment(Long userId, ShipCabinetRequest request);
+
+    Order requestShipment(Long userId, Long addressId, List<Long> ownedItemIds);
 }

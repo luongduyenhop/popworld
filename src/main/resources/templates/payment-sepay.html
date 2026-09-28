@@ -50,8 +50,8 @@
                         <!-- Countdown Timer -->
                         <div class="alert alert-warning text-center rounded-4 mb-4 py-2 border">
                             <i class="bi bi-hourglass-split text-danger me-1"></i> 
-                            Đơn hàng sẽ được giữ chỗ trong: 
-                            <span id="countdown" class="fw-black text-danger fs-5">15:00</span>
+                            <span id="countdownLabel" th:text="${order.deliveryMethod == 'POP_NOW_CABINET'} ? 'Phiếu giữ hộp POP NOW sẽ hết hạn trong:' : 'Đơn hàng sẽ được giữ chỗ trong:'">Đơn hàng sẽ được giữ chỗ trong:</span> 
+                            <span id="countdown" class="fw-black text-danger fs-5" th:text="${order.deliveryMethod == 'POP_NOW_CABINET'} ? '05:00' : '15:00'">15:00</span>
                         </div>
 
                         <div class="row g-4 align-items-center">
@@ -123,6 +123,9 @@
                             <strong>Lưu ý quan trọng:</strong> Vui lòng <strong>giữ nguyên nội dung chuyển khoản</strong> 
                             <span class="text-danger fw-bold" th:text="${order.orderCode}">PW-XXXX</span> 
                             để hệ thống SePay tự động nhận diện và hoàn tất đơn hàng trong 3 - 5 giây.
+                            <div th:if="${order.deliveryMethod == 'POP_NOW_CABINET'}" class="mt-2 text-danger fw-semibold">
+                                <i class="bi bi-clock-fill me-1"></i> Phiếu giữ hộp POP NOW có thời gian thanh toán giới hạn (5 phút). Sau khi thanh toán thành công, hệ thống sẽ tự động chuyển ngay đến màn hình khui hộp (Unbox)!
+                            </div>
                         </div>
 
                         <!-- Vùng trạng thái Polling -->
@@ -202,20 +205,42 @@
         /*<![CDATA[*/
         const orderCode = /*[[${order.orderCode}]]*/ '';
         const successUrl = /*[[@{/checkout/success/{code}(code=${order.orderCode})}]]*/ '/';
+        const isPopNowOrder = /*[[${order.deliveryMethod == 'POP_NOW_CABINET'}]]*/ false;
+        const expiresAtStr = /*[[${order.expiresAt != null ? order.expiresAt.toString() : ''}]]*/ '';
 
-        // 1. Đồng hồ đếm ngược 15 phút (900s)
-        let timeLeft = 15 * 60;
+        // 1. Tính toán thời gian đếm ngược từ expiresAt của server hoặc mặc định (5 phút cho POP NOW, 15 phút cho đơn thường)
+        let timeLeft = isPopNowOrder ? 5 * 60 : 15 * 60;
+        if (expiresAtStr) {
+            const expireDate = new Date(expiresAtStr);
+            if (!isNaN(expireDate.getTime())) {
+                const now = new Date();
+                const diffSeconds = Math.floor((expireDate.getTime() - now.getTime()) / 1000);
+                timeLeft = Math.max(0, diffSeconds);
+            }
+        }
+
         const countdownEl = document.getElementById('countdown');
+        function updateDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            countdownEl.innerText = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        updateDisplay(timeLeft);
+
         const timer = setInterval(() => {
             if (timeLeft <= 0) {
                 clearInterval(timer);
+                clearInterval(pollInterval);
                 countdownEl.innerText = "HẾT HẠN";
-                alert("Đơn hàng của bạn đã quá hạn thanh toán 15 phút và đã bị hủy tự động.");
-                window.location.href = "/cart";
+                if (isPopNowOrder) {
+                    alert("Phiếu giữ hộp POP NOW đã quá hạn thanh toán và đã được tự động giải phóng.");
+                    window.location.href = "/popnow";
+                } else {
+                    alert("Đơn hàng của bạn đã quá hạn thanh toán 15 phút và đã bị hủy tự động.");
+                    window.location.href = "/cart";
+                }
             } else {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                countdownEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                updateDisplay(timeLeft);
                 timeLeft--;
             }
         }, 1000);
@@ -230,6 +255,19 @@
                 .then(res => res.json())
                 .then(response => {
                     const data = response.data || response;
+
+                    // Đồng bộ lại countdown từ server expiresAt nếu có
+                    if (data.expiresAt && timeLeft > 0) {
+                        const srvDate = new Date(data.expiresAt);
+                        if (!isNaN(srvDate.getTime())) {
+                            const diff = Math.floor((srvDate.getTime() - new Date().getTime()) / 1000);
+                            if (diff >= 0 && Math.abs(diff - timeLeft) > 3) {
+                                timeLeft = diff;
+                                updateDisplay(timeLeft);
+                            }
+                        }
+                    }
+
                     if (data.isPaid || data.status === 'PROCESSING' || data.status === 'SHIPPING' || data.status === 'DELIVERED' || data.status === 'COMPLETED') {
                         clearInterval(pollInterval);
                         clearInterval(timer);
@@ -239,18 +277,24 @@
                             </span>
                         `;
                         setTimeout(() => {
-                            window.location.href = successUrl;
+                            if ((data.isPopNow || isPopNowOrder) && data.reservationCode) {
+                                window.location.href = '/popnow/reveal/' + data.reservationCode;
+                            } else {
+                                window.location.href = successUrl;
+                            }
                         }, 1000);
                     } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
                         clearInterval(pollInterval);
                         clearInterval(timer);
+                        const expiredMsg = (data.isPopNow || isPopNowOrder) 
+                            ? 'Phiếu giữ hộp POP NOW đã hết hạn hoặc bị hủy.' 
+                            : 'Đơn hàng đã bị hủy hoặc hết thời gian thanh toán.';
                         document.getElementById('pollingStatus').innerHTML = `
                             <span class="text-danger fw-bold fs-6">
-                                <i class="bi bi-x-circle-fill me-1"></i> Đơn hàng đã bị hủy hoặc hết thời gian thanh toán.
+                                <i class="bi bi-x-circle-fill me-1"></i> ${expiredMsg}
                             </span>
                         `;
                     } else if (isManual) {
-
                         alert("Hệ thống chưa nhận được tín hiệu thanh toán từ SePay. Nếu bạn vừa chuyển tiền, vui lòng chờ trong 3-5 giây để ngân hàng gửi giao dịch nhé!");
                     }
                 })

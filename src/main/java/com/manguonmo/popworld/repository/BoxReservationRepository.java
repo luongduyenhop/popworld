@@ -23,7 +23,17 @@ public interface BoxReservationRepository extends JpaRepository<BoxReservation, 
     @Query("SELECT r FROM BoxReservation r WHERE r.reservationCode = :reservationCode")
     Optional<BoxReservation> findByReservationCodeForUpdate(@Param("reservationCode") String reservationCode);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM BoxReservation r WHERE r.id = :id")
+    Optional<BoxReservation> findByIdForUpdate(@Param("id") Long id);
+
     Optional<BoxReservation> findByReservationCodeAndUserId(String reservationCode, Long userId);
+
+    Optional<BoxReservation> findByOrderCode(String orderCode);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM BoxReservation r WHERE r.orderCode = :orderCode")
+    Optional<BoxReservation> findByOrderCodeForUpdate(@Param("orderCode") String orderCode);
 
     List<BoxReservation> findByProductIdAndStatus(Long productId, ReservationStatus status);
 

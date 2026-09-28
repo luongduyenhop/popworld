@@ -1,6 +1,7 @@
 package com.manguonmo.popworld.controller.api;
 
 import com.manguonmo.popworld.dto.request.BoxReservationRequest;
+import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.request.UnboxRequest;
 import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
@@ -33,6 +34,9 @@ class PopNowApiControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private com.manguonmo.popworld.service.OrderService orderService;
 
     @Mock
     private Principal principal;
@@ -116,5 +120,82 @@ class PopNowApiControllerTest {
     void unauthenticated_ThrowsException() {
         BoxReservationRequest request = BoxReservationRequest.builder().productId(10L).boxIndex(1).build();
         assertThrows(BadRequestException.class, () -> controller.reserveBox(request, null));
+    }
+
+    @Test
+    @DisplayName("getProductSlots: Lấy danh sách 12 ô hộp công khai")
+    void getProductSlots_Success() {
+        when(popNowService.getProductSlots(10L)).thenReturn(List.of(
+                com.manguonmo.popworld.dto.response.BlindBoxSlotResponse.builder().slotIndex(1).status("AVAILABLE").build()
+        ));
+
+        ResponseEntity<ApiResponse<List<com.manguonmo.popworld.dto.response.BlindBoxSlotResponse>>> response = controller.getProductSlots(10L);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(1, response.getBody().getData().size());
+        assertEquals("AVAILABLE", response.getBody().getData().get(0).getStatus());
+    }
+
+    @Test
+    @DisplayName("getReservation: Lấy thông tin phiếu giữ hộp của user hiện tại")
+    void getReservation_Success() {
+        when(principal.getName()).thenReturn("user@test.com");
+        when(userService.getUserByEmail("user@test.com")).thenReturn(sampleUser);
+
+        BoxReservationResponse mockRes = BoxReservationResponse.builder()
+                .reservationCode("PN-RES-01")
+                .boxIndex(5)
+                .status("RESERVED")
+                .build();
+        when(popNowService.getReservationByCode(1L, "PN-RES-01")).thenReturn(mockRes);
+
+        ResponseEntity<ApiResponse<BoxReservationResponse>> response = controller.getReservation("PN-RES-01", principal);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("PN-RES-01", response.getBody().getData().getReservationCode());
+    }
+
+    @Test
+    @DisplayName("checkoutReservation: Tạo đơn hàng thanh toán cho phiếu giữ hộp")
+    void checkoutReservation_Success() {
+        when(principal.getName()).thenReturn("user@test.com");
+        when(userService.getUserByEmail("user@test.com")).thenReturn(sampleUser);
+
+        com.manguonmo.popworld.entity.Order mockOrder = com.manguonmo.popworld.entity.Order.builder()
+                .orderCode("PW-POP-123")
+                .totalAmount(java.math.BigDecimal.valueOf(350000))
+                .paymentMethod("SEPAY")
+                .build();
+        when(orderService.createOrderForReservation(1L, "PN-RES-01", "SEPAY")).thenReturn(mockOrder);
+
+        ResponseEntity<ApiResponse<java.util.Map<String, Object>>> response = controller.checkoutReservation("PN-RES-01", "SEPAY", principal);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("PW-POP-123", response.getBody().getData().get("orderCode"));
+        assertEquals("/checkout/payment/PW-POP-123", response.getBody().getData().get("paymentUrl"));
+    }
+
+    @Test
+    @DisplayName("shipCabinetItems: Yêu cầu giao hàng thành công -> Trả về mã đơn vận và URL điều hướng")
+    void shipCabinetItems_Success() {
+        when(principal.getName()).thenReturn("user@test.com");
+        when(userService.getUserByEmail("user@test.com")).thenReturn(sampleUser);
+
+        ShipCabinetRequest req = ShipCabinetRequest.builder().addressId(10L).ownedItemId(101L).build();
+        com.manguonmo.popworld.entity.Order mockOrder = com.manguonmo.popworld.entity.Order.builder()
+                .orderCode("ORD-SHIP-999")
+                .status("PROCESSING")
+                .recipientName("Nguyen Van A")
+                .detailedAddress("123 Street")
+                .build();
+
+        when(popNowService.requestShipment(1L, req)).thenReturn(mockOrder);
+
+        ResponseEntity<ApiResponse<java.util.Map<String, Object>>> response = controller.shipCabinetItems(req, principal);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("ORD-SHIP-999", response.getBody().getData().get("orderCode"));
+        assertEquals("/orders/ORD-SHIP-999", response.getBody().getData().get("redirectUrl"));
     }
 }

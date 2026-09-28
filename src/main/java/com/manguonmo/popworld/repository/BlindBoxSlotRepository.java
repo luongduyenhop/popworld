@@ -28,4 +28,8 @@ public interface BlindBoxSlotRepository extends JpaRepository<BlindBoxSlot, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM BlindBoxSlot s WHERE s.product.id = :productId AND s.status = :status ORDER BY s.slotIndex ASC")
     List<BlindBoxSlot> findAvailableSlotsForUpdate(@Param("productId") Long productId, @Param("status") SlotStatus status);
+
+    long countByProductIdAndStatus(Long productId, SlotStatus status);
+
+    long countByProductId(Long productId);
 }

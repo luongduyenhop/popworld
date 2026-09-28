@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+    <title th:text="'Mở Hộp POP NOW - ' + ${product.name} + ' - PopWorld'">Mở Hộp POP NOW - PopWorld</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    <style>
+        .reveal-container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .mystery-box-card {
+            background: linear-gradient(145deg, #18181B 0%, #27272A 100%);
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            color: #FFFFFF;
+            text-align: center;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+            border: 2px solid #3F3F46;
+            position: relative;
+            overflow: hidden;
+        }
+        .mystery-box-graphic {
+            width: 170px;
+            height: 170px;
+            background: linear-gradient(135deg, #FF1E27 0%, #991B1B 100%);
+            border-radius: 28px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: #FFFFFF;
+            box-shadow: 0 16px 36px rgba(255, 30, 39, 0.45);
+            animation: pulse-glow 2.5s infinite ease-in-out;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .mystery-box-graphic:hover {
+            transform: scale(1.06) rotate(-2deg);
+        }
+        .mystery-box-graphic.shaking {
+            animation: box-shake 0.5s ease-in-out infinite !important;
+        }
+        @keyframes box-shake {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            20% { transform: translateX(-10px) rotate(-8deg); }
+            40% { transform: translateX(10px) rotate(8deg); }
+            60% { transform: translateX(-8px) rotate(-5deg); }
+            80% { transform: translateX(8px) rotate(5deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 16px 36px rgba(255, 30, 39, 0.45);
+            }
+            50% {
+                box-shadow: 0 24px 60px rgba(255, 30, 39, 0.8), 0 0 20px #FBBF24;
+            }
+        }
+        .revealed-card {
+            background: #FFFFFF;
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.1);
+            border: 2px solid #F1F5F9;
+            animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .revealed-figure-img {
+            max-width: 260px;
+            max-height: 260px;
+            object-fit: contain;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 14px 24px rgba(0,0,0,0.15));
+        }
+        .badge-secret-super {
+            background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #D97706 100%);
+            background-size: 200% 200%;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.6rem 1.5rem;
+            border-radius: 999px;
+            font-size: 1rem;
+            letter-spacing: 1.5px;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.55);
+            animation: secret-shimmer 2s infinite linear;
+        }
+        @keyframes secret-shimmer {
+            0%   { background-position: 0% 50%; box-shadow: 0 8px 24px rgba(245,158,11,0.55); }
+            50%  { background-position: 100% 50%; box-shadow: 0 12px 32px rgba(245,158,11,0.85), 0 0 20px #FBBF24; }
+            100% { background-position: 0% 50%; box-shadow: 0 8px 24px rgba(245,158,11,0.55); }
+        }
+        .badge-regular {
+            background: #F1F5F9;
+            color: #334155;
+            font-weight: 800;
+            padding: 0.5rem 1.25rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            border: 1px solid #CBD5E1;
+        }
+        /* Confetti particles for SECRET reveal */
+        .confetti-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px; height: 10px;
+            opacity: 0;
+            animation: confetti-fall 3s ease-in forwards;
+        }
+        @keyframes confetti-fall {
+            0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <!-- POP NOW Progress Stepper -->
+    <div th:replace="~{fragments/popnow-stepper :: stepper(${reservation.status.name() == 'PURCHASED' ? 'shake' : 'unbox'})}"></div>
+
+    <main class="container my-5">
+        <div class="reveal-container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb" style="font-size: 0.86rem;">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/popnow}" class="text-decoration-none text-secondary fw-semibold">POP NOW</a></li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Khui Seal Mở Hộp</li>
+                </ol>
+            </nav>
+
+            <!-- Trạng thái 1: Chưa thanh toán (RESERVED) -->
+            <div th:if="${reservation.status.name() == 'RESERVED'}" class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white">
+                <i class="bi bi-clock-history text-warning display-1 mb-3"></i>
+                <h3 class="fw-black text-uppercase mb-2">HỘP CHƯA ĐƯỢC THANH TOÁN</h3>
+                <p class="text-secondary mb-4">
+                    Phiếu giữ hộp <span class="badge bg-dark font-monospace" th:text="${reservation.reservationCode}">PN-XXX</span> chưa hoàn tất thanh toán. Vui lòng thanh toán trước khi mở hộp!
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a th:if="${reservation.orderCode != null}" th:href="@{'/checkout/payment/' + ${reservation.orderCode}}" class="btn btn-pop-red btn-lg px-4 py-3 fw-bold">
+                        <i class="bi bi-qr-code me-2"></i> Tiếp Tục Thanh Toán VietQR
+                    </a>
+                    <a th:href="@{'/popnow/pick/' + ${product.slug}}" class="btn btn-outline-dark btn-lg px-4 py-3 fw-bold">
+                        Quay Lại Chọn Hộp
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trạng thái 2: Đã thanh toán, sẵn sàng khui seal (PURCHASED) -->
+            <div th:if="${reservation.status.name() == 'PURCHASED'}" id="unopenedCard" class="mystery-box-card">
+                <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase rounded-pill mb-3">
+                    <i class="bi bi-shield-check me-1"></i> ĐÃ THANH TOÁN THÀNH CÔNG
+                </span>
+                <h2 class="fw-black text-uppercase text-white mb-2" th:text="${product.name}">SERIES NAME</h2>
+                <p class="text-white-50 mb-4">
+                    Vị trí trong khay: <strong class="text-warning">Hộp số #<span th:text="${reservation.boxIndex}">1</span></strong> • Mã phiếu: <span class="font-monospace text-light" th:text="${reservation.reservationCode}">PN-XXX</span>
+                </p>
+
+                <!-- Biểu tượng Mystery Box -->
+                <div class="mystery-box-graphic" id="mysteryBoxBtn" onclick="shakeBox()" title="Nhấn để lắc hộp cảm nhận trọng lượng">
+                    <i class="bi bi-gift-fill"></i>
+                </div>
+
+                <!-- Shake Hint Result Area -->
+                <div id="shakeHintBox" class="alert alert-dark border-warning bg-black text-warning small py-2 px-3 rounded-4 mb-4 mx-auto" style="max-width: 480px; display: none;">
+                    <i class="bi bi-phone-vibrate me-1"></i> Bấm "Lắc Hộp Thử" để cảm nhận trọng lượng mô hình trước khi mở!
+                </div>
+
+                <p class="small text-white-50 mb-4">
+                    Nhân vật ngẫu nhiên sẽ được máy chủ quyết định minh bạch ngay khi bóc seal.
+                </p>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <button id="btnShakeAction" type="button" onclick="shakeBox()" class="btn btn-outline-warning btn-lg px-4 py-3 fw-bold rounded-pill">
+                        <i class="bi bi-phone-vibrate me-2"></i> LẮC HỘP THỬ
+                    </button>
+                    <button id="btnUnboxAction" type="button" onclick="performUnbox()" class="btn btn-warning btn-lg px-5 py-3 fw-black text-dark text-uppercase rounded-pill shadow-lg">
+                        <i class="bi bi-stars me-2"></i> BÓC SEAL MỞ HỘP NGAY
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vùng hiển thị kết quả (Sau khi bóc hoặc nếu đã UNBOXED từ trước) -->
+            <div id="revealedResultCard" th:style="${reservation.status.name() == 'UNBOXED' && ownedItem != null ? 'display: block;' : 'display: none;'}" class="revealed-card">
+                <span class="badge bg-success-subtle text-success px-3 py-2 fw-bold text-uppercase rounded-pill mb-3">
+                    <i class="bi bi-check-circle-fill me-1"></i> MỞ HỘP THÀNH CÔNG
+                </span>
+
+                <h1 class="fw-black text-dark text-uppercase mb-2" id="revealedName" th:text="${ownedItem != null ? ownedItem.blindBoxItem.name : ''}">
+                    TÊN NHÂN VẬT
+                </h1>
+                
+                <p class="text-secondary small mb-3" id="revealedSeries" th:text="${product.name}">Series Name</p>
+
+                <!-- Hình ảnh mô hình mở trúng -->
+                <div>
+                    <img id="revealedImage"
+                         th:src="${ownedItem != null ? ownedItem.blindBoxItem.imageUrl : ''}"
+                         alt="Nhân vật trúng thưởng"
+                         class="revealed-figure-img">
+                </div>
+
+                <!-- Rarity Badge -->
+                <div class="mb-4">
+                    <span id="revealedRarityBadge"
+                          class="badge"
+                          th:classappend="${ownedItem != null && ownedItem.blindBoxItem.rarity.name() == 'SECRET' ? 'badge-secret-super' : 'badge-regular'}"
+                          th:text="${ownedItem != null && ownedItem.blindBoxItem.rarity.name() == 'SECRET' ? '★ PHẨM HIẾM SIÊU CẤP SECRET ★' : 'REGULAR EDITION'}">
+                        REGULAR EDITION
+                    </span>
+                </div>
+
+                <div class="alert alert-light border rounded-4 py-2 px-3 small text-secondary mb-4 mx-auto" style="max-width: 440px;">
+                    <i class="bi bi-archive-fill text-danger me-1"></i> Mô hình đã được cất giữ an toàn vào <strong>Tủ Đồ Ảo (Virtual Cabinet)</strong> của bạn.
+                </div>
+
+                <!-- CTAs -->
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a th:href="@{/popnow/cabinet}" class="btn btn-pop-red btn-lg px-4 py-3 fw-bold rounded-pill shadow">
+                        <i class="bi bi-collection-fill me-2"></i> Xem Trong Tủ Đồ Ảo
+                    </a>
+                    <a th:href="@{'/popnow/pick/' + ${product.slug}}" class="btn btn-outline-dark btn-lg px-4 py-3 fw-bold rounded-pill">
+                        <i class="bi bi-plus-circle me-1"></i> Bốc Thêm Hộp Nữa
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trạng thái 3: Đã hủy hoặc hết hạn -->
+            <div th:if="${reservation.status.name() == 'CANCELLED' || reservation.status.name() == 'EXPIRED'}" class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white">
+                <i class="bi bi-x-circle-fill text-danger display-1 mb-3"></i>
+                <h3 class="fw-black text-uppercase mb-2">PHIẾU GIỮ HỘP ĐÃ HẾT HIỆU LỰC</h3>
+                <p class="text-secondary mb-4">
+                    Phiếu giữ hộp <span class="badge bg-secondary font-monospace" th:text="${reservation.reservationCode}">PN-XXX</span> đã hết thời gian hiệu lực 5 phút hoặc đã bị hủy.
+                </p>
+                <div>
+                    <a th:href="@{'/popnow/pick/' + ${product.slug}}" class="btn btn-pop-red btn-lg px-5 py-3 fw-bold">
+                        Bốc Hộp Mới Ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const reservationCode = /*[[${reservation.reservationCode}]]*/ '';
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        let isUnboxing = false;
+        let isShaking = false;
+
+        function shakeBox() {
+            if (isShaking || isUnboxing) return;
+            isShaking = true;
+            const box = document.getElementById('mysteryBoxBtn');
+            const hintBox = document.getElementById('shakeHintBox');
+            if (box) {
+                box.classList.add('shaking');
+            }
+            if (hintBox) {
+                hintBox.style.display = 'block';
+                hintBox.innerHTML = '<i class="bi bi-stars text-warning me-1"></i> <em>Đang cảm nhận trọng lượng và độ lắc của hộp...</em>';
+            }
+            setTimeout(() => {
+                if (box) box.classList.remove('shaking');
+                if (hintBox) {
+                    hintBox.innerHTML = '<i class="bi bi-check2-circle text-success me-1"></i> <strong>Cảm giác đầm tay:</strong> Khối lượng rất cân đối! Cơ hội mở được các nhân vật độc đáo trong bộ sưu tập. Sẵn sàng bóc seal!';
+                }
+                isShaking = false;
+            }, 1200);
+        }
+
+        function performUnbox() {
+            if (isUnboxing) return;
+            isUnboxing = true;
+
+            const btn = document.getElementById('btnUnboxAction');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang khui seal...';
+            }
+
+            fetch('/api/popnow/unbox', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({
+                    reservationCode: reservationCode
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    const data = response.data;
+                    displayRevealedResult(data);
+                } else {
+                    alert(response.message || "Không thể mở hộp. Vui lòng thử lại!");
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-stars me-2"></i> BÓC SEAL MỞ HỘP NGAY';
+                    }
+                    isUnboxing = false;
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi unbox: ", err);
+                alert("Đã xảy ra sự cố khi mở hộp. Vui lòng tải lại trang!");
+                isUnboxing = false;
+            });
+        }
+
+        function displayRevealedResult(data) {
+            document.getElementById('revealedName').innerText = data.itemName || 'Mô hình Bí Ẩn';
+            document.getElementById('revealedImage').src = data.imageUrl || 'https://placehold.co/300x300?text=Secret';
+
+            const badge = document.getElementById('revealedRarityBadge');
+            if (data.rarity === 'SECRET') {
+                badge.className = 'badge badge-secret-super';
+                badge.innerText = '★ PHẨM HIẾM SIÊU CẤP SECRET ★';
+                launchConfetti();
+            } else {
+                badge.className = 'badge badge-regular';
+                badge.innerText = 'REGULAR EDITION';
+            }
+
+            const unopened = document.getElementById('unopenedCard');
+            if (unopened) {
+                unopened.style.display = 'none';
+            }
+
+            document.getElementById('revealedResultCard').style.display = 'block';
+        }
+
+        function launchConfetti() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+
+            const colors = ['#F59E0B', '#FBBF24', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6'];
+            for (let i = 0; i < 60; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = (Math.random() * 100) + 'vw';
+                piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay = (Math.random() * 1.5) + 's';
+                piece.style.width = (Math.random() * 8 + 6) + 'px';
+                piece.style.height = (Math.random() * 8 + 6) + 'px';
+                container.appendChild(piece);
+            }
+            setTimeout(() => {
+                container.remove();
+            }, 4500);
+        }
+
+        const initialRarity = /*[[${ownedItem != null && ownedItem.blindBoxItem != null ? ownedItem.blindBoxItem.rarity.name() : ''}]]*/ '';
+        if (initialRarity === 'SECRET') {
+            setTimeout(launchConfetti, 500);
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>
