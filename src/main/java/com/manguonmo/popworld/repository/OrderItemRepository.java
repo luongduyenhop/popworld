@@ -12,4 +12,11 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByOrderId(@org.springframework.data.repository.query.Param("orderId") Long orderId);
 
     boolean existsByProductId(Long productId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(oi) > 0 FROM OrderItem oi " +
+            "WHERE oi.order.user.id = :userId " +
+            "  AND oi.product.id = :productId " +
+            "  AND oi.order.status IN ('DELIVERED', 'COMPLETED')")
+    boolean hasUserPurchasedProductDelivered(@org.springframework.data.repository.query.Param("userId") Long userId,
+                                            @org.springframework.data.repository.query.Param("productId") Long productId);
 }

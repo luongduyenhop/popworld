@@ -15,6 +15,7 @@ public class OrderStatusCountResponse {
     private long all;
     private long toPay;
     private long processing;
+    private long packed;
     private long shipping;
     private long delivered;
     private long cancelled;

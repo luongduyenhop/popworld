@@ -220,6 +220,9 @@
                                         <span th:if="${order.status == 'PROCESSING'}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
                                             <i class="bi bi-hourglass-split me-1"></i> Processing
                                         </span>
+                                        <span th:if="${order.status == 'PACKED'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
+                                            <i class="bi bi-box-seam me-1"></i> Packed
+                                        </span>
                                         <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-1">
                                             <i class="bi bi-truck me-1"></i> Shipping
                                         </span>
@@ -268,14 +271,19 @@
                                     </div>
 
                                     <!-- Bottom Row: Address summary, Total, Action buttons -->
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3">
-                                        <div class="small text-muted">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 small text-muted">
                                             <span>Ship to: <strong class="text-dark" th:text="${order.recipientName}">Name</strong></span>
-                                            <span class="mx-1">•</span>
-                                            <span th:text="${order.paymentMethod}">COD</span>
+                                            <span>•</span>
+                                            <span class="fw-semibold text-dark" th:text="${order.paymentMethod}">COD</span>
+                                            <span th:if="${order.carrier != null}" class="badge bg-light text-dark border font-monospace px-2 py-1" style="border-radius: 4px; font-size: 0.72rem; font-weight: 600;">
+                                                <i class="bi bi-truck me-1 text-danger"></i>
+                                                <span th:text="${order.carrier}"></span>
+                                                <span th:if="${order.trackingNumber != null}" class="ms-1 text-danger fw-bold" th:text="'#' + ${order.trackingNumber}"></span>
+                                            </span>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center gap-3 ms-auto">
                                             <div class="text-end">
                                                 <span class="small text-muted me-1">Total:</span>
                                                 <span class="fs-5 fw-black text-danger" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -287,22 +295,29 @@
                                                 <!-- Quét mã QR nếu TO_PAY SEPAY -->
                                                 <a th:if="${order.status == 'TO_PAY' && order.paymentMethod == 'SEPAY'}" 
                                                    th:href="@{/checkout/payment/{code}(code=${order.orderCode})}" 
-                                                   class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">
+                                                   class="btn btn-danger btn-sm px-3 fw-bold" style="border-radius: 4px;">
                                                     Pay Now
                                                 </a>
 
                                                 <!-- Hủy đơn: CHỈ TO_PAY -->
                                                 <button th:if="${order.status == 'TO_PAY'}" 
                                                         type="button" 
-                                                        class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                                                        class="btn btn-outline-secondary btn-sm px-3" style="border-radius: 4px;"
                                                         data-bs-toggle="modal" 
                                                         th:data-bs-target="'#cancelOrderModal-' + ${order.orderCode}">
                                                     Cancel
                                                 </button>
 
+                                                <!-- Mua lại cho đơn đã giao hoặc đã hủy -->
+                                                <a th:if="${order.status == 'DELIVERED' || order.status == 'COMPLETED' || order.status == 'CANCELLED'}" 
+                                                   th:href="@{/categories/blind-box}" 
+                                                   class="btn btn-outline-dark btn-sm px-3 fw-bold" style="border-radius: 4px;">
+                                                    Buy Again
+                                                </a>
+
                                                 <!-- Xem chi tiết -->
                                                 <a th:href="@{/orders/{code}(code=${order.orderCode})}" 
-                                                   class="btn btn-dark btn-sm rounded-pill px-3 fw-bold">
+                                                   class="btn btn-dark btn-sm px-3 fw-bold" style="border-radius: 4px;">
                                                     Detail
                                                 </a>
                                             </div>
@@ -766,7 +781,7 @@
                         } else if (status === 'TO_PAY') {
                             isMatch = (cardStatus === 'TO_PAY');
                         } else if (status === 'PROCESSING') {
-                            isMatch = (cardStatus === 'PROCESSING');
+                            isMatch = (cardStatus === 'PROCESSING' || cardStatus === 'PACKED');
                         } else if (status === 'SHIPPED' || status === 'SHIPPING') {
                             isMatch = (cardStatus === 'SHIPPING' || cardStatus === 'SHIPPED');
                         } else if (status === 'COMPLETED' || status === 'DELIVERED') {

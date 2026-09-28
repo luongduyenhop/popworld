@@ -8,12 +8,14 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.mapper.OrderMapper;
+import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.service.OrderService;
 import com.manguonmo.popworld.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +29,16 @@ public class OrderApiController {
     private final OrderService orderService;
     private final OrderMapper orderMapper;
     private final UserService userService;
+    private final BoxReservationRepository boxReservationRepository;
 
     public OrderApiController(OrderService orderService,
                               OrderMapper orderMapper,
-                              UserService userService) {
+                              UserService userService,
+                              BoxReservationRepository boxReservationRepository) {
         this.orderService = orderService;
         this.orderMapper = orderMapper;
         this.userService = userService;
+        this.boxReservationRepository = boxReservationRepository;
     }
 
     /**
@@ -103,11 +108,28 @@ public class OrderApiController {
 
         boolean isPaid = !"TO_PAY".equalsIgnoreCase(order.getStatus()) && !"CANCELLED".equalsIgnoreCase(order.getStatus());
 
-        Map<String, Object> statusData = Map.of(
-                "orderCode", order.getOrderCode(),
-                "status", order.getStatus(),
-                "isPaid", isPaid
-        );
+        Map<String, Object> statusData = new HashMap<>();
+        statusData.put("orderCode", order.getOrderCode());
+        statusData.put("status", order.getStatus());
+        statusData.put("isPaid", isPaid);
+        if (order.getExpiresAt() != null) {
+            statusData.put("expiresAt", order.getExpiresAt().toString());
+        }
+
+        if ("POP_NOW_CABINET".equalsIgnoreCase(order.getDeliveryMethod())) {
+            statusData.put("isPopNow", true);
+        }
+
+        if (boxReservationRepository != null) {
+            boxReservationRepository.findByOrderCode(order.getOrderCode()).ifPresent(res -> {
+                statusData.put("isPopNow", true);
+                statusData.put("reservationCode", res.getReservationCode());
+                statusData.put("reservationStatus", res.getStatus().name());
+                if (res.getExpiresAt() != null) {
+                    statusData.put("expiresAt", res.getExpiresAt().toString());
+                }
+            });
+        }
 
         return ResponseEntity.ok(ApiResponse.success("Lấy trạng thái đơn hàng thành công", statusData));
     }

@@ -91,8 +91,29 @@ public class Order extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    // Thời điểm thanh toán
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
+
+    // Đơn vị vận chuyển (GHN, GHTK, Viettel Post, Shopee Xpress...)
+    @Column(name = "carrier", length = 50)
+    private String carrier;
+
+    // Mã vận đơn (Tracking Code / Waybill)
+    @Column(name = "tracking_number", length = 100)
+    private String trackingNumber;
+
+    // Thời điểm hoàn tất đóng gói kiểm hàng
+    @Column(name = "packed_at")
+    private LocalDateTime packedAt;
+
+    // Thời điểm bàn giao cho đơn vị vận chuyển
+    @Column(name = "shipped_at")
+    private LocalDateTime shippedAt;
+
+    // Thời điểm giao hàng thành công đến khách
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
 
     @Column(name = "note", length = 255)
     private String note;

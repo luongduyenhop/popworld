@@ -2,8 +2,14 @@ package com.manguonmo.popworld.service.impl;
 
 import com.manguonmo.popworld.service.PaymentService;
 import com.manguonmo.popworld.dto.request.SePayWebhookRequest;
+import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
+import com.manguonmo.popworld.entity.OrderTimeline;
+import com.manguonmo.popworld.entity.ReservationStatus;
+import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
+import com.manguonmo.popworld.repository.OrderTimelineRepository;
+import com.manguonmo.popworld.service.PopNowService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,9 +35,18 @@ public class PaymentServiceImpl implements PaymentService {
     private String apiKey;
 
     private final OrderRepository orderRepository;
+    private final BoxReservationRepository boxReservationRepository;
+    private final PopNowService popNowService;
+    private final OrderTimelineRepository orderTimelineRepository;
 
-    public PaymentServiceImpl(OrderRepository orderRepository) {
+    public PaymentServiceImpl(OrderRepository orderRepository,
+                              BoxReservationRepository boxReservationRepository,
+                              PopNowService popNowService,
+                              OrderTimelineRepository orderTimelineRepository) {
         this.orderRepository = orderRepository;
+        this.boxReservationRepository = boxReservationRepository;
+        this.popNowService = popNowService;
+        this.orderTimelineRepository = orderTimelineRepository;
     }
 
     @Override
@@ -95,6 +110,25 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (PAID_STATUSES.contains(currentStatus)) {
             log.info("SePay Webhook: Đơn hàng {} đã được xử lý thanh toán trước đó (trạng thái: {}). Bỏ qua xử lý lặp lại (Idempotent).", orderCode, currentStatus);
+            if (boxReservationRepository != null && popNowService != null) {
+                Optional<BoxReservation> resOpt = boxReservationRepository.findByOrderCode(orderCode);
+                if (resOpt.isPresent()) {
+                    BoxReservation res = resOpt.get();
+                    if (res.getStatus() == ReservationStatus.EXPIRED || res.getStatus() == ReservationStatus.CANCELLED || res.isExpired()) {
+                        log.error("SePay Webhook: Đơn hàng {} ở trạng thái {} nhưng phiếu giữ hộp {} đã bị hủy hoặc hết hạn (status: {}). Trả về false.",
+                                orderCode, currentStatus, res.getReservationCode(), res.getStatus());
+                        return false;
+                    }
+                    try {
+                        popNowService.markPurchased(res.getReservationCode(), orderCode);
+                        return true;
+                    } catch (Exception e) {
+                        log.error("SePay Webhook: Đơn hàng {} ở trạng thái {} nhưng markPurchased thất bại cho phiếu giữ hộp {}: {}",
+                                orderCode, currentStatus, res.getReservationCode(), e.getMessage());
+                        return false;
+                    }
+                }
+            }
             return true;
         }
 
@@ -113,7 +147,25 @@ public class PaymentServiceImpl implements PaymentService {
             return false;
         }
 
-        // 7. Cập nhật trạng thái đơn sang PROCESSING
+        // 7. Đồng bộ thanh toán POP NOW trước khi cập nhật Order sang PROCESSING
+        if (boxReservationRepository != null && popNowService != null) {
+            Optional<BoxReservation> resOpt = boxReservationRepository.findByOrderCode(orderCode);
+            if (resOpt.isPresent()) {
+                BoxReservation res = resOpt.get();
+                try {
+                    popNowService.markPurchased(res.getReservationCode(), orderCode);
+                    log.info("SePay Webhook: Đồng bộ thanh toán POP NOW thành công cho reservationCode={}", res.getReservationCode());
+                } catch (Exception e) {
+                    log.error("SePay Webhook: Thất bại khi hoàn tất thanh toán POP NOW cho đơn {}: {}", orderCode, e.getMessage());
+                    order.setStatus("EXPIRED");
+                    order.setNote("POP NOW: Thanh toán thất bại hoặc quá hạn giữ chỗ (" + e.getMessage() + ")");
+                    orderRepository.save(order);
+                    return false;
+                }
+            }
+        }
+
+        // 8. Cập nhật trạng thái đơn sang PROCESSING
         String referenceCode = webhookData.getReferenceCode();
         if (referenceCode == null || referenceCode.isBlank()) {
             referenceCode = webhookData.getCode();
@@ -125,7 +177,22 @@ public class PaymentServiceImpl implements PaymentService {
         order.setStatus("PROCESSING");
         order.setPaidAt(LocalDateTime.now());
         order.setNote(referenceCode);
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        if (orderTimelineRepository != null) {
+            try {
+                orderTimelineRepository.save(OrderTimeline.builder()
+                        .order(savedOrder)
+                        .fromStatus("TO_PAY")
+                        .toStatus("PROCESSING")
+                        .action("Xác nhận thanh toán SePay thành công")
+                        .actor("SePay Gateway")
+                        .note("Mã giao dịch: " + referenceCode + " | Số tiền chuyển: " + (webhookData.getTransferAmount() != null ? webhookData.getTransferAmount() : "0") + " đ")
+                        .build());
+            } catch (Exception e) {
+                log.warn("Không thể lưu timeline thanh toán: {}", e.getMessage());
+            }
+        }
 
         log.info("SePay Webhook: Thanh toán thành công cho đơn hàng {}. Chuyển trạng thái sang PROCESSING.", orderCode);
         return true;

@@ -3,7 +3,7 @@
 <head th:replace="~{admin/layout :: admin-head(${order.orderCode} + ' - Chi Tiết Đơn Hàng')}"></head>
 <body class="admin-body">
 
-<div th:replace="~{admin/layout :: admin-layout(~{::#orderDetailContent}, 'Chi Tiết Đơn Hàng ' + ${order.orderCode}, 'orders')}">
+<div th:replace="~{admin/layout :: admin-layout(~{::#orderDetailContent}, 'Quản Lý Đơn Hàng / Chi Tiết Vận Đơn', 'orders')}">
     <div id="orderDetailContent">
         <!-- ========================================================================= -->
         <!-- 1. TOP ACTION BAR & BREADCRUMB                                            -->
@@ -21,6 +21,9 @@
                         </span>
                         <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
                             <i class="bi bi-hourglass-split"></i> Chờ xử lý
+                        </span>
+                        <span th:if="${order.status == 'PACKED'}" class="badge-status badge-status-packed">
+                            <i class="bi bi-box-seam"></i> Đã đóng gói
                         </span>
                         <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
                             <i class="bi bi-truck"></i> Đang giao
@@ -41,30 +44,35 @@
 
             <!-- Action Buttons -->
             <div class="d-flex align-items-center gap-2">
+                <!-- Nút Đóng Gói (PROCESSING -> PACKED) -->
                 <form th:if="${order.status == 'PROCESSING'}" 
-                      th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship?redirect=detail'}" method="post">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="bi bi-truck me-1"></i> Bàn Giao Vận Chuyển
+                      th:action="@{'/admin/orders/' + ${order.orderCode} + '/pack?redirect=detail'}" method="post">
+                    <button type="submit" class="btn btn-warning text-dark px-3 fw-bold">
+                        <i class="bi bi-box-seam me-1"></i> Đóng Gói Kiểm Hàng
                     </button>
                 </form>
 
+                <!-- Nút Bàn Giao Vận Chuyển (PACKED -> SHIPPING) Mở Modal -->
+                <button th:if="${order.status == 'PACKED'}" type="button" 
+                        class="btn btn-primary px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#shipModal">
+                    <i class="bi bi-truck me-1"></i> Bàn Giao Vận Chuyển
+                </button>
+
+                <!-- Nút Xác Nhận Giao Thành Công (SHIPPING -> DELIVERED) -->
                 <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                       th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete?redirect=detail'}" method="post">
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
-                        <i class="bi bi-check2-circle me-1"></i> Xác Nhận Đã Giao Thành Công
+                    <button type="submit" class="btn btn-success px-3 fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i> Giao Hàng Thành Công
                     </button>
                 </form>
 
+                <!-- Nút Hủy Đơn Hàng Mở Modal Lý Do Hủy (TO_PAY, PROCESSING, PACKED) -->
+                <button th:if="${order.status == 'TO_PAY' or order.status == 'PROCESSING' or order.status == 'PACKED'}" 
+                        type="button" class="btn btn-outline-danger px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <i class="bi bi-x-circle me-1"></i> Hủy Đơn Hàng
+                </button>
 
-                <form th:if="${order.status == 'TO_PAY' or order.status == 'PROCESSING'}"
-                      th:action="@{'/admin/orders/' + ${order.orderCode} + '/cancel?redirect=detail'}" method="post"
-                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này và hoàn lại tồn kho cho sản phẩm?')">
-                    <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-bold">
-                        <i class="bi bi-x-circle me-1"></i> Hủy Đơn Hàng
-                    </button>
-                </form>
-
-                <button class="btn btn-outline-secondary rounded-pill px-3 fw-bold" onclick="window.print()">
+                <button class="btn btn-outline-secondary px-3 fw-bold" onclick="window.print()">
                     <i class="bi bi-printer me-1"></i> In Đơn
                 </button>
             </div>
@@ -147,13 +155,233 @@
                               th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
                     </div>
                 </div>
+
+                <!-- ========================================================================= -->
+                <!-- 3. HÀNH TRÌNH VẬN ĐƠN & TRẠNG THÁI (ORDER TIMELINE)                       -->
+                <!-- ========================================================================= -->
+                <div class="admin-card p-4 mt-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-history text-danger"></i> Hành Trình Vận Đơn & Trạng Thái
+                        </h6>
+                        <span class="badge bg-light text-secondary border font-monospace" 
+                              th:text="${timelines != null ? timelines.size() : 0} + ' sự kiện'">0 sự kiện</span>
+                    </div>
+
+                    <div th:if="${timelines == null or timelines.isEmpty()}" class="py-3 text-muted text-center small">
+                        <i class="bi bi-inbox me-1"></i> Chưa có bản ghi hành trình nào cho đơn hàng này.
+                    </div>
+
+                    <div th:if="${timelines != null and !timelines.isEmpty()}" class="admin-timeline mt-2">
+                        <div th:each="tl, stat : ${timelines}" class="admin-timeline-item" th:classappend="${stat.last ? 'active' : ''}">
+                            <div class="admin-timeline-dot"></div>
+                            <div class="admin-timeline-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                    <strong class="text-dark" th:text="${tl.action}">Hành động</strong>
+                                    <small class="text-muted font-monospace" th:text="${#temporals.format(tl.createdAt, 'HH:mm - dd/MM/yyyy')}">14:00 - 28/09/2026</small>
+                                </div>
+                                <div class="small text-secondary mb-1">
+                                    <span>Tác nhân: </span>
+                                    <span class="badge bg-dark text-white px-2 py-1" th:text="${tl.actor}">Quản trị viên</span>
+                                    <span th:if="${tl.fromStatus != null}" class="ms-2">
+                                        Chuyển: <code th:text="${tl.fromStatus}"></code> &rarr; <strong class="text-danger" th:text="${tl.toStatus}"></strong>
+                                    </span>
+                                </div>
+                                <div th:if="${tl.note != null and !tl.note.isEmpty()}" class="small text-muted bg-white p-2 border rounded mt-2" th:text="${tl.note}">
+                                    Ghi chú
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quản lý Hoàn Tiền (Manual Refund MVP) -->
+                <div class="admin-card p-4 mt-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-counterclockwise text-warning"></i> Quản Lý Hoàn Tiền (Manual Refund)
+                            </h6>
+                            <span th:if="${order.paidAt == null or order.status == 'TO_PAY' or order.status == 'EXPIRED'}" class="badge bg-secondary">
+                                Chưa thanh toán
+                            </span>
+                            <span th:if="${order.paidAt != null and remainingRefundable != null and remainingRefundable <= 0}" class="badge bg-danger">
+                                Đã hoàn đủ 100%
+                            </span>
+                            <span th:if="${isRefundEligible}" class="badge bg-success">
+                                Có thể hoàn tiền
+                            </span>
+                        </div>
+
+                        <button th:if="${isRefundEligible}" type="button" class="btn btn-sm btn-outline-dark fw-bold px-3" 
+                                data-bs-toggle="collapse" data-bs-target="#manualRefundCollapse" aria-expanded="false">
+                            <i class="bi bi-plus-circle me-1"></i> Tạo Giao Dịch Hoàn Tiền
+                        </button>
+                    </div>
+
+                    <!-- Thống kê tài chính hoàn tiền -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block">Đã Thanh Toán</small>
+                                <strong class="fs-6 text-dark" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block">Đã Hoàn Tiền</small>
+                                <strong class="fs-6 text-danger" th:text="${#numbers.formatDecimal(totalRefunded != null ? totalRefunded : 0, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block">Còn Có Thể Hoàn</small>
+                                <strong class="fs-6 text-primary" th:text="${#numbers.formatDecimal(remainingRefundable != null ? remainingRefundable : 0, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Thực Hiện Hoàn Tiền (Thu gọn mặc định, mở khi bấm nút) -->
+                    <div th:if="${isRefundEligible}" class="collapse mt-3" id="manualRefundCollapse">
+                        <form th:action="@{'/admin/orders/' + ${order.orderCode} + '/refund'}" method="post" class="p-3 bg-light rounded-2 border"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn thực hiện giao dịch hoàn tiền này cho đơn hàng?');">
+                            <h6 class="fw-bold mb-2 small text-dark"><i class="bi bi-cash-coin me-1 text-primary"></i> Ghi Nhận Hoàn Tiền Thủ Công</h6>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold text-muted mb-1">Số tiền hoàn (VNĐ) <span class="text-danger">*</span></label>
+                                    <input type="number" name="amount" class="form-control form-control-sm" required min="1000" 
+                                           th:max="${remainingRefundable}" th:value="${remainingRefundable}" step="1000" />
+                                    <small class="text-muted">Tối đa: <span th:text="${#numbers.formatDecimal(remainingRefundable, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span></small>
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label small fw-bold text-muted mb-1">Lý do hoàn tiền</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="reason" class="form-control" placeholder="Lý do hoàn (ví dụ: Khách đổi trả, hoàn COD...)" maxlength="255" />
+                                        <button type="submit" class="btn btn-warning fw-bold px-3">
+                                            <i class="bi bi-check-circle me-1"></i> Xác Nhận Hoàn
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div th:if="${order.paidAt == null or order.status == 'TO_PAY' or order.status == 'EXPIRED'}" class="alert alert-secondary py-2 px-3 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Đơn hàng chưa ghi nhận thanh toán hoặc đã hủy/hết hạn. Không hỗ trợ thao tác hoàn tiền.
+                    </div>
+
+                    <div th:if="${order.paidAt != null and remainingRefundable != null and remainingRefundable <= 0}" class="alert alert-success py-2 px-3 small mb-0">
+                        <i class="bi bi-check2-circle me-1"></i> Đơn hàng đã được hoàn tiền đầy đủ (100% giá trị đơn hàng).
+                    </div>
+
+                    <!-- Bảng Lịch Sử Hoàn Tiền -->
+                    <div th:if="${refunds != null and !refunds.isEmpty()}" class="mt-3">
+                        <h6 class="small fw-bold text-muted mb-2">Lịch Sử Các Đợt Hoàn Tiền:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã hoàn tiền</th>
+                                        <th>Số tiền</th>
+                                        <th>Phương thức</th>
+                                        <th>Lý do</th>
+                                        <th>Người duyệt</th>
+                                        <th>Thời gian</th>
+                                        <th class="text-center">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="rf : ${refunds}">
+                                        <td><code class="fw-bold" th:text="${rf.refundCode}">RF-123</code></td>
+                                        <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(rf.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</td>
+                                        <td><span class="badge bg-light text-dark border" th:text="${rf.refundMethod}">MANUAL</span></td>
+                                        <td th:text="${rf.reason}">Lý do</td>
+                                        <td th:text="${rf.processedBy}">admin</td>
+                                        <td th:text="${#temporals.format(rf.processedAt, 'HH:mm dd/MM/yyyy')}"></td>
+                                        <td class="text-center"><span class="badge bg-success" th:text="${rf.status}">COMPLETED</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Right: Thông tin người nhận & Vận chuyển -->
             <div class="col-lg-4">
+                <!-- POP NOW Virtual Cabinet Notice Banner -->
+                <div th:if="${order.deliveryMethod == 'POP_NOW_CABINET' or (order.detailedAddress != null and #strings.contains(order.detailedAddress, 'Virtual Cabinet'))}" 
+                     class="admin-card p-4 mb-4 bg-black text-white border-0 shadow-sm" style="border-left: 4px solid var(--colors-accent) !important;">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-danger fw-black">
+                        <i class="bi bi-box2-heart-fill fs-5"></i> ĐƠN XUẤT KHO POP NOW
+                    </div>
+                    <p class="small text-light mb-0" style="font-size: 0.82rem; line-height: 1.45;">
+                        Đây là đơn hàng xuất kho các mẫu Art Toy khách hàng đã bóc seal trực tuyến tại máy <strong>POP NOW</strong> và lưu trong <strong>Tủ Đồ Ảo (Virtual Cabinet)</strong>.
+                    </p>
+                </div>
+
+                <!-- Thông tin vận chuyển & Tra cứu vận đơn -->
+                <div class="admin-card p-4 mb-4" id="shippingAction">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between border-bottom pb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-primary"></i> Vận Chuyển & Tra Cứu
+                        </span>
+                        <span th:if="${order.carrier != null}" class="badge bg-light text-dark border" th:text="${order.carrier}">GHN</span>
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <div class="small text-muted">Đơn vị vận chuyển:</div>
+                        <div class="fw-bold fs-6 text-dark" th:text="${order.carrier != null ? order.carrier : 'Chưa chỉ định đơn vị vận chuyển'}">Giao Hàng Nhanh</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="small text-muted">Mã vận đơn (Waybill):</div>
+                        <div th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="d-flex align-items-center gap-2 mt-1">
+                            <span class="badge bg-light text-danger border fs-6 font-monospace px-3 py-2" th:text="${order.trackingNumber}">GHN-123456</span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    onclick="navigator.clipboard.writeText(this.getAttribute('data-code')); alert('Đã sao chép mã vận đơn!');" 
+                                    th:data-code="${order.trackingNumber}" title="Sao chép mã">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                        <div th:if="${order.trackingNumber == null or order.trackingNumber.isEmpty()}" class="text-muted small mt-1 fst-italic">
+                            Chưa có mã vận đơn (Đơn chưa bàn giao shipper)
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-2 small">
+                        <div class="d-flex justify-content-between py-1" th:if="${order.packedAt != null}">
+                            <span class="text-muted">Đóng gói kiểm hàng:</span>
+                            <span class="fw-bold text-dark font-monospace" th:text="${#temporals.format(order.packedAt, 'HH:mm - dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1" th:if="${order.shippedAt != null}">
+                            <span class="text-muted">Bàn giao xuất kho:</span>
+                            <span class="fw-bold text-dark font-monospace" th:text="${#temporals.format(order.shippedAt, 'HH:mm - dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1" th:if="${order.deliveredAt != null}">
+                            <span class="text-muted">Giao thành công:</span>
+                            <span class="fw-bold text-success font-monospace" th:text="${#temporals.format(order.deliveredAt, 'HH:mm - dd/MM/yyyy')}"></span>
+                        </div>
+                    </div>
+
+                    <!-- Nút thao tác nhanh theo trạng thái -->
+                    <div class="mt-3 pt-2 border-top">
+                        <button th:if="${order.status == 'PACKED'}" type="button" 
+                                class="btn btn-primary w-100 fw-bold py-2" data-bs-toggle="modal" data-bs-target="#shipModal">
+                            <i class="bi bi-truck me-1"></i> Bàn Giao Vận Chuyển Ngay
+                        </button>
+                        <form th:if="${order.status == 'PROCESSING'}" 
+                              th:action="@{'/admin/orders/' + ${order.orderCode} + '/pack?redirect=detail'}" method="post">
+                            <button type="submit" class="btn btn-warning text-dark w-100 fw-bold py-2">
+                                <i class="bi bi-box-seam me-1"></i> Đóng Gói & Niêm Phong Ngay
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Thông tin người nhận -->
                 <div class="admin-card p-4 mb-4">
-                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
                         <i class="bi bi-geo-alt-fill text-danger"></i> Thông Tin Nhận Hàng
                     </h6>
                     <div class="mb-2">
@@ -162,42 +390,125 @@
                     </div>
                     <div class="mb-2">
                         <div class="small text-muted">Số điện thoại liên lạc:</div>
-                        <div class="fw-bold" th:text="${order.recipientPhone}">0912345678</div>
+                        <div class="fw-bold font-monospace" th:text="${order.recipientPhone}">0912345678</div>
                     </div>
                     <div class="mb-2">
-                        <div class="small text-muted">Địa chỉ nhận hàng:</div>
+                        <div class="small text-muted">Địa chỉ giao hàng:</div>
                         <div class="fw-medium text-dark leading-snug">
-                            <span th:text="${order.detailedAddress}"></span>, 
-                            <span th:if="${order.ward != null}" th:text="${order.ward + ', '}"></span>
-                            <span th:text="${order.district}"></span>, 
-                            <strong th:text="${order.provinceCity}"></strong>
+                            <span th:text="${order.detailedAddress}"></span><span th:if="${order.ward != null and !order.ward.trim().isEmpty()}" th:text="', ' + ${order.ward}"></span><span th:if="${order.district != null and !order.district.trim().isEmpty()}" th:text="', ' + ${order.district}"></span><strong th:if="${order.provinceCity != null and !order.provinceCity.trim().isEmpty()}" th:text="', ' + ${order.provinceCity}"></strong>
                         </div>
                     </div>
-                    <div th:if="${order.note != null and !order.note.isEmpty()}" class="mt-3 p-2 bg-light rounded-3 small">
-                        <strong>Ghi chú:</strong> <span th:text="${order.note}"></span>
+                    <div th:if="${order.note != null and !order.note.isEmpty()}" class="mt-3 p-2 bg-light rounded small border">
+                        <strong>Ghi chú đơn:</strong> <span th:text="${order.note}"></span>
                     </div>
                 </div>
 
                 <!-- Phương thức thanh toán -->
                 <div class="admin-card p-4">
-                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
                         <i class="bi bi-credit-card-2-front-fill text-primary"></i> Thanh Toán
                     </h6>
                     <div class="mb-2">
                         <div class="small text-muted">Phương thức:</div>
-                        <span class="badge bg-dark px-3 py-2 rounded-pill mt-1" th:text="${order.paymentMethod}">COD</span>
+                        <span class="badge bg-dark px-3 py-2 mt-1" th:text="${order.paymentMethod}">COD</span>
                     </div>
                     <div class="mb-2" th:if="${order.paidAt != null}">
                         <div class="small text-muted">Thời điểm thanh toán:</div>
-                        <div class="fw-bold text-success" th:text="${#temporals.format(order.paidAt, 'HH:mm dd/MM/yyyy')}"></div>
+                        <div class="fw-bold text-success font-monospace" th:text="${#temporals.format(order.paidAt, 'HH:mm dd/MM/yyyy')}"></div>
                     </div>
                     <div class="mb-2" th:if="${order.coupon != null}">
                         <div class="small text-muted">Mã Voucher đã dùng:</div>
-                        <span class="badge bg-warning text-dark fw-bold" th:text="${order.coupon.code}">POPWELCOME</span>
+                        <span class="badge bg-warning text-dark fw-bold font-monospace" th:text="${order.coupon.code}">POPWELCOME</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- 4. MODALS: BÀN GIAO VẬN CHUYỂN & HỦY ĐƠN HÀNG                             -->
+        <!-- ========================================================================= -->
+
+        <!-- Modal Bàn Giao Vận Chuyển -->
+        <div class="modal fade" id="shipModal" tabindex="-1" aria-labelledby="shipModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship?redirect=detail'}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="shipModalLabel">
+                                <i class="bi bi-truck me-2 text-primary"></i> Bàn Giao Vận Chuyển
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Mã đơn hàng:</label>
+                                <input type="text" class="form-control bg-light font-monospace fw-bold" th:value="${order.orderCode}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Đơn vị vận chuyển <span class="text-danger">*</span></label>
+                                <select name="carrier" class="form-select" required>
+                                    <option value="Giao Hàng Nhanh (GHN)" selected>Giao Hàng Nhanh (GHN)</option>
+                                    <option value="Giao Hàng Tiết Kiệm (GHTK)">Giao Hàng Tiết Kiệm (GHTK)</option>
+                                    <option value="Viettel Post">Viettel Post</option>
+                                    <option value="Shopee Xpress (SPX)">Shopee Xpress (SPX)</option>
+                                    <option value="J&T Express">J&T Express</option>
+                                    <option value="Hỏa Tốc PopWorld">Hỏa Tốc PopWorld (Nội thành)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Mã vận đơn (Waybill Tracking Number)</label>
+                                <input type="text" name="trackingNumber" class="form-control font-monospace" 
+                                       placeholder="Ví dụ: GHN-89238491 (Để trống để tự sinh)" maxlength="100">
+                                <small class="text-muted">Nhập mã vận đơn do bên vận chuyển cung cấp để khách hàng dễ dàng tra cứu.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Ghi chú bàn giao</label>
+                                <textarea name="note" class="form-control" rows="2" placeholder="Ghi chú kiện hàng, tình trạng tem seal..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">
+                                <i class="bi bi-check2-circle me-1"></i> Xác Nhận Xuất Kho & Giao Hàng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Hủy Đơn Hàng -->
+        <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form th:action="@{'/admin/orders/' + ${order.orderCode} + '/cancel?redirect=detail'}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold text-danger" id="cancelModalLabel">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Xác Nhận Hủy Đơn Hàng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning small mb-3">
+                                <i class="bi bi-info-circle me-1"></i> <strong>Lưu ý:</strong> Khi hủy đơn hàng, hệ thống sẽ tự động hoàn lại số lượng tồn kho cho các mô hình Art Toy và khôi phục điểm thưởng / mã voucher (nếu có).
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Lý do hủy đơn <span class="text-danger">*</span></label>
+                                <textarea name="reason" class="form-control" rows="3" required
+                                          placeholder="Nhập chi tiết lý do hủy đơn (ví dụ: Khách yêu cầu đổi mẫu, thông tin nhận không liên lạc được...)"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-danger fw-bold px-4">
+                                <i class="bi bi-x-circle me-1"></i> Xác Nhận Hủy Đơn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

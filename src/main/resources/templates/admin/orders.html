@@ -28,6 +28,12 @@
                     <span class="admin-tab-count" th:text="${countProcessing}">0</span>
                 </a>
 
+                <a th:href="@{/admin/orders(status='PACKED')}" class="admin-tab-item"
+                   th:classappend="${currentStatus == 'PACKED' ? 'active' : ''}">
+                    <span>Đã Đóng Gói</span>
+                    <span class="admin-tab-count" th:text="${countPacked != null ? countPacked : 0}">0</span>
+                </a>
+
                 <a th:href="@{/admin/orders(status='SHIPPING')}" class="admin-tab-item"
                    th:classappend="${currentStatus == 'SHIPPING' or currentStatus == 'SHIPPED' ? 'active' : ''}">
                     <span>Đang Giao</span>
@@ -114,6 +120,10 @@
                                     <span th:text="${order.district}"></span>, 
                                     <strong th:text="${order.provinceCity}"></strong>
                                 </div>
+                                <div th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="mt-1">
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;" 
+                                          th:text="${(order.carrier != null ? order.carrier + ': ' : '') + order.trackingNumber}">GHN-12345</span>
+                                </div>
                             </td>
                             <td>
                                 <div class="fw-black text-danger fs-6" 
@@ -135,6 +145,9 @@
                                 <span th:if="${order.status == 'PROCESSING'}" class="badge-status badge-status-processing">
                                     <i class="bi bi-hourglass-split"></i> Chờ xử lý
                                 </span>
+                                <span th:if="${order.status == 'PACKED'}" class="badge-status badge-status-packed">
+                                    <i class="bi bi-box-seam"></i> Đã đóng gói
+                                </span>
                                 <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge-status badge-status-shipped">
                                     <i class="bi bi-truck"></i> Đang giao
                                 </span>
@@ -150,15 +163,22 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1 align-items-center">
-                                    <!-- Nút Bàn giao vận chuyển nếu đang Chờ xử lý -->
+                                    <!-- Nút Đóng gói nếu đang Chờ xử lý (PROCESSING -> PACKED) -->
                                     <form th:if="${order.status == 'PROCESSING'}" 
-                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/ship'}" method="post" class="d-inline">
-                                        <button type="submit" class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển" aria-label="Bàn giao vận chuyển">
-                                            <i class="bi bi-truck"></i> Giao Hàng
+                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/pack'}" method="post" class="d-inline">
+                                        <button type="submit" class="btn-action-pill btn-action-pack" title="Xác nhận đóng gói & dán tem niêm phong" aria-label="Đóng gói kiểm hàng">
+                                            <i class="bi bi-box-seam"></i> Đóng Gói
                                         </button>
                                     </form>
 
-                                    <!-- Nút Hoàn tất nếu đang Giao hàng -->
+                                    <!-- Nút Bàn giao vận chuyển nếu đã Đóng gói (PACKED -> SHIPPING) -->
+                                    <a th:if="${order.status == 'PACKED'}" 
+                                       th:href="@{'/admin/orders/' + ${order.orderCode} + '#shippingAction'}" 
+                                       class="btn-action-pill btn-action-ship" title="Bàn giao vận chuyển" aria-label="Bàn giao vận chuyển">
+                                        <i class="bi bi-truck"></i> Giao Hàng
+                                    </a>
+
+                                    <!-- Nút Hoàn tất nếu đang Giao hàng (SHIPPING -> DELIVERED) -->
                                     <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
                                           th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
                                         <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công" aria-label="Xác nhận giao thành công">

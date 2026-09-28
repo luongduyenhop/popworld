@@ -1,9 +1,14 @@
 package com.manguonmo.popworld.service;
 
 import com.manguonmo.popworld.dto.request.SePayWebhookRequest;
-import com.manguonmo.popworld.service.impl.PaymentServiceImpl;
+import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
+import com.manguonmo.popworld.entity.ReservationStatus;
+import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
+import com.manguonmo.popworld.service.PopNowService;
+import com.manguonmo.popworld.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +41,12 @@ class PaymentServiceImplTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private BoxReservationRepository boxReservationRepository;
+
+    @Mock
+    private PopNowService popNowService;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -416,5 +427,262 @@ class PaymentServiceImplTest {
         assertTrue(result);
         assertEquals("SEPAY_CODE_123", order.getNote());
         verify(orderRepository, times(1)).save(order);
+    }
+
+    // =========================================================================
+    // TEST CASE 6: POP NOW Webhook Integration & Error Handling
+    // =========================================================================
+    @Test
+    @DisplayName("POP NOW Webhook: Thanh toán thành công -> markPurchased được gọi và Order chuyển PROCESSING")
+    void processSePayWebhook_PopNow_Success_ShouldCallMarkPurchasedAndSetProcessing() {
+        String orderCode = "PW-1726000000888";
+        String resCode = "PN-TEST123456";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-OK")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.RESERVED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Webhook phải trả về true khi thành công");
+        verify(popNowService, times(1)).markPurchased(resCode, orderCode);
+        assertEquals("PROCESSING", order.getStatus());
+        assertNotNull(order.getPaidAt());
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook: markPurchased thất bại do hết hạn -> Order không thành PROCESSING (chuyển EXPIRED), webhook trả false")
+    void processSePayWebhook_PopNow_WhenMarkPurchasedFails_ShouldNotBeProcessingAndReturnFalse() {
+        String orderCode = "PW-1726000000999";
+        String resCode = "PN-EXPIRED999";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-FAIL")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.EXPIRED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+        doThrow(new BadRequestException("Phiếu giữ hộp đã hết hạn, không thể thanh toán!"))
+                .when(popNowService).markPurchased(resCode, orderCode);
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Webhook phải trả về false khi phiếu giữ hộp không thể thanh toán");
+        assertNotEquals("PROCESSING", order.getStatus(), "Order tuyệt đối không được chuyển sang PROCESSING");
+        assertEquals("EXPIRED", order.getStatus(), "Order được đánh dấu EXPIRED để đồng bộ");
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook Idempotency: Webhook gọi lại khi Order đã PROCESSING -> Trả về true và gọi markPurchased an toàn")
+    void processSePayWebhook_PopNow_IdempotentOnDuplicateCall() {
+        String orderCode = "PW-1726000000777";
+        String resCode = "PN-DUP777";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-DUP")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.PURCHASED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Lần gọi thứ 2 phải trả về true (Idempotent)");
+        verify(popNowService, times(1)).markPurchased(resCode, orderCode);
+        verify(orderRepository, never()).save(order);
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook Idempotency: Webhook gọi lại khi Order đã PROCESSING và Reservation UNBOXED -> Trả về true an toàn")
+    void processSePayWebhook_PopNow_IdempotentOnDuplicateCall_WhenUnboxed() {
+        String orderCode = "PW-1726000000778";
+        String resCode = "PN-UNBOX778";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-UNBOX")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.UNBOXED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Đơn đã PROCESSING và hộp đã UNBOXED phải trả về true");
+        verify(popNowService, times(1)).markPurchased(resCode, orderCode);
+        verify(orderRepository, never()).save(order);
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook Idempotency Edge Case: Đơn đã PROCESSING nhưng phiếu giữ hộp EXPIRED -> Trả về false và GIỮ NGUYÊN trạng thái đơn")
+    void processSePayWebhook_PopNow_IdempotentOnDuplicateCall_WhenExpired_ShouldReturnFalseAndNotChangeOrder() {
+        String orderCode = "PW-1726000000779";
+        String resCode = "PN-EXP779";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-DUP-EXP")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.EXPIRED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải trả về false khi phiếu giữ hộp đã hết hạn");
+        assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng thành công trước đó phải được bảo toàn, không đổi sang EXPIRED");
+        verify(orderRepository, never()).save(order);
+        verify(popNowService, never()).markPurchased(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook Idempotency Edge Case: Đơn đã PROCESSING nhưng phiếu giữ hộp CANCELLED -> Trả về false và GIỮ NGUYÊN trạng thái đơn")
+    void processSePayWebhook_PopNow_IdempotentOnDuplicateCall_WhenCancelled_ShouldReturnFalseAndNotChangeOrder() {
+        String orderCode = "PW-1726000000780";
+        String resCode = "PN-CANCEL780";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-DUP-CANCEL")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.CANCELLED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải trả về false khi phiếu giữ hộp đã bị hủy");
+        assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng thành công trước đó phải được bảo toàn, không đổi sang CANCELLED");
+        verify(orderRepository, never()).save(order);
+        verify(popNowService, never()).markPurchased(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("POP NOW Webhook Idempotency: Đơn đã PROCESSING nhưng markPurchased ném ngoại lệ -> Trả về false và không đổi trạng thái đơn")
+    void processSePayWebhook_PopNow_IdempotentOnDuplicateCall_WhenMarkPurchasedThrows_ShouldReturnFalse() {
+        String orderCode = "PW-1726000000781";
+        String resCode = "PN-FAIL781";
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .content(orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("REF-POPNOW-DUP-FAIL")
+                .build();
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .deliveryMethod("POP_NOW_CABINET")
+                .build();
+
+        BoxReservation reservation = BoxReservation.builder()
+                .reservationCode(resCode)
+                .status(ReservationStatus.RESERVED)
+                .orderCode(orderCode)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(boxReservationRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(reservation));
+        doThrow(new RuntimeException("Database timeout during markPurchased"))
+                .when(popNowService).markPurchased(resCode, orderCode);
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertFalse(result, "Phải trả về false khi markPurchased gặp sự cố");
+        assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng phải được giữ nguyên");
+        verify(orderRepository, never()).save(order);
     }
 }

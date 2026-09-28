@@ -942,6 +942,8 @@ header.sticky-top,
     justify-content: space-between;
     align-items: flex-start;
     position: relative;
+    width: 100%;
+    max-width: 680px;
     padding: 20px 22px;
     margin: 20px auto 30px;
 }
@@ -978,6 +980,8 @@ header.sticky-top,
     align-items: center;
     background: transparent;
     text-align: center;
+    flex: 1;
+    min-width: 0;
 }
 
 .order-step-icon {

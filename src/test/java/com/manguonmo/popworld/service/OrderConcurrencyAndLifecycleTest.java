@@ -68,7 +68,7 @@ class OrderConcurrencyAndLifecycleTest {
 
     @BeforeEach
     void setUp() {
-        paymentService = new PaymentServiceImpl(orderRepository);
+        paymentService = new PaymentServiceImpl(orderRepository, null, null, null);
         ReflectionTestUtils.setField(paymentService, "apiKey", API_KEY);
     }
 

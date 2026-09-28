@@ -13,6 +13,7 @@ package com.manguonmo.popworld.entity;
 public enum OrderStatus {
     TO_PAY("Chờ thanh toán"),
     PROCESSING("Đang xử lý"),
+    PACKED("Đã đóng gói"),
     SHIPPING("Đang giao hàng"),
     DELIVERED("Đã giao hàng"),
     CANCELLED("Đã hủy"),
@@ -43,9 +44,9 @@ public enum OrderStatus {
     }
 
     /**
-     * Quản trị viên (Admin) chỉ được phép hủy đơn khi đơn ở TO_PAY hoặc PROCESSING.
+     * Quản trị viên (Admin) được phép hủy đơn khi đơn ở TO_PAY, PROCESSING hoặc PACKED (chưa xuất kho bàn giao shipper).
      */
     public boolean canAdminCancel() {
-        return this == TO_PAY || this == PROCESSING;
+        return this == TO_PAY || this == PROCESSING || this == PACKED;
     }
 }

@@ -22,6 +22,11 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.manguonmo.popworld.dto.response.RefundResponse;
+import com.manguonmo.popworld.service.RefundService;
+import java.math.BigDecimal;
+import java.security.Principal;
+
 @ExtendWith(MockitoExtension.class)
 class AdminOrderWebControllerTest {
 
@@ -29,10 +34,16 @@ class AdminOrderWebControllerTest {
     private OrderService orderService;
 
     @Mock
+    private RefundService refundService;
+
+    @Mock
     private Model model;
 
     @Mock
     private RedirectAttributes redirectAttributes;
+
+    @Mock
+    private Principal principal;
 
     @InjectMocks
     private AdminOrderWebController adminOrderWebController;
@@ -66,12 +77,20 @@ class AdminOrderWebControllerTest {
 
         when(orderService.getOrderByCode("PW-001")).thenReturn(mockOrder);
         when(orderService.getOrderItems(1L)).thenReturn(mockItems);
+        when(refundService.getRefundsByOrderCode("PW-001")).thenReturn(List.of());
+        when(refundService.getTotalRefundedAmount("PW-001")).thenReturn(BigDecimal.ZERO);
+        when(refundService.getRemainingRefundableAmount("PW-001")).thenReturn(BigDecimal.valueOf(100000));
+        when(refundService.isEligibleForRefund("PW-001")).thenReturn(true);
 
         String view = adminOrderWebController.viewOrderDetail("PW-001", model, redirectAttributes);
 
         assertEquals("admin/order-detail", view);
         verify(model).addAttribute("order", mockOrder);
         verify(model).addAttribute("orderItems", mockItems);
+        verify(model).addAttribute("refunds", List.of());
+        verify(model).addAttribute("totalRefunded", BigDecimal.ZERO);
+        verify(model).addAttribute("remainingRefundable", BigDecimal.valueOf(100000));
+        verify(model).addAttribute("isRefundEligible", true);
     }
 
     @Test
@@ -135,5 +154,45 @@ class AdminOrderWebControllerTest {
 
         assertEquals("redirect:/admin/orders/PW-001", view);
         verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), contains("Hủy đơn thất bại"));
+    }
+
+    @Test
+    @DisplayName("refundOrder: Thành công khi có Principal và dữ liệu hợp lệ")
+    void refundOrder_Success_WithPrincipal() {
+        when(principal.getName()).thenReturn("admin@popworld.com");
+        BigDecimal refundAmount = BigDecimal.valueOf(50000);
+
+        String view = adminOrderWebController.refundOrder("PW-001", refundAmount, "Sản phẩm lỗi", principal, redirectAttributes);
+
+        assertEquals("redirect:/admin/orders/PW-001", view);
+        verify(refundService).processManualRefund("PW-001", refundAmount, "Sản phẩm lỗi", "admin@popworld.com");
+        verify(redirectAttributes).addFlashAttribute(eq("successMessage"), contains("Đã ghi nhận hoàn tiền thành công"));
+    }
+
+    @Test
+    @DisplayName("refundOrder: Thất bại khi thiếu Principal (chưa đăng nhập)")
+    void refundOrder_NoPrincipal_ShouldSetErrorMessage() {
+        BigDecimal refundAmount = BigDecimal.valueOf(50000);
+
+        String view = adminOrderWebController.refundOrder("PW-001", refundAmount, "Lý do", null, redirectAttributes);
+
+        assertEquals("redirect:/admin/orders/PW-001", view);
+        verifyNoInteractions(refundService);
+        verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), contains("Vui lòng đăng nhập với tài khoản Quản trị viên"));
+    }
+
+    @Test
+    @DisplayName("refundOrder: Báo lỗi khi Service ném BadRequestException")
+    void refundOrder_BadRequest_ShouldSetErrorMessage() {
+        when(principal.getName()).thenReturn("admin@popworld.com");
+        BigDecimal refundAmount = BigDecimal.valueOf(500000);
+
+        doThrow(new BadRequestException("Số tiền hoàn vượt quá số tiền còn lại"))
+                .when(refundService).processManualRefund("PW-001", refundAmount, "Hoàn quá mức", "admin@popworld.com");
+
+        String view = adminOrderWebController.refundOrder("PW-001", refundAmount, "Hoàn quá mức", principal, redirectAttributes);
+
+        assertEquals("redirect:/admin/orders/PW-001", view);
+        verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), contains("Số tiền hoàn vượt quá số tiền còn lại"));
     }
 }

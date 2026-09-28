@@ -49,6 +49,16 @@
                 <span>Kho Hàng Art Toy</span>
             </a>
 
+            <a th:href="@{/admin/popnow}" class="admin-nav-link" th:classappend="${activeItem == 'popnow' ? 'active' : ''}">
+                <i class="bi bi-lightning-charge"></i>
+                <span>Cấu Hình POP NOW</span>
+            </a>
+
+            <a th:href="@{/admin/reviews}" class="admin-nav-link" th:classappend="${activeItem == 'reviews' ? 'active' : ''}">
+                <i class="bi bi-star"></i>
+                <span>Quản Lý Đánh Giá</span>
+            </a>
+
             <p class="admin-nav-label mt-3">Khách Hàng & Hệ Thống</p>
             <a th:href="@{/admin/customers}" class="admin-nav-link" th:classappend="${activeItem == 'customers' ? 'active' : ''}">
                 <i class="bi bi-people"></i>

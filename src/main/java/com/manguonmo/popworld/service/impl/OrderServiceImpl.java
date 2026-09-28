@@ -3,6 +3,7 @@ package com.manguonmo.popworld.service.impl;
 import com.manguonmo.popworld.dto.response.OrderItemResponse;
 import com.manguonmo.popworld.dto.response.OrderResponse;
 import com.manguonmo.popworld.dto.response.OrderStatusCountResponse;
+import com.manguonmo.popworld.dto.response.OrderTimelineResponse;
 import com.manguonmo.popworld.mapper.OrderMapper;
 import com.manguonmo.popworld.service.CouponService;
 import com.manguonmo.popworld.service.OrderService;
@@ -12,14 +13,18 @@ import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -30,6 +35,10 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
+    private final BoxReservationRepository boxReservationRepository;
+
+    private final OrderTimelineRepository orderTimelineRepository;
+
     private static final java.util.concurrent.atomic.AtomicInteger ORDER_SEQ =
             new java.util.concurrent.atomic.AtomicInteger(100000);
 
@@ -38,14 +47,15 @@ public class OrderServiceImpl implements OrderService {
         return "PW-" + System.currentTimeMillis() + seq;
     }
 
-    // [CHÚ THÍCH]: Constructor Injection chuẩn Spring Boot (dọn dẹp các tham số thừa)
     public OrderServiceImpl(OrderRepository orderRepository,
                             CartItemRepository cartItemRepository,
                             CouponService couponService,
                             OrderItemRepository orderItemRepository,
                             UserRepository userRepository,
                             ProductRepository productRepository,
-                            OrderMapper orderMapper) {
+                            OrderMapper orderMapper,
+                            BoxReservationRepository boxReservationRepository,
+                            OrderTimelineRepository orderTimelineRepository) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.couponService = couponService;
@@ -53,6 +63,8 @@ public class OrderServiceImpl implements OrderService {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.orderMapper = orderMapper;
+        this.boxReservationRepository = boxReservationRepository;
+        this.orderTimelineRepository = orderTimelineRepository;
     }
 
     /**
@@ -236,6 +248,9 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         // BƯỚC 11: Trả về đối tượng Order đã lưu thành công
         // =========================================================================
+        recordTimeline(savedOrder, null, "TO_PAY", "Đặt hàng thành công", 
+                (user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getEmail()), 
+                "Phương thức thanh toán: " + savedOrder.getPaymentMethod() + " | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ");
         return savedOrder;
     }
 
@@ -272,10 +287,30 @@ public class OrderServiceImpl implements OrderService {
         }
 
         List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
+        boolean isPopNowOrder = "POP_NOW_CABINET".equalsIgnoreCase(order.getDeliveryMethod());
         if (!itemList.isEmpty()) {
             for (OrderItem item : itemList) {
-                productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                boolean isPopNowItem = "POP_NOW".equalsIgnoreCase(item.getPurchaseType());
+                if (!isPopNowOrder && !isPopNowItem && item.getProduct() != null && item.getProduct().getId() != null) {
+                    productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                }
             }
+        }
+        if (isPopNowOrder && boxReservationRepository != null) {
+            boxReservationRepository.findByOrderCode(order.getOrderCode()).ifPresent(res -> {
+                if (res.getStatus() == ReservationStatus.RESERVED) {
+                    res.setStatus(ReservationStatus.CANCELLED);
+                    boxReservationRepository.save(res);
+                    if (res.getSlot() != null && res.getSlot().getStatus() == SlotStatus.HELD) {
+                        BlindBoxSlot slot = res.getSlot();
+                        slot.setStatus(SlotStatus.AVAILABLE);
+                        slot.setCurrentReservation(null);
+                    }
+                    if (res.getProduct() != null && res.getProduct().getId() != null) {
+                        productRepository.addStock(res.getProduct().getId(), 1);
+                    }
+                }
+            });
         }
         if (order.getCoupon() != null) {
             couponService.releaseCoupon(order.getCoupon().getId(), userId);
@@ -290,13 +325,23 @@ public class OrderServiceImpl implements OrderService {
                 ? "Khách hàng hủy đơn: " + reason.trim()
                 : "Khách hàng chủ động hủy đơn.";
         order.setNote(cancelNote);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        recordTimeline(savedOrder, "TO_PAY", "CANCELLED", "Khách hàng hủy đơn hàng", 
+                (order.getUser() != null && order.getUser().getFullName() != null && !order.getUser().getFullName().isBlank() ? order.getUser().getFullName() : "Khách hàng"), 
+                cancelNote);
+        return savedOrder;
 
     }
 
     @Override
     @Transactional
     public Order adminCancelOrder(String orderCode, String reason) {
+        return adminCancelOrder(orderCode, reason, "Quản trị viên");
+    }
+
+    @Override
+    @Transactional
+    public Order adminCancelOrder(String orderCode, String reason, String adminUsername) {
         Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
         );
@@ -308,15 +353,35 @@ public class OrderServiceImpl implements OrderService {
         if ("EXPIRED".equalsIgnoreCase(orderStatus)) {
             throw new BadRequestException("Đơn hàng này đã hết hạn thanh toán từ trước!");
         }
-        if (!List.of("TO_PAY", "PROCESSING").contains(orderStatus)) {
+        if (!List.of("TO_PAY", "PROCESSING", "PACKED").contains(orderStatus)) {
             throw new BadRequestException("Không thể hủy đơn hàng ở trạng thái " + orderStatus + ". Đơn hàng đang vận chuyển hoặc đã giao thành công!");
         }
 
         List<OrderItem> itemList = orderItemRepository.findByOrderId(order.getId());
+        boolean isPopNowOrder = "POP_NOW_CABINET".equalsIgnoreCase(order.getDeliveryMethod());
         if (!itemList.isEmpty()) {
             for (OrderItem item : itemList) {
-                productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                boolean isPopNowItem = "POP_NOW".equalsIgnoreCase(item.getPurchaseType());
+                if (!isPopNowOrder && !isPopNowItem && item.getProduct() != null && item.getProduct().getId() != null) {
+                    productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                }
             }
+        }
+        if (isPopNowOrder && boxReservationRepository != null) {
+            boxReservationRepository.findByOrderCode(order.getOrderCode()).ifPresent(res -> {
+                if (res.getStatus() == ReservationStatus.RESERVED) {
+                    res.setStatus(ReservationStatus.CANCELLED);
+                    boxReservationRepository.save(res);
+                    if (res.getSlot() != null && res.getSlot().getStatus() == SlotStatus.HELD) {
+                        BlindBoxSlot slot = res.getSlot();
+                        slot.setStatus(SlotStatus.AVAILABLE);
+                        slot.setCurrentReservation(null);
+                    }
+                    if (res.getProduct() != null && res.getProduct().getId() != null) {
+                        productRepository.addStock(res.getProduct().getId(), 1);
+                    }
+                }
+            });
         }
         if (order.getCoupon() != null) {
             Long userId = order.getUser() != null ? order.getUser().getId() : null;
@@ -333,7 +398,13 @@ public class OrderServiceImpl implements OrderService {
                 ? "Admin hủy đơn: " + reason.trim()
                 : "Admin chủ động hủy đơn.";
         order.setNote(cancelNote);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        recordTimeline(savedOrder, orderStatus, "CANCELLED", "Quản trị viên hủy đơn hàng", 
+                adminUsername != null ? adminUsername : "Quản trị viên", 
+                (reason != null && !reason.isBlank()) ? "Lý do: " + reason : "Theo quyết định của Quản trị viên");
+
+        return savedOrder;
     }
 
     @Override
@@ -366,6 +437,7 @@ public class OrderServiceImpl implements OrderService {
                 .all(orderRepository.count())
                 .toPay(orderRepository.countByStatus("TO_PAY"))
                 .processing(orderRepository.countByStatus("PROCESSING"))
+                .packed(orderRepository.countByStatus("PACKED"))
                 .shipping(orderRepository.countByStatus("SHIPPING"))
                 .delivered(orderRepository.countByStatus("DELIVERED"))
                 .cancelled(orderRepository.countByStatus("CANCELLED"))
@@ -375,21 +447,67 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order shipOrder(String orderCode) {
+    public Order packOrder(String orderCode, String adminUsername, String note) {
         Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
         );
+
         if (!"PROCESSING".equalsIgnoreCase(order.getStatus())) {
-            throw new BadRequestException("Chỉ có thể giao hàng cho đơn ở trạng thái Chờ xử lý (PROCESSING). Trạng thái hiện tại: " + order.getStatus());
+            throw new BadRequestException("Chỉ có thể đóng gói cho đơn hàng ở trạng thái Chờ xử lý (PROCESSING). Trạng thái hiện tại: " + order.getStatus());
         }
 
+        order.setStatus("PACKED");
+        order.setPackedAt(LocalDateTime.now());
+        Order savedOrder = orderRepository.save(order);
+
+        recordTimeline(savedOrder, "PROCESSING", "PACKED", "Đã đóng gói & niêm phong Art Toy",
+                adminUsername != null ? adminUsername : "Quản trị viên",
+                (note != null && !note.isBlank()) ? note : "Kiện hàng đã được kiểm đếm Art Toy và dán tem niêm phong chống sốc.");
+
+        return savedOrder;
+    }
+
+    @Override
+    @Transactional
+    public Order shipOrder(String orderCode) {
+        return shipOrder(orderCode, "Giao Hàng Nhanh (GHN)", null, "Quản trị viên", null);
+    }
+
+    @Override
+    @Transactional
+    public Order shipOrder(String orderCode, String carrier, String trackingNumber, String adminUsername, String note) {
+        Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
+        );
+        if (!"PACKED".equalsIgnoreCase(order.getStatus()) && !"PROCESSING".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Chỉ có thể giao hàng cho đơn ở trạng thái Đã đóng gói (PACKED) hoặc Chờ xử lý (PROCESSING). Trạng thái hiện tại: " + order.getStatus());
+        }
+
+        String fromStatus = order.getStatus();
         order.setStatus("SHIPPING");
-        return orderRepository.save(order);
+        order.setShippedAt(LocalDateTime.now());
+
+        String assignedCarrier = (carrier != null && !carrier.isBlank()) ? carrier.trim() : "Giao Hàng Nhanh (GHN)";
+        String assignedTracking = (trackingNumber != null && !trackingNumber.isBlank()) ? trackingNumber.trim() : ("VN-" + (System.currentTimeMillis() % 10000000));
+        order.setCarrier(assignedCarrier);
+        order.setTrackingNumber(assignedTracking);
+
+        Order savedOrder = orderRepository.save(order);
+        String actionText = "Bàn giao vận chuyển [" + assignedCarrier + " - Mã VĐ: " + assignedTracking + "]";
+        recordTimeline(savedOrder, fromStatus, "SHIPPING", actionText, adminUsername != null ? adminUsername : "Quản trị viên", note);
+
+        return savedOrder;
     }
 
     @Override
     @Transactional
     public Order completeOrder(String orderCode) {
+        return completeOrder(orderCode, "Quản trị viên", null);
+    }
+
+    @Override
+    @Transactional
+    public Order completeOrder(String orderCode, String adminUsername, String note) {
         Order order = orderRepository.findByOrderCode(orderCode.trim().toUpperCase()).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy đơn hàng với mã: " + orderCode)
         );
@@ -398,6 +516,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus("DELIVERED");
+        order.setDeliveredAt(LocalDateTime.now());
         if(order.getPaidAt()==null){
             order.setPaidAt(LocalDateTime.now());
         }
@@ -409,7 +528,51 @@ public class OrderServiceImpl implements OrderService {
             userRepository.save(orderUser);
         }
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        recordTimeline(savedOrder, "SHIPPING", "DELIVERED", "Giao hàng thành công đến tay khách", adminUsername != null ? adminUsername : "Quản trị viên", note);
+
+        return savedOrder;
+    }
+
+    @Override
+    @Transactional
+    public void recordTimeline(Order order, String fromStatus, String toStatus, String action, String actor, String note) {
+        if (orderTimelineRepository == null || order == null) {
+            return;
+        }
+        try {
+            OrderTimeline timeline = OrderTimeline.builder()
+                    .order(order)
+                    .fromStatus(fromStatus)
+                    .toStatus(toStatus)
+                    .action(action != null ? action : "Cập nhật đơn hàng")
+                    .actor(actor != null && !actor.isBlank() ? actor : "Hệ thống")
+                    .note(note)
+                    .build();
+            orderTimelineRepository.save(timeline);
+        } catch (Exception e) {
+            log.warn("Không thể lưu OrderTimeline cho đơn {}: {}", order.getOrderCode(), e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderTimelineResponse> getOrderTimelines(String orderCode) {
+        if (orderTimelineRepository == null || orderCode == null || orderCode.isBlank()) {
+            return Collections.emptyList();
+        }
+        return orderTimelineRepository.findByOrderOrderCodeOrderByCreatedAtAsc(orderCode.trim().toUpperCase())
+                .stream()
+                .map(t -> OrderTimelineResponse.builder()
+                        .id(t.getId())
+                        .fromStatus(t.getFromStatus())
+                        .toStatus(t.getToStatus())
+                        .action(t.getAction())
+                        .actor(t.getActor())
+                        .note(t.getNote())
+                        .createdAt(t.getCreatedAt())
+                        .build())
+                .toList();
     }
 
 
@@ -434,8 +597,108 @@ public class OrderServiceImpl implements OrderService {
                     return orderMapper.toResponse(order,items);
                 }
         ).toList();
+    }
 
+    @Transactional
+    @Override
+    public Order createOrderForReservation(Long userId, String reservationCode, String paymentMethod) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu xác thực tài khoản!");
+        }
+        if (reservationCode == null || reservationCode.isBlank()) {
+            throw new BadRequestException("Mã giữ hộp không hợp lệ!");
+        }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
 
+        if (boxReservationRepository == null) {
+            throw new IllegalStateException("BoxReservationRepository chưa được khởi tạo!");
+        }
+
+        BoxReservation reservation = boxReservationRepository.findByReservationCodeForUpdate(reservationCode.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp với mã: " + reservationCode));
+
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thanh toán cho phiếu giữ hộp này!");
+        }
+
+        if (reservation.getStatus() == ReservationStatus.PURCHASED || reservation.getStatus() == ReservationStatus.UNBOXED) {
+            if (reservation.getOrderCode() != null) {
+                return orderRepository.findByOrderCode(reservation.getOrderCode()).orElse(null);
+            }
+            throw new BadRequestException("Phiếu giữ hộp đã được thanh toán!");
+        }
+
+        if (reservation.getStatus() != ReservationStatus.RESERVED || reservation.isExpired()) {
+            throw new BadRequestException("Phiếu giữ hộp đã hết hạn hoặc bị hủy!");
+        }
+
+        // Tái sử dụng đơn hàng nếu đã tạo trước đó và vẫn ở trạng thái TO_PAY
+        if (reservation.getOrderCode() != null) {
+            Optional<Order> existingOrder = orderRepository.findByOrderCode(reservation.getOrderCode());
+            if (existingOrder.isPresent() && "TO_PAY".equalsIgnoreCase(existingOrder.get().getStatus())) {
+                return existingOrder.get();
+            }
+        }
+
+        Product product = reservation.getProduct();
+        BigDecimal price = product.getSinglePrice();
+        String orderCode = generateOrderCode();
+
+        String recipientName = user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getEmail();
+        String recipientPhone = user.getPhone() != null && !user.getPhone().isBlank() ? user.getPhone() : "0900000000";
+        String province = "Hồ Chí Minh";
+        String district = "Quận 1";
+        String ward = "Phường Bến Nghé";
+        String detailedAddress = "Tủ đồ ảo POP NOW (Virtual Cabinet)";
+
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .user(user)
+                .recipientName(recipientName)
+                .recipientPhone(recipientPhone)
+                .provinceCity(province)
+                .district(district)
+                .ward(ward)
+                .detailedAddress(detailedAddress)
+                .deliveryMethod("POP_NOW_CABINET")
+                .subtotalAmount(price)
+                .shippingFee(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
+                .totalAmount(price)
+                .pointsEarned(price.divideToIntegralValue(BigDecimal.valueOf(10000)).intValue())
+                .pointsUsed(0)
+                .pointsDiscount(BigDecimal.ZERO)
+                .status("TO_PAY")
+                .paymentMethod(paymentMethod != null && !paymentMethod.isBlank() ? paymentMethod : "SEPAY")
+                .expiresAt(reservation.getExpiresAt())
+                .note("POP NOW: " + reservation.getReservationCode())
+                .build();
+
+        order = orderRepository.save(order);
+
+        OrderItem orderItem = OrderItem.builder()
+                .order(order)
+                .product(product)
+                .quantity(1)
+                .unitPrice(price)
+                .totalPrice(price)
+                .purchaseType("POP_NOW")
+                .build();
+
+        orderItemRepository.save(orderItem);
+
+        reservation.setOrderCode(orderCode);
+        boxReservationRepository.save(reservation);
+
+        log.info("Khởi tạo đơn hàng POP NOW thành công: orderCode={}, reservationCode={}, user={}",
+                orderCode, reservationCode, user.getEmail());
+
+        recordTimeline(order, null, "TO_PAY", "Khởi tạo đơn hàng từ POP NOW (Virtual Cabinet)", 
+                (user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getEmail()), 
+                "Phiếu giữ hộp: " + reservationCode);
+
+        return order;
     }
 }

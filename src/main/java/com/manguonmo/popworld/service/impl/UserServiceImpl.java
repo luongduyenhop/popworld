@@ -1,9 +1,12 @@
 package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.dto.request.ChangePasswordRequest;
+import com.manguonmo.popworld.dto.request.ProfileUpdateRequest;
 import com.manguonmo.popworld.dto.request.RegisterRequest;
 import com.manguonmo.popworld.dto.response.CustomerStatsResponse;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +30,12 @@ public class UserServiceImpl implements UserService {
     public User register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         String password = request.getPassword();
-        String comfirmPassword = request.getConfirmPassword();
+        String confirmPassword = request.getConfirmPassword();
 
-        if(!password.equals(comfirmPassword)){
+        if (!password.equals(confirmPassword)) {
             throw new BadRequestException("Mật khẩu xác nhận không khớp");
         }
-        if(userRepository.existsByEmail(email)){
+        if (userRepository.existsByEmail(email)) {
             throw new BadRequestException("Email đã được đăng ký, vui lòng chọn email khác hoặc đăng nhập");
         }
         password = passwordEncoder.encode(password);
@@ -52,7 +55,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
-                () -> new  UsernameNotFoundException("Không tìm thấy username với email: "+ email)
+                () -> new UsernameNotFoundException("Không tìm thấy username với email: " + email)
         );
     }
 
@@ -77,12 +80,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateProfile(Long userId, com.manguonmo.popworld.dto.request.ProfileUpdateRequest request) {
+    public User updateProfile(Long userId, ProfileUpdateRequest request) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng.");
         }
         User user = userRepository.findById(userId).orElseThrow(
-                () -> new com.manguonmo.popworld.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
         );
 
         if (request.getFullName() == null || request.getFullName().trim().isBlank()) {
@@ -98,12 +101,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(Long userId, com.manguonmo.popworld.dto.request.ChangePasswordRequest request) {
+    public void changePassword(Long userId, ChangePasswordRequest request) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng.");
         }
         User user = userRepository.findById(userId).orElseThrow(
-                () -> new com.manguonmo.popworld.exception.ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
         );
 
         if (request.getCurrentPassword() == null || !passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
@@ -126,4 +129,3 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 }
-

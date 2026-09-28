@@ -63,6 +63,9 @@ class SecurityConfigTest {
     @MockitoBean
     private UserAddressService userAddressService;
 
+    @MockitoBean
+    private ProductService productService;
+
 
     @Test
     @DisplayName("Chưa đăng nhập truy cập /admin/** -> Redirect về /login")
@@ -197,5 +200,21 @@ class SecurityConfigTest {
                         .with(user("user@test.com").roles("USER")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?logout=true"));
+    }
+
+    @Test
+    @DisplayName("Chưa đăng nhập gửi POST /api/popnow/ship -> Redirect về /login")
+    void whenUnauthenticated_accessPopNowShip_shouldRedirectToLogin() throws Exception {
+        mockMvc.perform(post("/api/popnow/ship").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    @DisplayName("Gửi POST /api/popnow/ship không có CSRF token -> Bị từ chối HTTP 403 Forbidden")
+    void whenPostPopNowShip_withoutCsrf_shouldBeForbidden() throws Exception {
+        mockMvc.perform(post("/api/popnow/ship")
+                        .with(user("user@test.com").roles("USER")))
+                .andExpect(status().isForbidden());
     }
 }

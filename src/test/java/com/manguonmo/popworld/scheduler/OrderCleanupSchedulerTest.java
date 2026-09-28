@@ -230,5 +230,37 @@ class OrderCleanupSchedulerTest {
         assertEquals(70, user.getRewardPoints(), "User được hoàn trả 50 điểm");
         verify(userRepository).save(user);
     }
+
+    @Test
+    @DisplayName("POP NOW Stock Integrity: Đơn hàng POP NOW hết hạn chuyển sang EXPIRED nhưng KHÔNG hoàn kho (tránh double restock vì PopNowService đã quản lý)")
+    void cleanupExpiredOrders_PopNowOrder_DoesNotRestoreStockTwice() {
+        Order popNowOrder = Order.builder()
+                .id(30L)
+                .orderCode("PW-POPNOW-EXPIRED")
+                .status("TO_PAY")
+                .deliveryMethod("POP_NOW_CABINET")
+                .expiresAt(LocalDateTime.now().minusMinutes(5))
+                .build();
+
+        Product product = Product.builder().id(201L).name("POP NOW Series 1").build();
+        OrderItem popNowItem = OrderItem.builder()
+                .id(301L)
+                .product(product)
+                .purchaseType("POP_NOW")
+                .quantity(1)
+                .build();
+
+        when(orderRepository.findByExpiresAtBeforeAndStatus(any(LocalDateTime.class), eq("TO_PAY")))
+                .thenReturn(List.of(popNowOrder));
+        when(orderItemRepository.findByOrderId(30L)).thenReturn(List.of(popNowItem));
+
+        scheduler.cleanupExpiredOrders();
+
+        assertEquals("EXPIRED", popNowOrder.getStatus());
+        assertTrue(popNowOrder.getNote().contains("POP NOW"));
+        // Đảm bảo TUYỆT ĐỐI không gọi addStock cho sản phẩm của POP NOW
+        verify(productRepository, never()).addStock(anyLong(), anyInt());
+        verify(orderRepository).saveAll(List.of(popNowOrder));
+    }
 }
 

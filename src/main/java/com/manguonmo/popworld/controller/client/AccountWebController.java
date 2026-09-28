@@ -118,6 +118,7 @@ public class AccountWebController {
         List<OrderItem> items = orderService.getOrderItems(order.getId());
         model.addAttribute("order", order);
         model.addAttribute("items", items);
+        model.addAttribute("timelines", orderService.getOrderTimelines(order.getOrderCode()));
         return "order-success";
     }
 

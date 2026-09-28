@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +36,9 @@ public class OrderApiControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private com.manguonmo.popworld.repository.BoxReservationRepository boxReservationRepository;
 
     @InjectMocks
     private OrderApiController orderApiController;
@@ -89,6 +93,41 @@ public class OrderApiControllerTest {
         assertEquals("PW-789", data.get("orderCode"));
         assertEquals("PROCESSING", data.get("status"));
         assertEquals(true, data.get("isPaid"));
+    }
+
+    @Test
+    @DisplayName("getOrderStatus trả về metadata POP NOW và expiresAt cho đơn POP NOW")
+    public void getOrderStatus_PopNow_shouldReturnPopNowMetadataAndExpiresAt() {
+        java.time.LocalDateTime expiry = java.time.LocalDateTime.now().plusMinutes(4);
+        User owner = User.builder().id(5L).email("owner@popworld.com").role("ROLE_USER").build();
+        Order order = Order.builder()
+                .orderCode("PW-POPNOW-789")
+                .status("TO_PAY")
+                .deliveryMethod("POP_NOW_CABINET")
+                .expiresAt(expiry)
+                .user(owner)
+                .build();
+        com.manguonmo.popworld.entity.BoxReservation reservation = com.manguonmo.popworld.entity.BoxReservation.builder()
+                .reservationCode("PN-RES-789")
+                .status(com.manguonmo.popworld.entity.ReservationStatus.RESERVED)
+                .expiresAt(expiry)
+                .build();
+        Principal principal = () -> "owner@popworld.com";
+
+        when(orderService.getOrderByCode("PW-POPNOW-789")).thenReturn(order);
+        when(userService.getUserByEmail("owner@popworld.com")).thenReturn(owner);
+        when(boxReservationRepository.findByOrderCode("PW-POPNOW-789")).thenReturn(Optional.of(reservation));
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = orderApiController.getOrderStatus("PW-POPNOW-789", principal);
+
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        Map<String, Object> data = response.getBody().getData();
+        assertEquals("PW-POPNOW-789", data.get("orderCode"));
+        assertEquals(true, data.get("isPopNow"));
+        assertEquals("PN-RES-789", data.get("reservationCode"));
+        assertEquals("RESERVED", data.get("reservationStatus"));
+        assertEquals(expiry.toString(), data.get("expiresAt"));
     }
 
     @Test

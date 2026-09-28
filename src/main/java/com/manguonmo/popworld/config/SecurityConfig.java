@@ -2,7 +2,6 @@ package com.manguonmo.popworld.config;
 
 import com.manguonmo.popworld.security.ratelimit.RateLimiterService;
 import com.manguonmo.popworld.security.ratelimit.RateLimitingFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,8 +17,10 @@ public class SecurityConfig {
 
     private final RateLimiterService rateLimiterService;
 
-    public SecurityConfig(@Autowired(required = false) RateLimiterService rateLimiterService) {
-        this.rateLimiterService = rateLimiterService != null ? rateLimiterService : new RateLimiterService();
+    public SecurityConfig(java.util.Optional<RateLimiterService> rateLimiterService) {
+        this.rateLimiterService = rateLimiterService != null && rateLimiterService.isPresent()
+                ? rateLimiterService.get()
+                : new RateLimiterService();
     }
 
     @Bean
@@ -40,13 +41,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/reserve", "/api/popnow/cancel", "/api/popnow/unbox", "/api/popnow/cabinet").authenticated()
+                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/reserve", "/api/popnow/cancel", "/api/popnow/unbox", "/api/popnow/cabinet", "/api/popnow/checkout/**", "/api/popnow/ship", "/api/popnow/ship/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/",true)
+                        .defaultSuccessUrl("/", false)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )

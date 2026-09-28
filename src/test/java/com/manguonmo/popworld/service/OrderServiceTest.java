@@ -637,6 +637,7 @@ class OrderServiceTest {
         when(orderRepository.count()).thenReturn(51L);
         when(orderRepository.countByStatus("TO_PAY")).thenReturn(5L);
         when(orderRepository.countByStatus("PROCESSING")).thenReturn(10L);
+        when(orderRepository.countByStatus("PACKED")).thenReturn(0L);
         when(orderRepository.countByStatus("SHIPPING")).thenReturn(15L);
         when(orderRepository.countByStatus("DELIVERED")).thenReturn(18L);
         when(orderRepository.countByStatus("CANCELLED")).thenReturn(2L);
@@ -648,6 +649,7 @@ class OrderServiceTest {
         assertEquals(51L, counts.getAll());
         assertEquals(5L, counts.getToPay());
         assertEquals(10L, counts.getProcessing());
+        assertEquals(0L, counts.getPacked());
         assertEquals(15L, counts.getShipping());
         assertEquals(18L, counts.getDelivered());
         assertEquals(2L, counts.getCancelled());

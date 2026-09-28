@@ -3,7 +3,6 @@ package com.manguonmo.popworld.controller.webhook;
 import com.manguonmo.popworld.dto.request.SePayWebhookRequest;
 import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.service.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +21,7 @@ public class SePayWebhookController {
 
     private final PaymentService paymentService;
 
-    // Sử dụng required = false để ứng dụng vẫn khởi động mượt mà khi bạn đang chuẩn bị viết PaymentServiceImpl
-    public SePayWebhookController(@Autowired(required = false) PaymentService paymentService) {
+    public SePayWebhookController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 

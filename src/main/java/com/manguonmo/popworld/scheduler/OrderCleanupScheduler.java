@@ -4,12 +4,11 @@ import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.OrderItemRepository;
-
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
+import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.CouponService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +20,21 @@ import java.util.List;
  * Scheduled Job chạy nền tự động dọn dẹp các đơn hàng quá thời hạn 15 phút chưa thanh toán.
  * Giúp giải phóng trạng thái đơn và đảm bảo tính toàn vẹn tồn kho của hệ thống.
  */
+@Slf4j
 @Component
 public class OrderCleanupScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(OrderCleanupScheduler.class);
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
     private final CouponService couponService;
-    private final com.manguonmo.popworld.repository.UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public OrderCleanupScheduler(OrderRepository orderRepository,
                                  ProductRepository productRepository,
                                  OrderItemRepository orderItemRepository,
                                  CouponService couponService,
-                                 com.manguonmo.popworld.repository.UserRepository userRepository) {
+                                 UserRepository userRepository) {
 
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
@@ -58,8 +56,13 @@ public class OrderCleanupScheduler {
             log.info("⏰ Phát hiện {} đơn hàng quá hạn 15 phút chưa thanh toán. Đang tiến hành cập nhật trạng thái EXPIRED...", expiredOrders.size());
 
             for (Order order : expiredOrders) {
+                boolean isPopNowOrder = "POP_NOW_CABINET".equalsIgnoreCase(order.getDeliveryMethod());
                 order.setStatus("EXPIRED");
-                order.setNote("Đơn hàng tự động hết hạn do quá hạn 15 phút chưa hoàn tất thanh toán.");
+                if (isPopNowOrder) {
+                    order.setNote("Đơn hàng POP NOW tự động hết hạn do quá thời gian thanh toán.");
+                } else {
+                    order.setNote("Đơn hàng tự động hết hạn do quá hạn 15 phút chưa hoàn tất thanh toán.");
+                }
                 List<OrderItem> orderList = orderItemRepository.findByOrderId(order.getId());
                 if (order.getCoupon() != null) {
                     Long userId = order.getUser() != null ? order.getUser().getId() : null;
@@ -73,7 +76,8 @@ public class OrderCleanupScheduler {
                     }
                 }
                 for (OrderItem item : orderList) {
-                    if (item.getProduct() != null && item.getProduct().getId() != null) {
+                    boolean isPopNowItem = "POP_NOW".equalsIgnoreCase(item.getPurchaseType());
+                    if (!isPopNowOrder && !isPopNowItem && item.getProduct() != null && item.getProduct().getId() != null) {
                         productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
                     }
                 }

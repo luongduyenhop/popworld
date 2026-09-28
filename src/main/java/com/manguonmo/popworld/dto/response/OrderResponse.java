@@ -45,6 +45,12 @@ public class OrderResponse {
     private String provinceCity;
 
     private LocalDateTime paidAt;
+    private LocalDateTime packedAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime deliveredAt;
+
+    private String carrier;
+    private String trackingNumber;
 
     private LocalDateTime createdAt;
 

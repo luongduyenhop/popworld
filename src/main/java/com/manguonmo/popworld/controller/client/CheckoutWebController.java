@@ -1,17 +1,21 @@
 package com.manguonmo.popworld.controller.client;
 
+import com.manguonmo.popworld.dto.request.AddressRequest;
 import com.manguonmo.popworld.dto.response.ApiResponse;
 import com.manguonmo.popworld.entity.CartItem;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
+import com.manguonmo.popworld.entity.UserAddress;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import com.manguonmo.popworld.repository.CouponRepository;
 import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
 import com.manguonmo.popworld.service.OrderService;
+import com.manguonmo.popworld.service.UserAddressService;
 import com.manguonmo.popworld.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +29,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,7 +46,8 @@ public class CheckoutWebController {
     private final CategoryService categoryService;
     private final CharacterIpService characterIpService;
     private final UserService userService;
-    private final com.manguonmo.popworld.repository.CouponRepository couponRepository;
+    private final CouponRepository couponRepository;
+    private final UserAddressService userAddressService;
 
     @Value("${sepay.bank-code:MBBank}")
     private String sepayBankCode;
@@ -52,26 +58,13 @@ public class CheckoutWebController {
     @Value("${sepay.account-name:POPWORLD OFFICIAL STORE}")
     private String sepayAccountName;
 
-    private final com.manguonmo.popworld.service.UserAddressService userAddressService;
-
     public CheckoutWebController(OrderService orderService,
                                  CartService cartService,
                                  CategoryService categoryService,
                                  CharacterIpService characterIpService,
                                  UserService userService,
-                                 com.manguonmo.popworld.repository.CouponRepository couponRepository) {
-        this(orderService, cartService, categoryService, characterIpService, userService, couponRepository, null);
-    }
-
-    @org.springframework.beans.factory.annotation.Autowired
-    public CheckoutWebController(OrderService orderService,
-                                 CartService cartService,
-                                 CategoryService categoryService,
-                                 CharacterIpService characterIpService,
-                                 UserService userService,
-                                 com.manguonmo.popworld.repository.CouponRepository couponRepository,
-                                 @org.springframework.lang.Nullable com.manguonmo.popworld.service.UserAddressService userAddressService) {
-
+                                 CouponRepository couponRepository,
+                                 UserAddressService userAddressService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.categoryService = categoryService;
@@ -124,11 +117,11 @@ public class CheckoutWebController {
         BigDecimal totalAmount = subtotal.add(shippingFee);
 
         // Danh sách địa chỉ đã lưu của khách hàng
-        List<com.manguonmo.popworld.entity.UserAddress> addresses = userAddressService != null
+        List<UserAddress> addresses = userAddressService != null
                 ? userAddressService.getAddressesByUserId(user.getId())
-                : java.util.Collections.emptyList();
+                : Collections.emptyList();
 
-        com.manguonmo.popworld.entity.UserAddress defaultAddress = addresses.stream()
+        UserAddress defaultAddress = addresses.stream()
                 .filter(a -> Boolean.TRUE.equals(a.getIsDefault()))
                 .findFirst()
                 .orElse(addresses.isEmpty() ? null : addresses.get(0));
@@ -236,7 +229,7 @@ public class CheckoutWebController {
                                 a.getProvinceCity().equalsIgnoreCase(provinceCity.trim()) &&
                                 a.getDistrict().equalsIgnoreCase(district.trim()));
                 if (!exists) {
-                    com.manguonmo.popworld.dto.request.AddressRequest addressReq = com.manguonmo.popworld.dto.request.AddressRequest.builder()
+                    AddressRequest addressReq = AddressRequest.builder()
                             .recipientName(recipientName.trim())
                             .recipientPhone(recipientPhone.trim())
                             .provinceCity(provinceCity.trim())
@@ -334,6 +327,7 @@ public class CheckoutWebController {
         List<OrderItem> items = orderService.getOrderItems(order.getId());
         model.addAttribute("order", order);
         model.addAttribute("items", items);
+        model.addAttribute("timelines", orderService.getOrderTimelines(order.getOrderCode()));
 
         return "order-success";
     }

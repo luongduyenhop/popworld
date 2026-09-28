@@ -149,7 +149,7 @@
                             <i th:if="${order.status == 'PROCESSING' || order.status == null}" class="bi bi-check-circle-fill text-success display-2"></i>
                         </div>
                         <h1 class="fw-black text-uppercase mb-2" 
-                            th:text="${order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'ĐƠN HÀNG ĐANG ĐƯỢC GIAO!' : (order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'ĐƠN HÀNG ĐÃ HOÀN TẤT!' : 'ĐẶT HÀNG THÀNH CÔNG!')}">
+                            th:text="${order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'ĐƠN HÀNG ĐANG ĐƯỢC GIAO!' : (order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'ĐƠN HÀNG ĐÃ HOÀN TẤT!' : (order.status == 'PACKED' ? 'ĐƠN HÀNG ĐÃ ĐÓNG GÓI SEAL!' : 'ĐẶT HÀNG THÀNH CÔNG!'))}">
                             ĐẶT HÀNG THÀNH CÔNG!
                         </h1>
                         <p class="text-muted mb-4">
@@ -163,7 +163,7 @@
                     <!-- ======================================================= -->
                     <div th:if="${order.status != 'CANCELLED' && order.status != 'EXPIRED'}" class="order-stepper mb-4">
                         <div class="order-stepper-progress" 
-                             th:style="${order.status == 'TO_PAY' ? 'width: calc((100% - 88px) * 0.25)' : (order.status == 'PROCESSING' ? 'width: calc((100% - 88px) * 0.5)' : (order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'width: calc((100% - 88px) * 0.75)' : 'width: calc(100% - 88px)'))}">
+                             th:style="${order.status == 'TO_PAY' ? 'width: calc((100% - 88px) * 0.25)' : (order.status == 'PROCESSING' ? 'width: calc((100% - 88px) * 0.45)' : (order.status == 'PACKED' ? 'width: calc((100% - 88px) * 0.65)' : (order.status == 'SHIPPING' || order.status == 'SHIPPED' ? 'width: calc((100% - 88px) * 0.85)' : 'width: calc(100% - 88px)')))}">
                         </div>
 
                         <!-- Bước 1: Đặt Đơn -->
@@ -179,7 +179,7 @@
                         </div>
 
                         <!-- Bước 3: Đóng Gói -->
-                        <div class="order-step" th:classappend="${order.status == 'PROCESSING' ? 'active' : (order.status == 'SHIPPING' || order.status == 'SHIPPED' || order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'completed' : '')}">
+                        <div class="order-step" th:classappend="${order.status == 'PROCESSING' ? 'active' : (order.status == 'PACKED' || order.status == 'SHIPPING' || order.status == 'SHIPPED' || order.status == 'DELIVERED' || order.status == 'COMPLETED' ? 'completed' : '')}">
                             <div class="order-step-icon"><i class="bi bi-box-seam"></i></div>
                             <span class="order-step-label">Đóng Gói Seal</span>
                         </div>
@@ -198,9 +198,9 @@
                     </div>
 
                     <!-- ======================================================= -->
-                    <!-- 3. KHỐI BÓC SEAL ONLINE (CHỈ HIỆN KHI ĐƠN KHÔNG BỊ HỦY/HẾT HẠN)   -->
+                    <!-- 3. KHỐI BÓC SEAL ONLINE (CHỈ HIỆN KHI ĐƠN CHƯA ĐÓNG GÓI/XUẤT KHO) -->
                     <!-- ======================================================= -->
-                    <div th:if="${order.status != 'CANCELLED' && order.status != 'EXPIRED'}" class="p-4 rounded-4 my-4 text-start border border-2 border-danger bg-danger-subtle">
+                    <div th:if="${order.status == 'TO_PAY' || order.status == 'PROCESSING'}" class="p-4 rounded-3 my-4 text-start border border-2 border-danger bg-danger-subtle">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <div>
                                 <h4 class="fw-black text-danger mb-1">
@@ -221,7 +221,7 @@
                     <!-- ======================================================= -->
                     <!-- 4. CHI TIẾT ĐƠN HÀNG (RECEIPT & PRODUCTS)                -->
                     <!-- ======================================================= -->
-                    <div class="border rounded-4 p-4 text-start mb-4 bg-light">
+                    <div class="border rounded-3 p-4 text-start mb-4 bg-light">
                         <h5 class="fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-receipt text-danger me-2"></i> Thông Tin Đơn Hàng</span>
                             <!-- Trạng thái đơn hàng chuẩn POP MART -->
@@ -230,6 +230,9 @@
                             </span>
                             <span th:if="${order.status == 'PROCESSING'}" class="badge badge-status-processing px-3 py-2">
                                 <i class="bi bi-gear-wide-connected me-1"></i> Đang Xử Lý
+                            </span>
+                            <span th:if="${order.status == 'PACKED'}" class="badge px-3 py-2" style="background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;">
+                                <i class="bi bi-box-seam me-1"></i> Đã Đóng Gói
                             </span>
                             <span th:if="${order.status == 'SHIPPING' || order.status == 'SHIPPED'}" class="badge badge-status-shipped px-3 py-2">
                                 <i class="bi bi-truck me-1"></i> Đang Giao Hàng
@@ -265,12 +268,62 @@
                             </div>
                             <div class="col-12">
                                 <span class="text-muted small d-block">Địa Chỉ Giao Hàng:</span>
-                                <span class="fw-semibold text-dark" th:text="${order.detailedAddress} + ', ' + ${order.ward != null && !order.ward.isEmpty() ? order.ward + ', ' : ''} + ${order.district} + ', ' + ${order.provinceCity}">Địa chỉ</span>
+                                <span class="fw-semibold text-dark" 
+                                      th:text="${order.detailedAddress} + (${order.ward != null and !order.ward.trim().isEmpty()} ? ', ' + ${order.ward} : '') + (${order.district != null and !order.district.trim().isEmpty()} ? ', ' + ${order.district} : '') + (${order.provinceCity != null and !order.provinceCity.trim().isEmpty()} ? ', ' + ${order.provinceCity} : '')">Địa chỉ</span>
+                            </div>
+                        </div>
+
+                        <!-- Thông Tin Vận Chuyển & Tra Cứu Vận Đơn (Nếu đã có) -->
+                        <div th:if="${order.carrier != null or order.trackingNumber != null}" class="bg-white border rounded-2 p-3 mb-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                    <i class="bi bi-truck text-danger"></i> Đơn Vị Vận Chuyển & Tra Cứu Vận Đơn
+                                </h6>
+                                <span class="badge bg-dark text-white font-monospace px-2 py-1" style="border-radius: 2px;" th:text="${order.carrier}">Giao Hàng Nhanh</span>
+                            </div>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block">Mã vận đơn (Waybill Number):</small>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <strong class="font-monospace fs-6 text-danger" th:text="${order.trackingNumber != null ? order.trackingNumber : 'Đang cập nhật'}">GHN-PW889900</strong>
+                                        <button th:if="${order.trackingNumber != null}" type="button" class="btn btn-sm btn-outline-dark py-0 px-2 fw-semibold" 
+                                                style="border-radius: 2px; font-size: 0.75rem;"
+                                                th:data-tracking="${order.trackingNumber}"
+                                                onclick="navigator.clipboard.writeText(this.getAttribute('data-tracking')); this.innerText = 'Đã sao chép'; setTimeout(() => this.innerText = 'Sao chép', 2000);">
+                                            Sao chép
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 text-sm-end">
+                                    <small class="text-muted d-block">Thời điểm xuất kho:</small>
+                                    <span class="text-dark fw-semibold small font-monospace" th:text="${order.shippedAt != null ? #temporals.format(order.shippedAt, 'HH:mm - dd/MM/yyyy') : 'Đang chuẩn bị xuất kho'}">21:21 - 28/09/2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lịch Sử Hành Trình Vận Đơn (Customer Order Milestones) -->
+                        <div th:if="${timelines != null and !timelines.isEmpty()}" class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-clock-history text-secondary"></i> Lịch Sử Tiến Trình Đơn Hàng
+                            </h6>
+                            <div class="list-group list-group-flush border rounded-2 overflow-hidden bg-white">
+                                <div th:each="tl : ${timelines}" class="list-group-item py-3 px-3">
+                                    <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.92rem;">
+                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                            <span th:text="${tl.action}">Hành động</span>
+                                        </h6>
+                                        <small class="text-muted font-monospace" th:text="${#temporals.format(tl.createdAt, 'HH:mm - dd/MM/yyyy')}">14:00 - 28/09/2026</small>
+                                    </div>
+                                    <p th:if="${tl.note != null and !tl.note.isEmpty()}" class="mb-0 small text-muted bg-light p-2 rounded-1 mt-1 border" th:text="${tl.note}">
+                                        Ghi chú
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Danh sách sản phẩm trong đơn -->
-                        <div class="table-responsive bg-white rounded-3 border">
+                        <div class="table-responsive bg-white rounded-2 border">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr class="text-muted small text-uppercase">
@@ -292,13 +345,19 @@
                                                     <h6 class="fw-bold mb-1">
                                                         <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none" th:text="${item.product.name}">Tên SP</a>
                                                     </h6>
+                                                    <a th:if="${order.status == 'DELIVERED' or order.status == 'COMPLETED'}"
+                                                       th:href="@{'/products/' + ${item.product.slug} + '#reviews'}"
+                                                       class="text-decoration-none small fw-bold text-danger d-inline-flex align-items-center gap-1 mt-1">
+                                                        <i class="bi bi-star-fill text-warning"></i> Viết đánh giá sản phẩm &rarr;
+                                                    </a>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge" 
-                                                  th:classappend="${item.purchaseType == 'WHOLE_SET' ? 'bg-warning text-dark' : 'bg-light text-dark border'}" 
-                                                  th:text="${item.purchaseType == 'SINGLE_BOX' ? '🎲 Hộp Lẻ' : '📦 Cả Set (12 Hộp)'}">
+                                            <span class="badge fw-semibold px-2 py-1" 
+                                                  style="border-radius: 2px;"
+                                                  th:classappend="${item.purchaseType == 'WHOLE_SET' ? 'bg-dark text-white' : 'bg-light text-dark border'}" 
+                                                  th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Lẻ (Single)' : (item.purchaseType == 'POP_NOW' ? 'POP NOW' : 'Cả Set (12 Hộp)')}">
                                                 Hộp Lẻ
                                             </span>
                                         </td>
