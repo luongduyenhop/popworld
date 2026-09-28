@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Quản Lý Đánh Giá')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#reviewsContent}, 'Quản Lý Đánh Giá & Kiểm Duyệt', 'reviews')}">
+    <div id="reviewsContent">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Thành công</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Lỗi</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 1. STATS OVERVIEW CARDS                                                   -->
+        <!-- ========================================================================= -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Tổng Đánh Giá</div>
+                        <div class="admin-stat-number fs-3" th:text="${stats.totalReviews}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-chat-quote-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Chờ Duyệt (Đang Ẩn)</div>
+                        <div class="admin-stat-number fs-3 text-warning" th:text="${stats.pendingReviews}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-yellow" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Đã Duyệt (Hiển Thị)</div>
+                        <div class="admin-stat-number fs-3 text-success" th:text="${stats.approvedReviews}">0</div>
+                    </div>
+                    <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="admin-stat-card py-3">
+                    <div>
+                        <div class="admin-stat-label">Điểm Trung Bình</div>
+                        <div class="admin-stat-number fs-3 text-danger d-flex align-items-center gap-1">
+                            <span th:text="${stats.averageRating}">0.0</span>
+                            <i class="bi bi-star-fill text-warning fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="admin-stat-icon icon-purple" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. FILTER TABS & SEARCH BAR                                               -->
+        <!-- ========================================================================= -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a th:href="@{/admin/reviews(status='ALL', keyword=${keyword})}"
+                   class="admin-tab-item"
+                   th:classappend="${currentStatus == 'ALL' ? 'active' : ''}">
+                    Tất Cả (<span th:text="${stats.totalReviews}">0</span>)
+                </a>
+                <a th:href="@{/admin/reviews(status='PENDING', keyword=${keyword})}"
+                   class="admin-tab-item"
+                   th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}">
+                    <span class="text-warning"><i class="bi bi-hourglass-split me-1"></i>Chờ Duyệt</span>
+                    (<span th:text="${stats.pendingReviews}">0</span>)
+                </a>
+                <a th:href="@{/admin/reviews(status='APPROVED', keyword=${keyword})}"
+                   class="admin-tab-item"
+                   th:classappend="${currentStatus == 'APPROVED' ? 'active' : ''}">
+                    <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Đã Duyệt</span>
+                    (<span th:text="${stats.approvedReviews}">0</span>)
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <form th:action="@{/admin/reviews}" method="get" class="d-flex align-items-center gap-2" style="min-width: 280px;">
+                    <input type="hidden" name="status" th:value="${currentStatus}">
+                    <div class="input-group">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control rounded-pill-start border-end-0 px-3"
+                               placeholder="Tìm theo sản phẩm, user, nội dung..." style="font-size: 0.88rem;">
+                        <button class="btn btn-outline-secondary border-start-0 rounded-pill-end px-3" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}"
+                       th:href="@{/admin/reviews(status=${currentStatus})}"
+                       class="btn btn-sm btn-light rounded-pill px-2" title="Xóa bộ lọc tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 3. REVIEWS TABLE                                                          -->
+        <!-- ========================================================================= -->
+        <div class="admin-table-container">
+            <div class="table-responsive">
+                <table class="table admin-table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th style="width: 70px;">#ID</th>
+                        <th style="width: 220px;">Sản Phẩm</th>
+                        <th style="width: 180px;">Khách Hàng</th>
+                        <th style="width: 130px;">Số Sao</th>
+                        <th>Nội Dung Nhận Xét</th>
+                        <th style="width: 140px;" class="text-center">Trạng Thái</th>
+                        <th style="width: 180px;" class="text-center">Hành Động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(reviews)}">
+                        <td colspan="7" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="bi bi-chat-square-dots text-secondary fs-1 d-block mb-2"></i>
+                                <h6 class="text-secondary fw-semibold">Không tìm thấy đánh giá nào</h6>
+                                <p class="text-muted small mb-0">Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="r : ${reviews}">
+                        <!-- ID & Ngày -->
+                        <td>
+                            <span class="fw-bold text-dark" th:text="'#' + ${r.id}">#1</span>
+                            <div class="text-secondary small" style="font-size: 0.75rem;"
+                                 th:text="${r.createdAt != null ? #temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
+                                01/01/2026
+                            </div>
+                        </td>
+
+                        <!-- Sản Phẩm -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img th:if="${r.productImageUrl != null and !r.productImageUrl.isEmpty()}"
+                                     th:src="${r.productImageUrl}"
+                                     class="rounded-3 border object-fit-cover flex-shrink-0"
+                                     style="width: 44px; height: 44px;" alt="Product">
+                                <div th:unless="${r.productImageUrl != null and !r.productImageUrl.isEmpty()}"
+                                     class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-muted flex-shrink-0"
+                                     style="width: 44px; height: 44px;">
+                                    <i class="bi bi-box"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <a th:if="${r.productSlug != null}"
+                                       th:href="@{'/products/' + ${r.productSlug}}"
+                                       target="_blank"
+                                       class="fw-semibold text-dark text-decoration-none text-truncate d-block small"
+                                       th:text="${r.productName}">
+                                        Tên sản phẩm
+                                    </a>
+                                    <span th:unless="${r.productSlug != null}"
+                                          class="fw-semibold text-dark text-truncate d-block small"
+                                          th:text="${r.productName}">
+                                        Tên sản phẩm
+                                    </span>
+                                    <span class="text-secondary small" style="font-size: 0.72rem;"
+                                          th:text="'Mã: ' + ${r.productId}">ID: 10</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Khách Hàng -->
+                        <td>
+                            <div class="fw-semibold text-dark small" th:text="${r.userName}">Nguyễn Văn A</div>
+                            <div class="text-secondary text-truncate" style="font-size: 0.75rem; max-width: 170px;"
+                                 th:text="${r.userEmail}">user@example.com</div>
+                        </td>
+
+                        <!-- Đánh Giá Sao -->
+                        <td>
+                            <div class="d-flex align-items-center gap-1 text-warning" style="font-size: 0.85rem;">
+                                <i th:each="star : ${#numbers.sequence(1, 5)}"
+                                   class="bi"
+                                   th:classappend="${star <= r.rating ? 'bi-star-fill' : 'bi-star'}"></i>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill mt-1" style="font-size: 0.7rem;"
+                                  th:text="${r.rating + ' / 5 sao'}">5 / 5 sao</span>
+                        </td>
+
+                        <!-- Nhận Xét & Ảnh -->
+                        <td>
+                            <div class="small text-dark mb-1" style="white-space: pre-line; max-height: 80px; overflow-y: auto;"
+                                 th:text="${r.comment != null and !r.comment.isEmpty() ? r.comment : '(Không có lời nhận xét)'}">
+                                Nhận xét của khách hàng...
+                            </div>
+                            <!-- Ảnh Unbox Thực Tế (nếu có) -->
+                            <div th:if="${r.reviewImageUrl != null and !r.reviewImageUrl.isEmpty()}" class="mt-1">
+                                <a th:href="${r.reviewImageUrl}" target="_blank" class="d-inline-flex align-items-center gap-1 badge bg-light text-primary border text-decoration-none py-1 px-2 rounded-pill">
+                                    <i class="bi bi-image"></i>
+                                    <span>Ảnh đập hộp</span>
+                                </a>
+                            </div>
+                        </td>
+
+                        <!-- Trạng Thái -->
+                        <td class="text-center">
+                            <span th:if="${r.approved}"
+                                  class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-check-circle-fill me-1"></i>Đã Duyệt
+                            </span>
+                            <span th:unless="${r.approved}"
+                                  class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-hourglass-split me-1"></i>Chờ Duyệt
+                            </span>
+                        </td>
+
+                        <!-- Thao Tác Kiểm Duyệt -->
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <!-- Nút Duyệt / Hủy Duyệt -->
+                                <form th:if="${!r.approved}" th:action="@{'/admin/reviews/' + ${r.id} + '/approve'}" method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm"
+                                            title="Phê duyệt hiển thị trên trang sản phẩm">
+                                        <i class="bi bi-check-lg me-1"></i>Duyệt
+                                    </button>
+                                </form>
+
+                                <form th:if="${r.approved}" th:action="@{'/admin/reviews/' + ${r.id} + '/unapprove'}" method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1"
+                                            title="Bỏ duyệt và ẩn đánh giá này">
+                                        <i class="bi bi-eye-slash me-1"></i>Ẩn
+                                    </button>
+                                </form>
+
+                                <!-- Nút Xóa An Toàn -->
+                                <form th:action="@{'/admin/reviews/' + ${r.id} + '/delete'}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đánh giá này? Thao tác này không thể hoàn tác và không ảnh hưởng đơn hàng của khách hàng.');">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1"
+                                            style="width: 30px; height: 30px;" title="Xóa đánh giá">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

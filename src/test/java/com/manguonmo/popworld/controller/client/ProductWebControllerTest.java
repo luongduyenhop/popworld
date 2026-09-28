@@ -42,8 +42,11 @@ class ProductWebControllerTest {
     @MockitoBean
     private com.manguonmo.popworld.service.UserService userService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.service.ReviewService reviewService;
+
     @Test
-    @DisplayName("Truy cập trang chi tiết sản phẩm /products/{slug} thành công")
+    @DisplayName("Truy cập trang chi tiết sản phẩm /products/{slug} thành công và nạp đánh giá đã duyệt")
     void test_ProductDetail_Success() throws Exception {
         Category cat = Category.builder().id(1L).name("Blind Box").slug("blind-box").build();
         Product product = Product.builder()
@@ -54,14 +57,25 @@ class ProductWebControllerTest {
                 .category(cat)
                 .build();
 
+        com.manguonmo.popworld.dto.response.ReviewResponse approvedReview = com.manguonmo.popworld.dto.response.ReviewResponse.builder()
+                .id(10L)
+                .rating(5)
+                .comment("Rất đẹp")
+                .approved(true)
+                .build();
+
         when(productService.getProductBySlug("labubu-fall-in-wild")).thenReturn(Optional.of(product));
         when(productService.getProductsByCategorySlug("blind-box")).thenReturn(List.of(product));
+        when(reviewService.getApprovedReviewsByProductId(1L)).thenReturn(List.of(approvedReview));
 
         mockMvc.perform(get("/products/labubu-fall-in-wild"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("product-detail"))
                 .andExpect(model().attributeExists("product"))
-                .andExpect(model().attributeExists("relatedProducts"));
+                .andExpect(model().attributeExists("relatedProducts"))
+                .andExpect(model().attributeExists("reviews"))
+                .andExpect(model().attribute("reviewsCount", 1))
+                .andExpect(model().attribute("averageRating", 5.0));
     }
 
     @Test

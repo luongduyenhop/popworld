@@ -159,6 +159,19 @@
                     </div>
                 </form>
 
+                <!-- Nút Bốc Hộp Online POP NOW (Signature CTA) -->
+                <div class="mb-4" th:if="${product.category != null && product.category.slug == 'blind-box' && product.stockQuantity != null && product.stockQuantity > 0}">
+                    <a th:href="@{'/popnow/pick/' + ${product.slug}}" 
+                       class="btn btn-warning w-100 py-3 fw-black text-dark text-uppercase fs-6 shadow-sm border border-warning-subtle d-flex align-items-center justify-content-center gap-2"
+                       style="border-radius: var(--pop-radius-md); letter-spacing: 0.5px;">
+                        <span class="pop-now-dot"></span>
+                        <i class="bi bi-box-seam-fill fs-5"></i> BỐC HỘP ONLINE NGAY (POP NOW)
+                    </a>
+                    <small class="text-secondary d-block text-center mt-2">
+                        <i class="bi bi-stars text-danger"></i> Tự tay chọn vị trí trong khay 12 hộp & khui seal trực tuyến!
+                    </small>
+                </div>
+
                 <!-- Bảng Thông Số Kỹ Thuật (Specs) -->
                 <div class="p-4 border-0 shadow-sm mb-4" 
                      style="background: #FFFFFF; border-radius: var(--pop-radius-lg); box-shadow: var(--pop-shadow-card);">
@@ -196,12 +209,185 @@
                 <div class="p-4 border-0 shadow-sm"
                      style="background: #FFFFFF; border-radius: var(--pop-radius-lg); box-shadow: var(--pop-shadow-card);">
                     <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">Câu Chuyện Bộ Sưu Tập</h6>
-                    <div class="text-secondary leading-relaxed" th:text="${product.description}">
+                     <div class="text-secondary leading-relaxed" th:text="${product.description}">
                         Giới thiệu chi tiết bộ sưu tập...
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- ========================================== -->
+        <!-- ĐÁNH GIÁ TỪ KHÁCH HÀNG (CUSTOMER REVIEWS)  -->
+        <!-- ========================================== -->
+        <section class="mt-5 pt-4" id="reviews">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
+                <div>
+                    <h3 class="fw-black text-uppercase mb-1">
+                        <i class="bi bi-star-fill text-warning me-2"></i>Đánh Giá Từ Khách Hàng
+                    </h3>
+                    <p class="text-muted small mb-0">Nhận xét thực tế từ các collector đã sở hữu sản phẩm này</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-dark rounded-pill px-3 py-2 fw-bold" th:text="${reviewsCount + ' Đánh Giá Đã Duyệt'}">0 Đánh Giá</span>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <!-- Thống kê điểm trung bình -->
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 text-center bg-white shadow-sm border h-100 d-flex flex-column justify-content-center">
+                        <div class="display-4 fw-black text-danger mb-1" th:text="${averageRating}">5.0</div>
+                        <div class="d-flex justify-content-center gap-1 text-warning fs-5 mb-2">
+                            <i th:each="star : ${#numbers.sequence(1, 5)}"
+                               class="bi"
+                               th:classappend="${star <= averageRating ? 'bi-star-fill' : (star - 0.5 <= averageRating ? 'bi-star-half' : 'bi-star')}"></i>
+                        </div>
+                        <div class="text-muted small">
+                            Dựa trên <strong class="text-dark" th:text="${reviewsCount}">0</strong> đánh giá thực tế
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khu vực dành cho người dùng đăng nhập: Gửi đánh giá hoặc xem trạng thái đánh giá -->
+                <div class="col-md-8">
+                    <!-- Trường hợp 1: Khách hàng ĐÃ gửi đánh giá cho sản phẩm này -->
+                    <div th:if="${userReview != null}" class="p-4 rounded-4 bg-white shadow-sm border h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-person-check-fill text-primary me-2"></i>Đánh giá của bạn
+                            </h6>
+                            <span th:if="${userReview.approved}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                <i class="bi bi-check-circle-fill me-1"></i>Đã được duyệt công khai
+                            </span>
+                            <span th:unless="${userReview.approved}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
+                                <i class="bi bi-hourglass-split me-1"></i>Đang chờ kiểm duyệt
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1 text-warning mb-2">
+                            <i th:each="star : ${#numbers.sequence(1, 5)}"
+                               class="bi"
+                               th:classappend="${star <= userReview.rating ? 'bi-star-fill' : 'bi-star'}"></i>
+                            <span class="text-muted small ms-2" th:text="${#temporals.format(userReview.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
+                        </div>
+                        <p class="text-dark mb-2" style="white-space: pre-line;" th:text="${userReview.comment != null ? userReview.comment : '(Không có lời nhận xét)'}"></p>
+                        <div th:if="${userReview.reviewImageUrl != null and !userReview.reviewImageUrl.isEmpty()}">
+                            <a th:href="${userReview.reviewImageUrl}" target="_blank" class="d-inline-flex align-items-center gap-1 badge bg-light text-primary border text-decoration-none py-1 px-2 rounded-pill">
+                                <i class="bi bi-image"></i>
+                                <span>Xem ảnh đập hộp đã gửi</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Trường hợp 2: Khách hàng ĐỦ ĐIỀU KIỆN và CHƯA gửi đánh giá -->
+                    <div th:if="${userReview == null and canReview}" class="p-4 rounded-4 bg-white shadow-sm border h-100">
+                        <h6 class="fw-bold text-dark mb-2">
+                            <i class="bi bi-pencil-square text-danger me-2"></i>Chia sẻ trải nghiệm bóc hộp của bạn
+                        </h6>
+                        <p class="text-muted small mb-3">Bạn đã mua và nhận hàng thành công sản phẩm này. Hãy để lại đánh giá cho cộng đồng collector nhé!</p>
+
+                        <form th:action="@{/reviews}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="productId" th:value="${product.id}" />
+
+                            <!-- Chọn số sao -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary mb-1">Mức độ hài lòng:</label>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div th:each="val : ${#numbers.sequence(5, 1)}" class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="radio" name="rating" th:id="'star' + ${val}" th:value="${val}" th:checked="${val == 5}" required>
+                                        <label class="form-check-label small fw-semibold" th:for="'star' + ${val}" th:text="${val + ' ★'}">5 ★</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lời nhận xét -->
+                            <div class="mb-3">
+                                <label for="reviewComment" class="form-label small fw-bold text-secondary mb-1">Nội dung nhận xét:</label>
+                                <textarea class="form-control rounded-3" id="reviewComment" name="comment" rows="3"
+                                          placeholder="Chất lượng sơn, độ chi tiết, màu sắc, cảm giác bóc seal..." maxlength="1000"></textarea>
+                            </div>
+
+                            <!-- Đường dẫn ảnh unboxing -->
+                            <div class="mb-3">
+                                <label for="reviewImageUrl" class="form-label small fw-bold text-secondary mb-1">Link ảnh unboxing thực tế (tùy chọn):</label>
+                                <input type="url" class="form-control rounded-3" id="reviewImageUrl" name="reviewImageUrl"
+                                       placeholder="https://... ảnh chụp chiến tích đập hộp" maxlength="255">
+                            </div>
+
+                            <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                                <i class="bi bi-send-fill me-1"></i>Gửi Đánh Giá
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Trường hợp 3: Khách hàng chưa đăng nhập hoặc chưa mua hàng -->
+                    <div th:if="${userReview == null and !canReview}" class="p-4 rounded-4 bg-light border text-center h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="bi bi-shield-lock-fill text-secondary fs-2 mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1">Chính Sách Đánh Giá Xác Thực 100%</h6>
+                        <p class="text-muted small mb-0" style="max-width: 480px;">
+                            Để bảo đảm tính khách quan, chỉ những khách hàng đã mua sản phẩm này và nhận hàng thành công mới có thể gửi nhận xét.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh Sách Đánh Giá Đã Duyệt (Approved Reviews) -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <h5 class="fw-bold mb-4">Các Nhận Xét Nổi Bật (<span th:text="${reviewsCount}">0</span>)</h5>
+
+                <div th:if="${#lists.isEmpty(reviews)}" class="text-center py-5">
+                    <i class="bi bi-chat-heart text-secondary fs-1 d-block mb-2"></i>
+                    <h6 class="text-secondary fw-semibold">Chưa có đánh giá nào được duyệt cho sản phẩm này</h6>
+                    <p class="text-muted small mb-0">Các đánh giá mới sẽ hiển thị tại đây sau khi được ban quản trị kiểm duyệt.</p>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(reviews)}" class="d-flex flex-column gap-4">
+                    <div th:each="r : ${reviews}" class="border-bottom pb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold"
+                                     style="width: 36px; height: 36px; font-size: 0.85rem;"
+                                     th:text="${r.userName != null and !r.userName.isEmpty() ? #strings.substring(r.userName, 0, 1) : 'U'}">
+                                    U
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small" th:text="${r.userName}">Collector</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;"
+                                         th:text="${r.createdAt != null ? #temporals.format(r.createdAt, 'dd/MM/yyyy') : '-'}">
+                                        01/01/2026
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-success border rounded-pill px-2 py-1 small">
+                                <i class="bi bi-patch-check-fill me-1"></i>Đã mua hàng
+                            </span>
+                        </div>
+
+                        <!-- Số sao -->
+                        <div class="d-flex align-items-center gap-1 text-warning mb-2" style="font-size: 0.85rem;">
+                            <i th:each="star : ${#numbers.sequence(1, 5)}"
+                               class="bi"
+                               th:classappend="${star <= r.rating ? 'bi-star-fill' : 'bi-star'}"></i>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <p class="text-dark small mb-2" style="white-space: pre-line;"
+                           th:text="${r.comment != null and !r.comment.isEmpty() ? r.comment : '(Không có nhận xét chi tiết)'}">
+                            Nhận xét của người mua...
+                        </p>
+
+                        <!-- Ảnh đập hộp thực tế (nếu có) -->
+                        <div th:if="${r.reviewImageUrl != null and !r.reviewImageUrl.isEmpty()}" class="mt-2">
+                            <a th:href="${r.reviewImageUrl}" target="_blank">
+                                <img th:src="${r.reviewImageUrl}" alt="Ảnh unboxing"
+                                     class="rounded-3 border object-fit-cover shadow-sm"
+                                     style="width: 90px; height: 90px;">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- ========================================== -->
         <!-- SẢN PHẨM CÙNG BỘ SƯU TẬP                   -->

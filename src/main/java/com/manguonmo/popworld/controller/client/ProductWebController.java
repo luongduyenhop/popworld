@@ -17,9 +17,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.manguonmo.popworld.dto.request.ReviewCreateRequest;
+import com.manguonmo.popworld.dto.response.ReviewResponse;
+import com.manguonmo.popworld.service.ReviewService;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 public class ProductWebController {
@@ -29,17 +37,20 @@ public class ProductWebController {
     private final CharacterIpService characterIpService;
     private final CartService cartService;
     private final UserService userService;
+    private final ReviewService reviewService;
 
     public ProductWebController(ProductService productService,
                                 CategoryService categoryService,
                                 CharacterIpService characterIpService,
                                 CartService cartService,
-                                UserService userService) {
+                                UserService userService,
+                                ReviewService reviewService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.cartService = cartService;
         this.userService = userService;
+        this.reviewService = reviewService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -90,6 +101,39 @@ public class ProductWebController {
         } else {
             model.addAttribute("relatedProducts", Collections.emptyList());
         }
+
+        // Đánh giá đã duyệt (Approved Reviews) hiển thị công khai
+        List<ReviewResponse> approvedReviews = reviewService.getApprovedReviewsByProductId(product.getId());
+        model.addAttribute("reviews", approvedReviews);
+        int totalReviews = approvedReviews.size();
+        double avgRating = 0.0;
+        if (totalReviews > 0) {
+            avgRating = BigDecimal.valueOf(approvedReviews.stream().mapToInt(ReviewResponse::getRating).average().orElse(5.0))
+                    .setScale(1, RoundingMode.HALF_UP).doubleValue();
+        }
+        Map<Integer, Long> starCounts = approvedReviews.stream()
+                .collect(Collectors.groupingBy(ReviewResponse::getRating, Collectors.counting()));
+
+        model.addAttribute("reviewsCount", totalReviews);
+        model.addAttribute("averageRating", avgRating);
+        model.addAttribute("starCounts", starCounts);
+
+        boolean canReview = false;
+        ReviewResponse userReview = null;
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                User user = userService.getUserByEmail(auth.getName());
+                if (user != null) {
+                    canReview = reviewService.isUserEligibleToReview(user.getId(), product.getId());
+                    userReview = reviewService.getUserReviewForProduct(user.getId(), product.getId());
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        model.addAttribute("canReview", canReview);
+        model.addAttribute("userReview", userReview);
+        model.addAttribute("reviewForm", new ReviewCreateRequest());
 
         return "product-detail";
     }
