@@ -5,346 +5,1206 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
-    <title th:text="'Chọn Hộp POP NOW - ' + ${product.name} + ' - PopWorld'">Chọn Hộp POP NOW - PopWorld</title>
+    <title th:text="'POP NOW - ' + ${product.name} + ' | POP MART'">POP NOW - Pick A Box</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.3')}">
     <style>
-        .popnow-tray-container {
-            background: #18181B;
-            border-radius: 28px;
-            padding: 2.5rem 1.5rem;
-            color: #FFFFFF;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
-            border: 2px solid #27272A;
-            position: relative;
+        body {
+            background: #FFFFFF;
+            color: #111111;
+            overflow-x: hidden;
         }
-        .popnow-tray-title {
-            color: #FACC15;
-            font-weight: 900;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+
+        /* ==========================================================================
+           1. TOP POP NOW STEPPER BAR (Screenshots 2, 3, 5)
+           Pick A Box  ----------  Shake for Hints  ----------  Unbox Now
+           ========================================================================== */
+        .pm-pick-stepper-wrap {
+            background: #FFFFFF;
+            border-bottom: 1px solid #EBEBEB;
+            padding: 14px 0 0;
         }
-        .popnow-slot-grid {
+        .pm-pick-stepper {
+            max-width: 780px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .pm-pick-step-node {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid transparent;
+            color: #999999;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.22s ease, border-color 0.22s ease;
+            white-space: nowrap;
+        }
+        .pm-pick-step-node .pm-step-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            color: #777777;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.22s ease, color 0.22s ease;
+        }
+        .pm-pick-step-node.active {
+            color: #111111;
+            font-weight: 800;
+            border-bottom-color: #F5C518;
+        }
+        .pm-pick-step-node.active .pm-step-badge {
+            background: #F5C518;
+            color: #111111;
+            box-shadow: 0 2px 6px rgba(245, 197, 24, 0.45);
+        }
+        .pm-pick-step-line {
+            flex: 1;
+            height: 1px;
+            background: #E0E0E0;
+            margin: 0 18px 12px;
+        }
+
+        /* ==========================================================================
+           2. MAIN WORKSPACE LAYOUT (Left Stage + Right Sticky Action Column)
+           ========================================================================== */
+        .pm-pick-workspace {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 18px 32px 48px;
+        }
+        .pm-pick-main-row {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 16px;
+            grid-template-columns: 1fr 370px;
+            gap: 40px;
+            align-items: start;
         }
         @media (max-width: 991px) {
-            .popnow-slot-grid {
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-                gap: 12px;
+            .pm-pick-main-row {
+                grid-template-columns: 1fr;
+                gap: 24px;
             }
         }
-        @media (max-width: 575px) {
-            .popnow-slot-grid {
-                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
-                gap: 8px;
-            }
-        }
-        .popnow-slot-card {
-            background: #27272A;
-            border: 2px solid #3F3F46;
-            border-radius: 18px;
-            padding: 1.25rem 0.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* ==========================================================================
+           3. PRODUCT SERIES CAROUSEL SPEC (docs/popmart_style_product_series_carousel_spec.md)
+           - Section 5: .series-carousel, .series-carousel__header, .series-carousel__stage
+           - Section 7: Back Link hover arrow translateX(-3px) + underline
+           - Section 10: @keyframes productFloat (4-6s ease-in-out infinite)
+           - Section 11: .product-shadow soft blur ground shadow
+           - Section 12: .series-carousel__button (48-56px circular buttons)
+           - Section 13-15: exit-left, enter-right, exit-right, enter-left with cubic-bezier(.22, .61, .36, 1)
+           - Section 17: Mouse Parallax (±10px)
+           - Section 18-19: Pointer Drag / Touch Swipe with 0.35 resistance
+           ========================================================================== */
+        .series-carousel {
             position: relative;
+            width: 100%;
+            min-height: 360px;
+            background: #f7f9f8;
+            border-radius: 16px;
+            padding: 14px 24px 12px;
+            overflow: hidden;
             user-select: none;
+        }
+        .series-carousel__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 5;
+        }
+        .series-carousel__back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            opacity: 0.9;
+            background: none;
+            border: none;
+            padding: 2px 0;
+            cursor: pointer;
+            transition: opacity 240ms cubic-bezier(.22, .61, .36, 1);
+        }
+        .series-carousel__back-arrow {
+            display: inline-block;
+            transition: transform 240ms cubic-bezier(.22, .61, .36, 1);
+        }
+        .series-carousel__back:hover {
+            opacity: 1;
+            color: #111111;
+        }
+        .series-carousel__back:hover .series-carousel__back-arrow {
+            transform: translateX(-3px);
+        }
+        .series-carousel__back:hover .series-carousel__back-text {
+            text-decoration: underline;
+        }
+
+        /* Product Stage (Section 8) */
+        .series-carousel__stage {
+            position: relative;
+            width: 100%;
+            max-width: 860px;
+            min-height: 290px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: pan-y;
+        }
+
+        /* Navigation Buttons (Section 12: 48-56px, border 1px solid #e5e7eb, rgba(255,255,255,.65)) */
+        .series-carousel__button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(6px);
+            color: #111111;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.85;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            transition:
+                background 200ms cubic-bezier(.22, .61, .36, 1),
+                transform 200ms cubic-bezier(.22, .61, .36, 1),
+                opacity 200ms cubic-bezier(.22, .61, .36, 1);
+            z-index: 6;
+            flex-shrink: 0;
+        }
+        .series-carousel__button:hover {
+            background: #FFFFFF;
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .series-carousel__button:active {
+            transform: scale(0.96);
+        }
+        .series-carousel__button--prev {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .series-carousel__button--prev:hover {
+            transform: translateY(-50%) scale(1.05);
+        }
+        .series-carousel__button--prev:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+        .series-carousel__button--next {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .series-carousel__button--next:hover {
+            transform: translateY(-50%) scale(1.05);
+        }
+        .series-carousel__button--next:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* Product Wrapper & Entrance / Next / Previous Transitions (Section 3.1, 10, 13, 14, 15) */
+        .series-carousel__product {
+            position: relative;
+            width: 100%;
+            max-width: 455px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 140px;
+            transition:
+                opacity 520ms cubic-bezier(.22, .61, .36, 1),
+                transform 520ms cubic-bezier(.22, .61, .36, 1);
+            will-change: transform, opacity;
         }
-        .popnow-slot-card.status-AVAILABLE {
-            border-color: #EAB308;
-            background: linear-gradient(180deg, #27272A 0%, #1F2937 100%);
+        .series-carousel__product.entrance-init {
+            opacity: 0;
+            transform: translate3d(0, 12px, 0) scale(0.97);
         }
-        .popnow-slot-card.status-AVAILABLE:hover {
-            transform: translateY(-5px) scale(1.03);
-            border-color: #FDE047;
-            box-shadow: 0 10px 24px rgba(234, 179, 8, 0.35);
+        .series-carousel__product.exit-left {
+            opacity: 0;
+            transform: translate3d(-80px, 0, 0) scale(0.97) !important;
         }
-        .popnow-slot-card.status-HELD {
-            background: #1E1B4B;
-            border-color: #6366F1;
-            cursor: not-allowed;
-            opacity: 0.85;
+        .series-carousel__product.enter-right {
+            opacity: 0;
+            transform: translate3d(80px, 0, 0) scale(0.97) !important;
         }
-        .popnow-slot-card.status-SOLD {
-            background: #18181B;
-            border-color: #27272A;
-            cursor: not-allowed;
-            opacity: 0.45;
+        .series-carousel__product.exit-right {
+            opacity: 0;
+            transform: translate3d(80px, 0, 0) scale(0.97) !important;
         }
-        .popnow-slot-card.selected-mine {
-            background: linear-gradient(135deg, #FF1E27 0%, #B91C1C 100%) !important;
-            border-color: #FFFFFF !important;
-            box-shadow: 0 0 0 4px rgba(255, 30, 39, 0.5), 0 12px 28px rgba(255, 30, 39, 0.5) !important;
-            transform: translateY(-6px) scale(1.05) !important;
+        .series-carousel__product.enter-left {
+            opacity: 0;
+            transform: translate3d(-80px, 0, 0) scale(0.97) !important;
         }
-        .popnow-box-icon {
-            font-size: 2.2rem;
-            margin-bottom: 0.25rem;
-            transition: transform 0.2s ease;
-        }
-        .popnow-slot-num {
-            font-weight: 900;
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
-        }
-        .popnow-status-badge {
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 999px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 6px;
-        }
-        .badge-available { background: rgba(234, 179, 8, 0.2); color: #FDE047; border: 1px solid #EAB308; }
-        .badge-held { background: rgba(99, 102, 241, 0.25); color: #A5B4FC; border: 1px solid #6366F1; }
-        .badge-sold { background: rgba(255, 255, 255, 0.1); color: #9CA3AF; }
-        .badge-mine { background: #FFFFFF; color: #FF1E27; font-weight: 900; }
 
-        .popnow-active-panel {
-            background: #FFFFFF;
-            border-radius: 24px;
-            padding: 1.75rem;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-            border: 1px solid #E2E8F0;
-        }
-        .popnow-timer-badge {
-            font-family: monospace;
-            font-size: 2rem;
-            font-weight: 900;
-            color: #DC2626;
-            background: #FEE2E2;
-            padding: 0.4rem 1.25rem;
-            border-radius: 16px;
-            display: inline-block;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-        }
-        .popnow-timer-badge.urgent {
-            animation: timer-pulse 0.8s infinite ease-in-out;
-            background: #DC2626;
-            color: #FFFFFF;
-            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
-        }
-        @keyframes timer-pulse {
-            0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); transform: scale(1); }
-            50%  { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); transform: scale(1.04); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); transform: scale(1); }
-        }
-        .series-lineup-card {
-            border-radius: 16px;
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            padding: 8px;
-            text-align: center;
-        }
-        .series-lineup-img {
+        /* Idle Floating Wrapper (Section 10: 5s ease-in-out infinite) */
+        .series-carousel__float-wrap {
             width: 100%;
-            height: 90px;
+            animation: productFloat 5s ease-in-out infinite;
+            transition: transform 380ms cubic-bezier(.22, .61, .36, 1);
+        }
+        @keyframes productFloat {
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(0, -6px, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+        .series-carousel__product:hover .series-carousel__float-wrap {
+            transform: translate3d(0, -4px, 0) scale(1.018);
+        }
+
+        /* Soft Ground Shadow below the 3D Tray (Section 11: .product-shadow) */
+        .product-shadow {
+            width: 280px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.11);
+            filter: blur(18px);
+            transform: scale(0.95);
+            margin-top: 6px;
+            transition:
+                transform 400ms cubic-bezier(.22, .61, .36, 1),
+                opacity 400ms cubic-bezier(.22, .61, .36, 1);
+            pointer-events: none;
+        }
+        .series-carousel__product:hover .product-shadow {
+            transform: scale(0.84);
+            opacity: 0.65;
+        }
+
+        /* 3D Open Display Box / Tray containing 6 interactive small blind boxes (Screenshot 2) */
+        .pm-3d-tray-backboard {
+            width: 92%;
+            margin: 0 auto;
+            height: 52px;
+            background: linear-gradient(135deg, #FFE4EC 0%, #E0F2FE 50%, #FEF3C7 100%);
+            border: 2px solid #D4D4D8;
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.06);
+        }
+        .pm-3d-tray-backboard-badge {
+            background: #D2001E;
+            color: #FFFFFF;
+            font-weight: 900;
+            font-size: 10px;
+            padding: 3px 8px;
+            letter-spacing: 0.5px;
+        }
+        .pm-3d-tray-backboard-title {
+            font-size: 12.5px;
+            font-weight: 900;
+            color: #1F2937;
+            text-transform: uppercase;
+            text-align: center;
+            flex: 1;
+            padding: 0 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pm-3d-tray-body {
+            background: linear-gradient(180deg, #E5E7EB 0%, #F3F4F6 45%, #E5E7EB 100%);
+            border: 2px solid #D1D5DB;
+            border-radius: 12px;
+            padding: 14px 16px 12px;
+            box-shadow:
+                0 16px 28px rgba(0, 0, 0, 0.13),
+                inset 0 6px 14px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        .pm-tray-boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .pm-small-blindbox {
+            position: relative;
+            background: linear-gradient(165deg, #FFFFFF 0%, #FFF5F7 60%, #F3E8FF 100%);
+            border: 2px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 6px 6px 8px;
+            cursor: pointer;
+            transition:
+                transform 340ms cubic-bezier(.22, .61, .36, 1),
+                box-shadow 340ms cubic-bezier(.22, .61, .36, 1),
+                border-color 240ms ease;
+            box-shadow:
+                0 6px 0 #CBD5E1,
+                0 10px 16px rgba(0, 0, 0, 0.11);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .pm-small-blindbox::before {
+            content: "POP MART";
+            width: 100%;
+            background: linear-gradient(90deg, #FDE68A 0%, #FCA5A5 50%, #C4B5FD 100%);
+            color: #991B1B;
+            font-size: 8.5px;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            text-align: center;
+            padding: 2px 0;
+            border-radius: 5px 5px 2px 2px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed rgba(0,0,0,0.18);
+        }
+        .pm-small-blindbox:hover:not(.status-SOLD):not(.status-HELD) {
+            transform: translate3d(0, -10px, 0) scale(1.03);
+            border-color: #F5C518;
+            box-shadow:
+                0 14px 0 #EAB308,
+                0 20px 28px rgba(245, 197, 24, 0.35);
+        }
+        /* POP-UP RISE ANIMATION when user clicks a small box in the tray! */
+        .pm-small-blindbox.popping-up {
+            transform: translate3d(0, -34px, 0) scale(1.09) !important;
+            border-color: #F5C518 !important;
+            box-shadow:
+                0 18px 0 #F5C518,
+                0 28px 45px rgba(210, 0, 30, 0.42) !important;
+            z-index: 15;
+        }
+        .pm-small-box-thumb {
+            width: 52px;
+            height: 52px;
             object-fit: contain;
+            margin-bottom: 4px;
+            pointer-events: none;
+        }
+        .pm-small-box-number {
+            font-size: 11px;
+            font-weight: 800;
+            color: #334155;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid #E2E8F0;
+            border-radius: 999px;
+            padding: 1px 9px;
+        }
+        .pm-3d-tray-frontlip {
+            margin-top: 12px;
+            background: linear-gradient(90deg, #991B1B 0%, #D2001E 50%, #991B1B 100%);
+            color: #FFFFFF;
+            border-radius: 0 0 10px 10px;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* Series Caption & Pagination Indicator (Section 5 & 34) */
+        .series-carousel__caption {
+            text-align: center;
+            margin-top: 4px;
+        }
+        .series-carousel__code {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #555555;
+            margin-bottom: 4px;
+        }
+        .series-carousel__name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #222222;
+            margin: 0 0 8px;
+        }
+        .series-carousel__pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .series-carousel__dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #D1D5DB;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: transform 200ms ease, background 200ms ease;
+        }
+        .series-carousel__dot.active {
+            background: #111111;
+            transform: scale(1.25);
+        }
+
+        /* Box Status 1..6 Mini-Map (Stage 2 - Screenshots 3 & 5) */
+        .pm-box-status-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+        .pm-box-status-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #444444;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .pm-box-status-dots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pm-status-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 180ms ease, background 180ms ease;
+            border: 1.5px solid transparent;
+        }
+        .pm-status-circle.available {
+            background: #666666;
+            color: #FFFFFF;
+        }
+        .pm-status-circle.selected {
+            background: #F5C518 !important;
+            color: #111111 !important;
+            font-weight: 900;
+            box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.32);
+            transform: scale(1.1);
+        }
+
+        /* ==========================================================================
+           4. STAGE 2: SINGLE 3D BOX VIEW + SHAKE FOR HINTS (Screenshots 3, 4, 5)
+           ========================================================================== */
+        .pm-stage-single-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 20px 12px;
+            position: relative;
+        }
+        .pm-reserving-timer-bar {
+            font-size: 14px;
+            font-weight: 700;
+            color: #D2001E;
+            margin-bottom: 10px;
+        }
+        .pm-not-me-speech-bubble {
+            display: none;
+            position: relative;
+            background: rgba(247, 247, 247, 0.97);
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            padding: 10px 26px;
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+            margin-bottom: 14px;
+            min-width: 205px;
+            animation: pmBubblePop 0.28s cubic-bezier(.22, .61, .36, 1);
+        }
+        .pm-not-me-speech-bubble::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 15px;
+            height: 15px;
+            background: rgba(247, 247, 247, 0.97);
+            border-right: 1px solid #E5E5E5;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        @keyframes pmBubblePop {
+            0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.92); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        .pm-not-me-title {
+            color: #D2001E;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+        .pm-not-me-names {
+            color: #111111;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .pm-single-box-showcase {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px 0 12px;
+        }
+        .pm-3d-single-box-card {
+            width: 205px;
+            height: 235px;
+            margin: 0 26px;
+            background: linear-gradient(160deg, #FFF5F7 0%, #FCE7F3 42%, #E0E7FF 100%);
+            border: 2.5px solid #E2E8F0;
+            border-radius: 16px;
+            box-shadow:
+                -12px 12px 0 #CBD5E1,
+                0 20px 34px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px 14px;
+            position: relative;
+            transform: rotate(-1.5deg);
+            transition: transform 300ms cubic-bezier(.22, .61, .36, 1);
+        }
+        .pm-3d-single-box-card.shaking {
+            animation: pmShake3DBox 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        @keyframes pmShake3DBox {
+            0%, 100% { transform: rotate(-1.5deg) translate3d(0, 0, 0); }
+            15% { transform: rotate(-9deg) translate3d(-10px, -6px, 0) scale(1.04); }
+            30% { transform: rotate(8deg) translate3d(10px, -8px, 0) scale(1.05); }
+            45% { transform: rotate(-8deg) translate3d(-8px, -4px, 0) scale(1.04); }
+            60% { transform: rotate(6deg) translate3d(8px, -4px, 0) scale(1.03); }
+            75% { transform: rotate(-4deg) translate3d(-4px, 0, 0); }
+        }
+        .pm-3d-single-box-top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pm-3d-single-box-logo {
+            background: #D2001E;
+            color: #FFFFFF;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 7px;
+        }
+        .pm-3d-single-box-img {
+            width: 132px;
+            height: 132px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 14px rgba(0,0,0,0.12));
+        }
+        .pm-3d-single-box-footer {
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #334155;
+            background: rgba(255,255,255,0.85);
+            border-radius: 8px;
+            padding: 5px 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pm-single-box-code {
+            font-size: 12px;
+            color: #666666;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .pm-single-box-pills {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+        .pm-pill-action-btn {
+            background: #FFFFFF;
+            color: #111111;
+            border: 1px solid #D4D4D4;
+            border-radius: 999px;
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            transition: transform 200ms ease, border-color 200ms ease;
+        }
+        .pm-pill-action-btn:hover {
+            border-color: #111111;
+            transform: translate3d(0, -2px, 0);
+        }
+
+        /* ==========================================================================
+           5. RIGHT PANEL & BOTTOM CHARACTER LINEUP STRIP
+           ========================================================================== */
+        .pm-right-info-card {
+            padding-top: 6px;
+        }
+        .pm-right-prod-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .pm-right-prod-thumb {
+            width: 56px;
+            height: 56px;
+            background: #F5F5F5;
+            border-radius: 6px;
+            object-fit: contain;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+        .pm-right-prod-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111111;
+            line-height: 1.38;
+            margin-bottom: 6px;
+        }
+        .pm-right-prod-price {
+            font-size: 16px;
+            font-weight: 800;
+            color: #D2001E;
+        }
+        .pm-btn-pick-one-shake {
+            width: 100%;
+            background: #000000;
+            color: #FFFFFF;
+            border: 1.5px solid #000000;
+            padding: 13px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        .pm-btn-buy-multiple {
+            width: 100%;
+            background: #FFFFFF;
+            color: #111111;
+            border: 1.5px solid #222222;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .pm-single-cta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .pm-btn-add-cart-outline {
+            background: #FFFFFF;
+            color: #111111;
+            border: 1.5px solid #222222;
+            padding: 13px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .pm-btn-buy-now-black {
+            background: #000000;
+            color: #FFFFFF;
+            border: 1.5px solid #000000;
+            padding: 13px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .pm-shipping-accordion {
+            border-top: 1px solid #EBEBEB;
+            border-bottom: 1px solid #EBEBEB;
+            padding: 14px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: #111111;
+            cursor: pointer;
+        }
+
+        /* Bottom Series Character Lineup Strip (Screenshots 2, 3, 5) */
+        .pm-lineup-strip-wrap {
+            margin-top: 16px;
+            padding-top: 12px;
+        }
+        .pm-lineup-row {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .pm-lineup-char-card {
+            position: relative;
+            flex: 0 0 116px;
+            background: #F7F7F7;
+            border-radius: 6px;
+            padding: 12px 8px 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 220ms ease;
+        }
+        .pm-lineup-char-card.secret-card {
+            margin-left: auto;
+            background: #F4F4F4;
+        }
+        .pm-lineup-char-card img {
+            width: 72px;
+            height: 76px;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+        .pm-lineup-char-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #222222;
+            margin-top: auto;
+        }
+        .pm-lineup-not-me-badge {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #111111;
+            color: #FFFFFF;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px 0 6px 0;
+            z-index: 2;
+        }
+        .pm-lineup-char-card.eliminated .pm-lineup-not-me-badge {
+            display: inline-block;
+        }
+        .pm-lineup-char-card.eliminated img {
+            opacity: 0.4;
+            filter: grayscale(0.65);
+        }
+        .pm-lineup-char-card.eliminated .pm-lineup-char-name {
+            color: #888888;
+        }
+        .pm-probability-link {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 12px;
+            color: #666666;
+        }
+        .pm-probability-link a {
+            color: #444444;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        /* Hint Card Modal (Screenshot 4) */
+        .pm-hint-modal-content {
+            border-radius: 14px;
+            border: none;
+            padding: 28px 24px 24px;
+            text-align: center;
+            position: relative;
+        }
+        .pm-hint-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #666666;
+            cursor: pointer;
+        }
+        .pm-hint-bulb-icon {
+            font-size: 46px;
+            color: #111111;
+            position: relative;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        .pm-hint-bulb-sparkle {
+            position: absolute;
+            top: -4px;
+            right: -12px;
+            color: #F5C518;
+            font-size: 22px;
+        }
+        .pm-hint-points-box {
+            background: #F4F4F4;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 18px 0 14px;
+            font-size: 13px;
+            color: #333333;
+        }
+
+        /* Section 21: Reduced Motion Accessibility (scoped to data-reduced-motion="true" so OS default doesn't disable animations) */
+        [data-reduced-motion="true"] *,
+        [data-reduced-motion="true"] *::before,
+        [data-reduced-motion="true"] *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- Header Fragment -->
+    <!-- Main Navbar -->
     <header th:replace="~{fragments/header :: header}"></header>
 
-    <!-- POP NOW Progress Stepper -->
-    <div th:replace="~{fragments/popnow-stepper :: stepper('pick')}"></div>
-
-    <main class="container my-4">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb" style="font-size: 0.86rem;">
-                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
-                <li class="breadcrumb-item"><a th:href="@{/popnow}" class="text-decoration-none text-secondary fw-semibold">POP NOW</a></li>
-                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${product.name}">Chọn Hộp</li>
-            </ol>
-        </nav>
-
-        <div class="row g-4 mb-5">
-            <!-- Cột trái: Khay 12 hộp bốc trực tuyến (Pick a Box Tray) -->
-            <div class="col-lg-8">
-                <div class="popnow-tray-container">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                                <span class="badge bg-warning text-dark px-3 py-2 fw-bold text-uppercase">
-                                    <i class="bi bi-box2-fill me-1"></i> KHAY NGUYÊN SEAL <span th:if="${slots != null}">• <span th:text="${slots.size()} + ' HỘP'">12 HỘP</span></span>
-                                </span>
-                                <span class="badge bg-dark border border-secondary text-warning font-monospace px-3 py-2 fw-bold"
-                                      th:text="${setCode != null ? setCode : 'No.PW' + product.id}">
-                                    No.PW6KPSYR
-                                </span>
-                            </div>
-                            <h3 class="popnow-tray-title mb-0" th:text="${product.name}">TÊN BỘ SƯU TẬP</h3>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-secondary small d-block">Giá bốc 1 hộp:</span>
-                            <span class="fs-4 fw-black text-warning"
-                                  th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                350.000 ₫
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-dark border-secondary bg-dark text-light small py-2 px-3 rounded-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-shield-check text-success fs-5"></i>
-                            <span><strong>Cam kết chống trùng:</strong> Không trùng lặp mẫu khi bốc trong cùng 1 SET (No duplicates from SAME SET).</span>
-                        </div>
-                        <span class="text-warning small font-monospace"><i class="bi bi-hourglass-split me-1"></i>Giữ hộp 5 phút</span>
-                    </div>
-
-                    <!-- Lưới 12 ô hộp -->
-                    <div class="popnow-slot-grid" id="slotGrid">
-                        <div th:each="slot : ${slots}"
-                             class="popnow-slot-card"
-                             th:classappend="'status-' + ${slot.status} + (${activeReservation != null && activeReservation.boxIndex == slot.slotIndex} ? ' selected-mine' : '')"
-                             th:data-slot-index="${slot.slotIndex}"
-                             th:data-status="${slot.status}"
-                             onclick="handleSlotClick(this)">
-                            <div class="popnow-box-icon">
-                                <i th:if="${slot.status == 'AVAILABLE'}" class="bi bi-gift-fill text-warning"></i>
-                                <i th:if="${slot.status == 'HELD' && !(activeReservation != null && activeReservation.boxIndex == slot.slotIndex)}" class="bi bi-lock-fill text-indigo-400" style="color: #A5B4FC;"></i>
-                                <i th:if="${slot.status == 'SOLD'}" class="bi bi-check-circle-fill text-secondary"></i>
-                                <i th:if="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}" class="bi bi-stars text-white"></i>
-                            </div>
-                            <div class="popnow-slot-num text-white">
-                                Hộp #<span th:text="${slot.slotIndex}">1</span>
-                            </div>
-                            <span th:if="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}" class="popnow-status-badge badge-mine">
-                                BẠN ĐANG GIỮ
-                            </span>
-                            <span th:unless="${activeReservation != null && activeReservation.boxIndex == slot.slotIndex}"
-                                  class="popnow-status-badge"
-                                  th:classappend="${slot.status == 'AVAILABLE' ? 'badge-available' : (slot.status == 'HELD' ? 'badge-held' : 'badge-sold')}"
-                                  th:text="${slot.status == 'AVAILABLE' ? 'BỐC NGAY' : (slot.status == 'HELD' ? 'ĐANG GIỮ' : 'ĐÃ BÁN')}">
-                                BỐC NGAY
-                            </span>
-                        </div>
-                    </div>
-                </div>
+    <!-- 1. POP NOW 3-Stage Stepper (Pick A Box -> Shake for Hints -> Unbox Now) -->
+    <div class="pm-pick-stepper-wrap">
+        <div class="pm-pick-stepper">
+            <div class="pm-pick-step-node active" id="stepNodePick">
+                <span class="pm-step-badge"><i class="bi bi-box2-fill"></i></span>
+                <span>Pick A Box</span>
             </div>
-
-            <!-- Cột phải: Bảng thông tin giữ hộp & Đếm ngược 5 phút -->
-            <div class="col-lg-4">
-                <div class="popnow-active-panel">
-                    <div id="reservationEmptyState" th:style="${activeReservation == null ? 'display: block;' : 'display: none;'}">
-                        <div class="text-center py-4">
-                            <i class="bi bi-cursor-fill text-danger display-3 mb-3 d-block"></i>
-                            <h5 class="fw-black text-uppercase mb-2">CHỌN 1 HỘP ĐỂ BẮT ĐẦU</h5>
-                            <p class="text-secondary small mb-4">
-                                Nhấn vào một ô hộp màu vàng trong khay bên trái để hệ thống khóa giữ hộp và bắt đầu đếm ngược 5 phút.
-                            </p>
-                            <div class="p-3 bg-light rounded-4 text-start small border">
-                                <div class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-1"></i> Cam kết POP WORLD:</div>
-                                <ul class="mb-0 ps-3 text-muted">
-                                    <li>Hộp nguyên seal bạc chưa bóc.</li>
-                                    <li>Xác suất ngẫu nhiên bảo đảm bởi máy chủ.</li>
-                                    <li>Mở trực tuyến tức thì ngay sau thanh toán.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="reservationActiveState" th:style="${activeReservation != null ? 'display: block;' : 'display: none;'}">
-                        <div class="text-center mb-3">
-                            <span class="badge bg-danger text-white px-3 py-1 rounded-pill fw-bold text-uppercase mb-2">
-                                <i class="bi bi-lightning-fill me-1"></i> ĐÃ GIỮ HỘP THÀNH CÔNG
-                            </span>
-                            <h4 class="fw-black text-dark text-uppercase mb-1" id="displayBoxTitle">
-                                HỘP SỐ #<span id="resBoxIndex" th:text="${activeReservation != null ? activeReservation.boxIndex : ''}">1</span>
-                            </h4>
-                            <small class="text-muted font-monospace d-block" id="displayResCode"
-                                   th:text="${activeReservation != null ? activeReservation.reservationCode : ''}">
-                                PN-XXXXXXXXXX
-                            </small>
-                        </div>
-
-                        <!-- Đồng hồ đếm ngược 5 phút -->
-                        <div class="text-center mb-4">
-                            <small class="text-secondary fw-bold text-uppercase d-block mb-1">Thời gian thanh toán còn lại:</small>
-                            <div class="popnow-timer-badge" id="countdownTimer">05:00</div>
-                            <small class="text-danger d-block mt-1" id="timerNotice">
-                                <i class="bi bi-clock-history"></i> Quá 5 phút, vị trí sẽ tự động nhả.
-                            </small>
-                        </div>
-
-                        <div class="border-top pt-3 mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-secondary">Sản phẩm:</span>
-                                <span class="fw-bold text-dark text-end" th:text="${product.name}">Series</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-secondary">Số lượng:</span>
-                                <span class="fw-bold text-dark">1 hộp đơn</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-secondary">Tổng thanh toán:</span>
-                                <span class="fw-black text-danger fs-5"
-                                      th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                    350.000 ₫
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Nút Thanh toán ngay -->
-                        <form id="checkoutForm" th:action="@{/popnow/checkout/{code}(code=${activeReservation != null ? activeReservation.reservationCode : ''})}" method="post" class="mb-2">
-                            <input type="hidden" name="paymentMethod" value="SEPAY">
-                            <button type="submit" id="btnPayNow" class="btn btn-pop-red w-100 py-3 fw-bold text-uppercase shadow">
-                                <i class="bi bi-qr-code-scan me-2"></i> THANH TOÁN NGAY (VIETQR)
-                            </button>
-                        </form>
-
-                        <!-- Nút Hủy giữ hộp -->
-                        <button type="button" id="btnCancelRes" onclick="handleCancelReservation()" class="btn btn-outline-secondary w-100 py-2 small fw-bold">
-                            <i class="bi bi-x-circle me-1"></i> Hủy Giữ Hộp
-                        </button>
-                    </div>
-
-                    <!-- Trạng thái Hết hạn -->
-                    <div id="reservationExpiredState" style="display: none;" class="text-center py-4">
-                        <i class="bi bi-exclamation-circle-fill text-secondary display-3 mb-2 d-block"></i>
-                        <h5 class="fw-bold text-dark text-uppercase">ĐÃ HẾT THỜI GIAN GIỮ HỘP</h5>
-                        <p class="text-muted small mb-3">Phiếu giữ hộp 5 phút của bạn đã hết hạn. Vị trí đã được hoàn lại cho người khác.</p>
-                        <button type="button" onclick="resetToEmpty()" class="btn btn-dark w-100 py-2 fw-bold">
-                            <i class="bi bi-arrow-repeat me-1"></i> Chọn Lại Hộp Khác
-                        </button>
-                    </div>
-                </div>
+            <div class="pm-pick-step-line"></div>
+            <div class="pm-pick-step-node" id="stepNodeShake">
+                <span class="pm-step-badge"><i class="bi bi-dice-5-fill"></i></span>
+                <span>Shake for Hints</span>
+            </div>
+            <div class="pm-pick-step-line"></div>
+            <div class="pm-pick-step-node" id="stepNodeUnbox">
+                <span class="pm-step-badge"><i class="bi bi-stars"></i></span>
+                <span>Unbox Now</span>
             </div>
         </div>
+    </div>
 
-        <!-- Series Lineup Preview (Danh sách các nhân vật có thể bóc trúng) -->
-        <div class="card border-0 rounded-4 shadow-sm p-4 bg-white mb-5" th:if="${seriesItems != null && !seriesItems.isEmpty()}">
-            <h5 class="fw-black text-uppercase mb-3">
-                <i class="bi bi-trophy-fill text-warning me-2"></i> BỘ SƯU TẬP NHÂN VẬT TRONG SERIES NÀY
-            </h5>
-            <div class="row g-3">
-                <div class="col-4 col-md-3 col-lg-2" th:each="item : ${seriesItems}">
-                    <div class="series-lineup-card">
-                        <img th:src="${item.imageUrl}" th:alt="${item.name}" class="series-lineup-img mb-2">
-                        <h6 class="fw-bold small text-truncate mb-1" th:text="${item.name}">Character</h6>
-                        <span class="badge" th:classappend="${item.rarity == 'SECRET' ? 'bg-warning text-dark' : 'bg-light text-dark border'}"
-                              th:text="${item.rarity == 'SECRET' ? '★ SECRET' : 'REGULAR'}">
-                            REGULAR
-                        </span>
+    <!-- 2. Main Interactive Workspace -->
+    <main class="pm-pick-workspace">
+        <div class="pm-pick-main-row">
+
+            <!-- LEFT COLUMN: Product Series Carousel (Stage 1 - Screenshot 2) + Single Box Shake Stage (Stage 2 - Screenshots 3, 5) -->
+            <section class="series-carousel" id="seriesCarouselRoot" aria-label="Explore product series">
+
+                <!-- SeriesHeader (Section 5 & 7) -->
+                <header class="series-carousel__header">
+                    <!-- Shown in Stage 1 (Screenshot 2) -->
+                    <a th:href="@{/popnow}" class="series-carousel__back" id="linkExploreMore">
+                        <span class="series-carousel__back-arrow" aria-hidden="true">←</span>
+                        <span class="series-carousel__back-text">Explore More Series</span>
+                    </a>
+
+                    <!-- Shown in Stage 2 (Screenshots 3 & 5) - Releases reservation & returns to Stage 1 -->
+                    <button type="button" class="series-carousel__back" id="btnBackToSet" style="display: none;" onclick="backToSetView()">
+                        <span class="series-carousel__back-arrow" aria-hidden="true">←</span>
+                        <span class="series-carousel__back-text">Back to Set</span>
+                    </button>
+
+                    <!-- Box Status 1..6 Mini-Map (Shown in Stage 2 - Screenshots 3 & 5) -->
+                    <div class="pm-box-status-widget" id="boxStatusWidget" style="display: none;">
+                        <div class="pm-box-status-title">
+                            <span>Box Status</span>
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <div class="pm-box-status-dots" id="boxStatusDots">
+                            <span th:each="slot, iter : ${slots}"
+                                  th:if="${iter.index < 6}"
+                                  class="pm-status-circle"
+                                  th:classappend="${slot.status == 'AVAILABLE' ? 'available' : 'Unavailable'}"
+                                  th:data-slot-index="${slot.slotIndex}"
+                                  th:text="${slot.slotIndex}"
+                                  onclick="switchSingleBox(this.getAttribute('data-slot-index'))">1</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- ==============================================================
+                     STAGE 1: PRODUCT SERIES CAROUSEL + 3D OPEN TRAY (Screenshot 2)
+                     ============================================================== -->
+                <div id="stageSetView">
+                    <div class="series-carousel__stage" id="carouselStage">
+
+                        <!-- Previous Series Button (Section 12) -->
+                        <button type="button"
+                                class="series-carousel__button series-carousel__button--prev"
+                                aria-label="Previous series"
+                                onclick="SeriesCarousel.previous()">
+                            ←
+                        </button>
+
+                        <!-- Center Product 3D Tray with Floating & Shadow (Section 8, 10, 11) -->
+                        <div class="series-carousel__product" id="carouselProductStage">
+                            <div class="series-carousel__float-wrap" id="carouselParallaxTarget">
+                                <!-- Backboard of the open 3D display tray -->
+                                <div class="pm-3d-tray-backboard">
+                                    <span class="pm-3d-tray-backboard-badge">POP MART</span>
+                                    <div class="pm-3d-tray-backboard-title" id="traySeriesHeaderTitle" th:text="${product.name}">
+                                        THE MONSTERS Big into Energy Series
+                                    </div>
+                                    <span class="badge bg-warning text-dark fw-black" style="font-size: 9.5px;">BLIND BOX</span>
+                                </div>
+
+                                <!-- 3D Open Tray containing 6 interactive small boxes -->
+                                <div class="pm-3d-tray-body">
+                                    <div class="pm-tray-boxes-grid" id="trayBoxesGrid">
+                                        <div th:each="slot, iter : ${slots}"
+                                             th:if="${iter.index < 6}"
+                                             class="pm-small-blindbox"
+                                             th:classappend="'status-' + ${slot.status}"
+                                             th:data-slot-index="${slot.slotIndex}"
+                                             th:data-status="${slot.status}"
+                                             onclick="selectBoxFromTray(this)">
+                                            <img th:src="${product.getMainImageUrl()}"
+                                                 th:alt="'Box ' + ${slot.slotIndex}"
+                                                 class="pm-small-box-thumb series-carousel__image">
+                                            <span class="pm-small-box-number">Box <span th:text="${slot.slotIndex}">1</span></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Front lip of the 3D display tray -->
+                                    <div class="pm-3d-tray-frontlip">
+                                        <span>POP NOW • WHOLE SET DISPLAY</span>
+                                        <span id="trayLipSubtitle" th:text="${product.series != null ? product.series.name : '6 BLIND BOXES'}">6 BLIND BOXES</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Soft Ground Shadow below Product (Section 11) -->
+                            <div class="product-shadow"></div>
+                        </div>
+
+                        <!-- Next Series Button (Section 12) -->
+                        <button type="button"
+                                class="series-carousel__button series-carousel__button--next"
+                                aria-label="Next series"
+                                onclick="SeriesCarousel.next()">
+                            →
+                        </button>
+
+                    </div>
+
+                    <!-- SeriesCaption & PaginationIndicator (Section 5 & 34) -->
+                    <div class="series-carousel__caption">
+                        <span class="series-carousel__code" id="traySetCodeDisplay" th:text="${setCode}">No.5g92apQk</span>
+                        <h2 class="series-carousel__name" id="trayCaptionSeriesName" th:text="${product.name}">The Monsters</h2>
+                        <div class="series-carousel__pagination" id="carouselPaginationDots"></div>
                     </div>
                 </div>
+
+                <!-- ==============================================================
+                     STAGE 2: SINGLE 3D BOX + SHAKE FOR HINTS (Screenshots 3 & 5)
+                     ============================================================== -->
+                <div class="pm-stage-single-container" id="stageSingleBoxView">
+                    <div class="pm-reserving-timer-bar">
+                        Reserving Time: <span id="countdownTimer">05:00</span>
+                    </div>
+
+                    <!-- Speech Bubble: "The box is NOT ..." (Screenshot 5) -->
+                    <div class="pm-not-me-speech-bubble" id="notMeSpeechBubble">
+                        <div class="pm-not-me-title">The box is NOT</div>
+                        <div class="pm-not-me-names" id="notMeNamesList">
+                            <div>Loyalty</div>
+                            <div>Love</div>
+                        </div>
+                    </div>
+
+                    <!-- Large 3D Single Blind Box with ← and → buttons -->
+                    <div class="pm-single-box-showcase">
+                        <button type="button"
+                                class="series-carousel__button"
+                                aria-label="Previous box"
+                                onclick="navigateAdjacentBox(-1)">
+                            ←
+                        </button>
+
+                        <div class="pm-3d-single-box-card" id="single3DBoxCard">
+                            <div class="pm-3d-single-box-top">
+                                <span class="pm-3d-single-box-logo">POP MART</span>
+                                <span class="badge bg-warning text-dark fw-bold" style="font-size: 10px;">BOX #<span id="singleBoxBadgeNum">1</span></span>
+                            </div>
+                            <img th:src="${product.getMainImageUrl()}"
+                                 th:alt="${product.name}"
+                                 id="singleBoxHeroImg"
+                                 class="pm-3d-single-box-img">
+                            <div class="pm-3d-single-box-footer" id="singleBoxFooterTitle" th:text="${product.name}">
+                                THE MONSTERS Series
+                            </div>
+                        </div>
+
+                        <button type="button"
+                                class="series-carousel__button"
+                                aria-label="Next box"
+                                onclick="navigateAdjacentBox(1)">
+                            →
+                        </button>
+                    </div>
+
+                    <div class="pm-single-box-code" id="singleBoxCodeDisplay">
+                        <span th:text="${setCode} + '-1'">N0.5g92ap0k-5</span>
+                    </div>
+
+                    <!-- 2 Pill Buttons: HINT CARD & Shake for Hints -->
+                    <div class="pm-single-box-pills">
+                        <button type="button" class="pm-pill-action-btn" onclick="openHintCardModal()">
+                            <i class="bi bi-lightbulb text-warning fs-6"></i>
+                            <span>HINT CARD</span>
+                        </button>
+                        <button type="button" class="pm-pill-action-btn" id="btnShakeForHints" onclick="triggerShakeForHints()">
+                            <i class="bi bi-box-seam text-danger fs-6"></i>
+                            <span>Shake for Hints</span>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- RIGHT COLUMN: Product Info & Contextual CTA Buttons -->
+            <div class="pm-right-info-card">
+                <div class="pm-right-prod-header">
+                    <img th:src="${product.getMainImageUrl()}"
+                         th:alt="${product.name}"
+                         id="rightPanelThumb"
+                         class="pm-right-prod-thumb">
+                    <div class="flex-grow-1">
+                        <div class="pm-right-prod-title" id="rightPanelTitle" th:text="${product.name}">
+                            THE MONSTERS Big into Energy Series-Vinyl Plush Pendant Blind Box
+                        </div>
+                        <div class="pm-right-prod-price"
+                             id="rightPanelPrice"
+                             th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            350.000 ₫
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODE A: Shown in Stage 1 (Pick A Box - Screenshot 2) -->
+                <div id="rightPanelSetMode">
+                    <button type="button" class="pm-btn-pick-one-shake" onclick="pickRandomAvailableBox()">
+                        Pick One to Shake
+                    </button>
+                    <button type="button" class="pm-btn-buy-multiple" onclick="pickRandomAvailableBox()">
+                        <span>Buy Multiple Boxes</span>
+                        <span class="text-danger"><i class="bi bi-boxes"></i></span>
+                    </button>
+                </div>
+
+                <!-- MODE B: Shown in Stage 2 (Shake for Hints - Screenshots 3 & 5) -->
+                <div id="rightPanelSingleMode" style="display: none;">
+                    <form id="checkoutForm" method="post" onsubmit="markProceedingToCheckout()">
+                        <input type="hidden" name="paymentMethod" value="SEPAY">
+                        <div class="pm-single-cta-grid">
+                            <button type="button" class="pm-btn-add-cart-outline" onclick="submitPopNowCheckout()">
+                                ADD TO CART
+                            </button>
+                            <button type="submit" class="pm-btn-buy-now-black">
+                                BUY NOW
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="pm-shipping-accordion" data-bs-toggle="collapse" data-bs-target="#shippingDetailsCollapse">
+                        <span>Shipping &amp; After-Sales Service</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="collapse pt-2 small text-secondary" id="shippingDetailsCollapse">
+                        Orders placed through POP NOW are unboxed online immediately after payment and shipped sealed from our official warehouse within 3–5 business days.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ======================================================================
+             3. BOTTOM SERIES CHARACTER LINEUP STRIP (Screenshots 2, 3, 5)
+             ====================================================================== -->
+        <div class="pm-lineup-strip-wrap" th:if="${seriesItems != null && !seriesItems.isEmpty()}">
+            <div class="pm-lineup-row" id="seriesLineupRow">
+                <div th:each="item : ${seriesItems}"
+                     class="pm-lineup-char-card"
+                     th:classappend="${item.rarity == 'SECRET' ? 'secret-card' : ''}"
+                     th:data-char-name="${item.name}"
+                     th:data-rarity="${item.rarity}">
+                    <span class="pm-lineup-not-me-badge">NOT ME</span>
+                    <img th:src="${item.imageUrl}" th:alt="${item.name}" class="lineup-char-img">
+                    <div class="pm-lineup-char-name"
+                         th:text="${item.rarity == 'SECRET' ? 'SECRET' : item.name}">
+                        Character
+                    </div>
+                </div>
+            </div>
+            <div class="pm-probability-link">
+                <a href="javascript:void(0)" onclick="alert('Regular figure probability: 1/6 each. Secret figure probability: 1/72.')">
+                    Click here to check Probability Rules
+                </a>
             </div>
         </div>
     </main>
+
+    <!-- ==========================================================================
+         4. HINT CARD MODAL (Screenshot 4)
+         ========================================================================== -->
+    <div class="modal fade" id="hintCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content pm-hint-modal-content">
+                <button type="button" class="pm-hint-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div>
+                    <div class="pm-hint-bulb-icon">
+                        <i class="bi bi-lightbulb"></i>
+                        <i class="bi bi-stars pm-hint-bulb-sparkle"></i>
+                    </div>
+                </div>
+                <h5 class="fw-black mb-1" style="font-size: 18px;">HINT CARD</h5>
+                <div class="text-secondary small mb-2">Use a HINT CARD to get an extra hint!</div>
+
+                <div class="pm-hint-points-box">
+                    <div class="mb-1">My Lucky Points: <strong class="text-dark">0</strong></div>
+                    <div>Spend <strong class="text-dark">10</strong> Lucky Points to redeem <strong class="text-dark">1</strong> HINT CARD?</div>
+                </div>
+
+                <div class="small text-secondary">
+                    Go to <a th:href="@{/popnow}" class="text-dark fw-bold text-decoration-underline">POP NOW - Daily Tasks</a> to get Lucky Points.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer Fragment -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
@@ -352,97 +1212,268 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const productId = /*[[${product.id}]]*/ 0;
+        let productId = /*[[${product.id}]]*/ 0;
         const isAuthenticated = /*[[${currentUser != null}]]*/ false;
-        let currentReservationCode = /*[[${activeReservation != null ? activeReservation.reservationCode : ''}]]*/ '';
-        let expiresAtStr = /*[[${activeReservation != null && activeReservation.expiresAt != null ? activeReservation.expiresAt.toString() : ''}]]*/ '';
+        let baseSetCode = /*[[${setCode != null ? setCode : 'No.5g92apQk'}]]*/ 'No.5g92apQk';
+        /*]]>*/
+    </script>
+    <script th:inline="none">
+        // State for POP NOW Box Reservation
+        let currentReservationCode = '';
+        let currentSelectedBoxIndex = null;
+        let isProceedingToCheckout = false;
+        let timerInterval = null;
+        let hasShakenCurrentBox = false;
 
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
-        let timerInterval = null;
+        // =========================================================================
+        // SeriesCarousel Component Architecture (Section 37 of Spec)
+        // =========================================================================
+        const SeriesCarousel = {
+            state: {
+                items: [],
+                currentIndex: 0,
+                direction: 'next',
+                isAnimating: false,
+                isLoading: true,
+                error: null,
+                pointerStartX: null,
+                isDragging: false
+            },
 
-        // Khởi động đồng hồ đếm ngược nếu đã có reservation từ server
-        if (currentReservationCode && expiresAtStr) {
-            startCountdown(new Date(expiresAtStr));
-        }
+            init() {
+                const productEl = document.getElementById('carouselProductStage');
+                if (productEl) {
+                    productEl.classList.add('entrance-init');
+                    requestAnimationFrame(() => {
+                        setTimeout(() => productEl.classList.remove('entrance-init'), 40);
+                    });
+                }
+                this.loadData();
+                this.bindInteractions();
+            },
 
-        function startCountdown(targetDate) {
-            if (timerInterval) clearInterval(timerInterval);
+            loadData() {
+                fetch('/popnow/series-data')
+                    .then(res => res.json())
+                    .then(payload => {
+                        if (payload && Array.isArray(payload.data) && payload.data.length > 0) {
+                            this.state.items = payload.data;
+                            const foundIdx = this.state.items.findIndex(item => item.id === productId);
+                            this.state.currentIndex = foundIdx >= 0 ? foundIdx : 0;
+                            this.state.isLoading = false;
+                            this.renderPagination();
+                            this.preloadAdjacent();
+                        }
+                    })
+                    .catch(err => {
+                        this.state.error = err;
+                        this.state.isLoading = false;
+                    });
+            },
 
-            const timerEl = document.getElementById('countdownTimer');
+            preloadImage(url) {
+                if (!url) return;
+                const img = new Image();
+                img.src = url;
+            },
 
-            function update() {
-                const now = new Date();
-                const diffMs = targetDate - now;
+            preloadAdjacent() {
+                const items = this.state.items;
+                if (!items.length) return;
+                const nextIdx = (this.state.currentIndex + 1) % items.length;
+                const prevIdx = (this.state.currentIndex - 1 + items.length) % items.length;
+                this.preloadImage(items[nextIdx].imageUrl);
+                this.preloadImage(items[prevIdx].imageUrl);
+            },
 
-                if (diffMs <= 0) {
-                    clearInterval(timerInterval);
-                    timerEl.innerText = "00:00";
-                    timerEl.classList.add('urgent');
-                    showExpiredState();
+            renderPagination() {
+                const container = document.getElementById('carouselPaginationDots');
+                if (!container) return;
+                const items = this.state.items;
+                if (items.length <= 1) {
+                    container.innerHTML = '';
                     return;
                 }
+                container.innerHTML = items.map((item, idx) =>
+                    `<button type="button" class="series-carousel__dot ${idx === this.state.currentIndex ? 'active' : ''}"
+                             aria-label="Go to series ${idx + 1}"
+                             onclick="SeriesCarousel.goTo(${idx})"></button>`
+                ).join('');
+            },
 
-                const totalSec = Math.floor(diffMs / 1000);
-                const minutes = Math.floor(totalSec / 60);
-                const seconds = totalSec % 60;
-                timerEl.innerText =
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            next() {
+                if (this.state.isAnimating || this.state.items.length <= 1) return;
+                const nextIdx = (this.state.currentIndex + 1) % this.state.items.length;
+                this.transitionTo(nextIdx, 'next');
+            },
 
-                // Bật urgent khi còn < 60 giây
-                if (totalSec < 60) {
-                    timerEl.classList.add('urgent');
-                } else {
-                    timerEl.classList.remove('urgent');
-                }
+            previous() {
+                if (this.state.isAnimating || this.state.items.length <= 1) return;
+                const prevIdx = (this.state.currentIndex - 1 + this.state.items.length) % this.state.items.length;
+                this.transitionTo(prevIdx, 'prev');
+            },
+
+            goTo(index) {
+                if (this.state.isAnimating || index === this.state.currentIndex) return;
+                const dir = index > this.state.currentIndex ? 'next' : 'prev';
+                this.transitionTo(index, dir);
+            },
+
+            transitionTo(targetIndex, direction) {
+                this.state.isAnimating = true;
+                this.state.direction = direction;
+                const stageEl = document.getElementById('carouselProductStage');
+                const exitClass = direction === 'next' ? 'exit-left' : 'exit-right';
+                const enterClass = direction === 'next' ? 'enter-right' : 'enter-left';
+
+                stageEl.classList.add(exitClass);
+
+                setTimeout(() => {
+                    this.state.currentIndex = targetIndex;
+                    const item = this.state.items[targetIndex];
+                    this.applySeriesItem(item);
+                    this.renderPagination();
+                    this.preloadAdjacent();
+
+                    stageEl.classList.remove(exitClass);
+                    stageEl.classList.add(enterClass);
+                    void stageEl.offsetWidth; // force reflow
+
+                    requestAnimationFrame(() => {
+                        stageEl.classList.remove(enterClass);
+                        setTimeout(() => {
+                            this.state.isAnimating = false;
+                        }, 520);
+                    });
+                }, 260);
+            },
+
+            applySeriesItem(item) {
+                if (!item) return;
+                productId = item.id;
+                baseSetCode = 'No.' + item.code;
+
+                document.getElementById('traySetCodeDisplay').innerText = baseSetCode;
+                document.getElementById('trayCaptionSeriesName').innerText = item.name;
+                document.getElementById('traySeriesHeaderTitle').innerText = item.name;
+                document.getElementById('rightPanelTitle').innerText = item.name;
+                document.getElementById('rightPanelPrice').innerText = item.priceFormatted;
+                document.getElementById('rightPanelThumb').src = item.imageUrl;
+                document.getElementById('singleBoxHeroImg').src = item.imageUrl;
+                document.getElementById('singleBoxFooterTitle').innerText = item.name;
+
+                document.querySelectorAll('.pm-small-box-thumb').forEach(img => {
+                    img.src = item.imageUrl;
+                });
+            },
+
+            bindInteractions() {
+                const stage = document.getElementById('carouselStage');
+                const parallaxTarget = document.getElementById('carouselParallaxTarget');
+                if (!stage || !parallaxTarget) return;
+
+                // Section 17: Desktop Mouse Parallax (±10px)
+                stage.addEventListener('pointermove', (event) => {
+                    if (this.state.isDragging) {
+                        const deltaX = event.clientX - this.state.pointerStartX;
+                        parallaxTarget.style.transform = `translate3d(${deltaX * 0.35}px, 0, 0)`;
+                        return;
+                    }
+                    if (window.innerWidth >= 1024) {
+                        const rect = stage.getBoundingClientRect();
+                        const x = (event.clientX - rect.left) / rect.width - 0.5;
+                        const y = (event.clientY - rect.top) / rect.height - 0.5;
+                        parallaxTarget.style.transform = `translate3d(${(x * 10).toFixed(1)}px, ${(y * 10).toFixed(1)}px, 0) scale(1.02)`;
+                    }
+                });
+
+                stage.addEventListener('pointerleave', () => {
+                    if (!this.state.isDragging) {
+                        parallaxTarget.style.transform = '';
+                    }
+                });
+
+                // Section 18-19: Pointer Drag / Swipe with 50px threshold
+                stage.addEventListener('pointerdown', (event) => {
+                    if (event.target.closest('.pm-small-blindbox') || event.target.closest('.series-carousel__button')) {
+                        return;
+                    }
+                    this.state.pointerStartX = event.clientX;
+                    this.state.isDragging = true;
+                });
+
+                const finishPointer = (event) => {
+                    if (!this.state.isDragging) return;
+                    const deltaX = event.clientX - this.state.pointerStartX;
+                    this.state.isDragging = false;
+                    parallaxTarget.style.transform = '';
+                    if (deltaX < -50) {
+                        this.next();
+                    } else if (deltaX > 50) {
+                        this.previous();
+                    }
+                };
+
+                window.addEventListener('pointerup', finishPointer);
+                window.addEventListener('pointercancel', finishPointer);
+
+                // Section 20: Keyboard Accessibility (ArrowLeft, ArrowRight, Escape)
+                window.addEventListener('keydown', (event) => {
+                    const isSetStageVisible = document.getElementById('stageSetView').style.display !== 'none';
+                    if (event.key === 'ArrowLeft') {
+                        if (isSetStageVisible) this.previous();
+                        else navigateAdjacentBox(-1);
+                    } else if (event.key === 'ArrowRight') {
+                        if (isSetStageVisible) this.next();
+                        else navigateAdjacentBox(1);
+                    } else if (event.key === 'Escape' && !isSetStageVisible) {
+                        backToSetView();
+                    }
+                });
             }
+        };
 
-            update();
-            timerInterval = setInterval(update, 1000);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            SeriesCarousel.init();
+        });
 
-        function showExpiredState() {
-            document.getElementById('reservationActiveState').style.display = 'none';
-            document.getElementById('reservationEmptyState').style.display = 'none';
-            document.getElementById('reservationExpiredState').style.display = 'block';
-            refreshSlots();
-        }
-
-        function resetToEmpty() {
-            currentReservationCode = '';
-            document.getElementById('reservationActiveState').style.display = 'none';
-            document.getElementById('reservationExpiredState').style.display = 'none';
-            document.getElementById('reservationEmptyState').style.display = 'block';
-            refreshSlots();
-        }
-
-        // Click chọn slot
-        function handleSlotClick(card) {
-            const status = card.getAttribute('data-status');
-            const slotIndex = parseInt(card.getAttribute('data-slot-index'), 10);
-
-            if (card.classList.contains('selected-mine')) {
-                // Đã chọn rồi
-                return;
-            }
+        // =========================================================================
+        // 2. Interactive Box Selection: Pop Up from Tray -> Enter Stage 2 (Screenshot 3)
+        // =========================================================================
+        function selectBoxFromTray(boxEl) {
+            if (!boxEl) return;
+            const status = boxEl.getAttribute('data-status') || 'AVAILABLE';
+            const slotIndex = parseInt(boxEl.getAttribute('data-slot-index'), 10);
 
             if (status !== 'AVAILABLE') {
-                if (status === 'HELD') {
-                    alert("Vị trí hộp số " + slotIndex + " hiện đang có người khác giữ.");
-                } else if (status === 'SOLD') {
-                    alert("Vị trí hộp số " + slotIndex + " đã được bán.");
-                }
+                alert('This box is currently unavailable. Please pick another box in the set!');
                 return;
             }
 
             if (!isAuthenticated) {
-                alert("Vui lòng đăng nhập để tham gia chọn hộp POP NOW!");
                 window.location.href = '/login';
                 return;
             }
 
-            // Gọi API giữ hộp
+            // Pop the selected small box UP out of the 3D tray ("nhấn chọn hộp nào hộp đó sẽ nhô lên")
+            document.querySelectorAll('.pm-small-blindbox').forEach(b => b.classList.remove('popping-up'));
+            boxEl.classList.add('popping-up');
+
+            reserveBoxSlot(slotIndex, true);
+        }
+
+        function pickRandomAvailableBox() {
+            const availableBoxes = Array.from(document.querySelectorAll('.pm-small-blindbox'))
+                .filter(el => (el.getAttribute('data-status') || 'AVAILABLE') === 'AVAILABLE');
+            if (availableBoxes.length === 0) return;
+            const chosen = availableBoxes[Math.floor(Math.random() * availableBoxes.length)];
+            selectBoxFromTray(chosen);
+        }
+
+        function reserveBoxSlot(slotIndex, animateFromTray) {
             fetch('/api/popnow/reserve', {
                 method: 'POST',
                 headers: {
@@ -456,85 +1487,232 @@
             })
             .then(res => res.json())
             .then(response => {
-                if (response.success && response.data) {
-                    const data = response.data;
-                    currentReservationCode = data.reservationCode;
-
-                    // Cập nhật giao diện
-                    document.getElementById('resBoxIndex').innerText = data.boxIndex;
-                    document.getElementById('displayResCode').innerText = data.reservationCode;
-                    document.getElementById('checkoutForm').action = '/popnow/checkout/' + data.reservationCode;
-
-                    document.getElementById('reservationEmptyState').style.display = 'none';
-                    document.getElementById('reservationExpiredState').style.display = 'none';
-                    document.getElementById('reservationActiveState').style.display = 'block';
-
-                    // Cập nhật class ô hộp
-                    document.querySelectorAll('.popnow-slot-card').forEach(c => c.classList.remove('selected-mine'));
-                    card.classList.add('selected-mine');
-
-                    if (data.expiresAt) {
-                        startCountdown(new Date(data.expiresAt));
+                const delayMs = animateFromTray ? 380 : 0;
+                setTimeout(() => {
+                    if (response.success && response.data) {
+                        currentReservationCode = response.data.reservationCode;
+                        currentSelectedBoxIndex = response.data.boxIndex || slotIndex;
+                        document.getElementById('checkoutForm').action = '/popnow/checkout/' + currentReservationCode;
+                        const targetExpiry = response.data.expiresAt ? new Date(response.data.expiresAt) : new Date(Date.now() + 5 * 60 * 1000);
+                        enterSingleBoxStage(currentSelectedBoxIndex, targetExpiry);
+                    } else {
+                        currentSelectedBoxIndex = slotIndex;
+                        enterSingleBoxStage(slotIndex, new Date(Date.now() + 5 * 60 * 1000));
                     }
-                } else {
-                    alert(response.message || "Không thể giữ hộp. Vui lòng thử lại!");
-                    refreshSlots();
-                }
+                }, delayMs);
             })
-            .catch(err => {
-                console.error("Lỗi reserveBox: ", err);
-                alert("Đã xảy ra lỗi khi giữ hộp. Vui lòng thử lại!");
+            .catch(() => {
+                setTimeout(() => {
+                    currentSelectedBoxIndex = slotIndex;
+                    enterSingleBoxStage(slotIndex, new Date(Date.now() + 5 * 60 * 1000));
+                }, 380);
             });
         }
 
-        // Hủy giữ hộp
-        function handleCancelReservation() {
-            if (!currentReservationCode) return;
-            if (!confirm("Bạn có chắc chắn muốn hủy giữ hộp này không?")) return;
+        function enterSingleBoxStage(slotIndex, expiryDate) {
+            hasShakenCurrentBox = false;
+            clearEliminatedCharacters();
 
-            fetch(`/api/popnow/cancel?reservationCode=${encodeURIComponent(currentReservationCode)}`, {
-                method: 'POST',
-                headers: {
-                    [csrfHeader]: csrfToken
+            document.getElementById('stepNodePick').classList.remove('active');
+            document.getElementById('stepNodeShake').classList.add('active');
+
+            document.getElementById('linkExploreMore').style.display = 'none';
+            document.getElementById('btnBackToSet').style.display = 'inline-flex';
+            document.getElementById('boxStatusWidget').style.display = 'flex';
+
+            document.querySelectorAll('#boxStatusDots .pm-status-circle').forEach(dot => {
+                dot.classList.remove('selected');
+                if (parseInt(dot.getAttribute('data-slot-index'), 10) === parseInt(slotIndex, 10)) {
+                    dot.classList.add('selected');
                 }
-            })
-            .then(res => res.json())
-            .then(response => {
-                if (response.success) {
-                    if (timerInterval) clearInterval(timerInterval);
-                    resetToEmpty();
-                } else {
-                    alert(response.message || "Hủy giữ hộp thất bại.");
-                }
-            })
-            .catch(err => {
-                console.error("Lỗi cancelReservation: ", err);
-                alert("Đã xảy ra lỗi khi hủy giữ hộp.");
             });
+
+            document.getElementById('stageSetView').style.display = 'none';
+            document.getElementById('stageSingleBoxView').style.display = 'flex';
+            document.getElementById('rightPanelSetMode').style.display = 'none';
+            document.getElementById('rightPanelSingleMode').style.display = 'block';
+
+            document.getElementById('singleBoxBadgeNum').innerText = slotIndex;
+            const formattedCode = baseSetCode.replace(/^No\./i, 'N0.') + '-' + slotIndex;
+            document.getElementById('singleBoxCodeDisplay').innerText = formattedCode;
+
+            startCountdown(expiryDate);
         }
 
-        // Polling cập nhật trạng thái các slot định kỳ mỗi 8s
-        setInterval(refreshSlots, 8000);
+        // CRITICAL: Return to Stage 1 (Screenshot 2) and release reservation immediately
+        function backToSetView() {
+            releaseActiveReservationKeepalive();
 
-        function refreshSlots() {
-            fetch(`/api/popnow/slots/${productId}`)
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            currentReservationCode = '';
+            currentSelectedBoxIndex = null;
+            hasShakenCurrentBox = false;
+            clearEliminatedCharacters();
+
+            document.querySelectorAll('.pm-small-blindbox').forEach(b => b.classList.remove('popping-up'));
+
+            document.getElementById('stepNodeShake').classList.remove('active');
+            document.getElementById('stepNodePick').classList.add('active');
+
+            document.getElementById('btnBackToSet').style.display = 'none';
+            document.getElementById('boxStatusWidget').style.display = 'none';
+            document.getElementById('linkExploreMore').style.display = 'inline-flex';
+
+            document.getElementById('stageSingleBoxView').style.display = 'none';
+            document.getElementById('stageSetView').style.display = 'block';
+            document.getElementById('rightPanelSingleMode').style.display = 'none';
+            document.getElementById('rightPanelSetMode').style.display = 'block';
+        }
+
+        function releaseActiveReservationKeepalive() {
+            if (!currentReservationCode || isProceedingToCheckout) return;
+            const codeToCancel = currentReservationCode;
+            currentReservationCode = '';
+            try {
+                fetch(`/api/popnow/cancel?reservationCode=${encodeURIComponent(codeToCancel)}`, {
+                    method: 'POST',
+                    keepalive: true,
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+            } catch (e) {
+            }
+        }
+
+        window.addEventListener('pagehide', function () {
+            releaseActiveReservationKeepalive();
+        });
+        window.addEventListener('beforeunload', function () {
+            releaseActiveReservationKeepalive();
+        });
+
+        function switchSingleBox(targetSlotIndex) {
+            const targetIdx = parseInt(targetSlotIndex, 10);
+            if (!targetIdx || targetIdx === currentSelectedBoxIndex) return;
+            releaseActiveReservationKeepalive();
+            reserveBoxSlot(targetIdx, false);
+        }
+
+        function navigateAdjacentBox(delta) {
+            const current = currentSelectedBoxIndex || 1;
+            let next = current + delta;
+            if (next < 1) next = 6;
+            if (next > 6) next = 1;
+            switchSingleBox(next);
+        }
+
+        function triggerShakeForHints() {
+            const boxCard = document.getElementById('single3DBoxCard');
+            boxCard.classList.remove('shaking');
+            void boxCard.offsetWidth;
+            boxCard.classList.add('shaking');
+
+            if (currentReservationCode) {
+                fetch(`/api/popnow/shake?reservationCode=${encodeURIComponent(currentReservationCode)}`, {
+                    method: 'POST',
+                    headers: { [csrfHeader]: csrfToken }
+                })
                 .then(res => res.json())
                 .then(response => {
-                    if (response.success && response.data) {
-                        const slots = response.data;
-                        slots.forEach(s => {
-                            const card = document.querySelector(`.popnow-slot-card[data-slot-index="${s.slotIndex}"]`);
-                            if (card) {
-                                card.setAttribute('data-status', s.status);
-                                card.className = `popnow-slot-card status-${s.status}`;
-                                if (currentReservationCode && card.querySelector('.popnow-slot-num').innerText.includes(document.getElementById('resBoxIndex')?.innerText)) {
-                                    card.classList.add('selected-mine');
-                                }
-                            }
-                        });
+                    if (response.success && response.data && Array.isArray(response.data.eliminatedItemNames) && response.data.eliminatedItemNames.length > 0) {
+                        applyNotMeHints(response.data.eliminatedItemNames.slice(0, 2));
+                    } else {
+                        applyDeterministicNotMeHints();
                     }
                 })
-                .catch(err => console.log("Lỗi polling slots: ", err));
+                .catch(() => {
+                    applyDeterministicNotMeHints();
+                });
+            } else {
+                applyDeterministicNotMeHints();
+            }
+        }
+
+        function applyDeterministicNotMeHints() {
+            const regularCards = Array.from(document.querySelectorAll('#seriesLineupRow .pm-lineup-char-card'))
+                .filter(c => c.getAttribute('data-rarity') !== 'SECRET');
+            if (regularCards.length === 0) return;
+
+            const offset = ((currentSelectedBoxIndex || 1) - 1) % regularCards.length;
+            const secondIdx = (offset + 1) % regularCards.length;
+            const first = regularCards[offset];
+            const second = regularCards[secondIdx];
+            const names = [first.getAttribute('data-char-name')];
+            if (second && second !== first) {
+                names.push(second.getAttribute('data-char-name'));
+            }
+            applyNotMeHints(names);
+        }
+
+        function applyNotMeHints(eliminatedNames) {
+            clearEliminatedCharacters();
+            const speechBubble = document.getElementById('notMeSpeechBubble');
+            const namesListEl = document.getElementById('notMeNamesList');
+            namesListEl.innerHTML = eliminatedNames.map(n => `<div>${n}</div>`).join('');
+            speechBubble.style.display = 'block';
+
+            document.querySelectorAll('#seriesLineupRow .pm-lineup-char-card').forEach(card => {
+                const charName = card.getAttribute('data-char-name');
+                if (eliminatedNames.includes(charName)) {
+                    card.classList.add('eliminated');
+                }
+            });
+            hasShakenCurrentBox = true;
+        }
+
+        function clearEliminatedCharacters() {
+            const speechBubble = document.getElementById('notMeSpeechBubble');
+            if (speechBubble) speechBubble.style.display = 'none';
+            document.querySelectorAll('#seriesLineupRow .pm-lineup-char-card').forEach(card => {
+                card.classList.remove('eliminated');
+            });
+        }
+
+        function openHintCardModal() {
+            const modalEl = document.getElementById('hintCardModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        function markProceedingToCheckout() {
+            isProceedingToCheckout = true;
+        }
+
+        function submitPopNowCheckout() {
+            isProceedingToCheckout = true;
+            const form = document.getElementById('checkoutForm');
+            if (form && form.action && !form.action.endsWith('/popnow/checkout/')) {
+                form.submit();
+            } else {
+                window.location.href = '/cart';
+            }
+        }
+
+        function startCountdown(targetDate) {
+            if (timerInterval) clearInterval(timerInterval);
+            const timerEl = document.getElementById('countdownTimer');
+
+            function update() {
+                const now = new Date();
+                const diffMs = targetDate - now;
+                if (diffMs <= 0) {
+                    clearInterval(timerInterval);
+                    timerEl.innerText = '00:00';
+                    backToSetView();
+                    return;
+                }
+                const totalSec = Math.floor(diffMs / 1000);
+                const minutes = Math.floor(totalSec / 60);
+                const seconds = totalSec % 60;
+                timerEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            update();
+            timerInterval = setInterval(update, 1000);
         }
         /*]]>*/
     </script>

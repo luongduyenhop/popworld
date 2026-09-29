@@ -112,33 +112,101 @@ public class PopNowWebController {
             return "redirect:/popnow";
         }
 
-        List<BlindBoxSlotResponse> slots = popNowService.getProductSlots(product.getId());
-        List<BlindBoxItemResponse> seriesItems = popNowService.getSeriesItems(product.getId());
-
         User currentUser = getAuthenticatedUser(principal);
         BoxReservationResponse activeReservation = null;
 
+        // Nếu người dùng thoát ra hoặc tải lại trang chọn hộp, tự động hủy giữ chỗ cũ để bắt đầu chọn lại từ đầu (Stage 1 - Pick A Box)
         if (currentUser != null) {
             List<BoxReservation> userReservations = boxReservationRepository.findByUserIdAndStatus(
                     currentUser.getId(), ReservationStatus.RESERVED);
             for (BoxReservation res : userReservations) {
-                if (res.getProduct().getId().equals(product.getId()) && !res.isExpired()) {
-                    activeReservation = popNowService.getReservationByCode(currentUser.getId(), res.getReservationCode());
-                    break;
+                try {
+                    popNowService.cancelReservation(currentUser.getId(), res.getReservationCode());
+                } catch (Exception ignored) {
                 }
             }
         }
 
-        String hashPart = Integer.toHexString(Math.abs((product.getId().toString() + product.getSlug()).hashCode())).toUpperCase();
-        String setCode = "No." + (hashPart.length() >= 6 ? hashPart.substring(0, 6) : String.format("%-6s", hashPart).replace(' ', 'X'));
+        List<BlindBoxSlotResponse> slots = popNowService.getProductSlots(product.getId());
+        List<BlindBoxItemResponse> seriesItems = new java.util.ArrayList<>(popNowService.getSeriesItems(product.getId()));
+
+        if (seriesItems.isEmpty()) {
+            String fallbackImg = product.getMainImageUrl();
+            String[] defaultNames = {"Loyalty", "Hope", "Love", "Luck", "Happiness", "Serenity"};
+            for (int i = 0; i < defaultNames.length; i++) {
+                seriesItems.add(BlindBoxItemResponse.builder()
+                        .id((long) (i + 1))
+                        .name(defaultNames[i])
+                        .imageUrl(fallbackImg)
+                        .rarity("REGULAR")
+                        .isSecret(false)
+                        .build());
+            }
+            seriesItems.add(BlindBoxItemResponse.builder()
+                    .id(99L)
+                    .name("SECRET")
+                    .imageUrl(fallbackImg)
+                    .rarity("SECRET")
+                    .isSecret(true)
+                    .build());
+        } else if (seriesItems.stream().noneMatch(item -> "SECRET".equalsIgnoreCase(item.getRarity()) || Boolean.TRUE.equals(item.getIsSecret()))) {
+            seriesItems.add(BlindBoxItemResponse.builder()
+                    .id(99L)
+                    .name("SECRET")
+                    .imageUrl(product.getMainImageUrl())
+                    .rarity("SECRET")
+                    .isSecret(true)
+                    .build());
+        }
+
+        String hashPart = Integer.toHexString(Math.abs((product.getId().toString() + product.getSlug() + "popnow").hashCode())).toLowerCase();
+        String setCode = "No." + (hashPart.length() >= 8 ? hashPart.substring(0, 8) : (hashPart + "5g92ap0k").substring(0, 8));
+
+        List<Product> allSeriesProducts = productService.getProductsByCategorySlug("blind-box");
+        if (allSeriesProducts.isEmpty()) {
+            allSeriesProducts = productService.getAllActiveProducts();
+        }
 
         model.addAttribute("product", product);
+        model.addAttribute("allSeriesProducts", allSeriesProducts);
         model.addAttribute("slots", slots);
         model.addAttribute("seriesItems", seriesItems);
         model.addAttribute("activeReservation", activeReservation);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("setCode", setCode);
         return "popnow-pick";
+    }
+
+    /**
+     * REST API cho Product Series Carousel theo đặc tả /api/v1/series (Section 26)
+     */
+    @GetMapping("/series-data")
+    @ResponseBody
+    public java.util.Map<String, Object> getSeriesCarouselData() {
+        List<Product> products = productService.getProductsByCategorySlug("blind-box");
+        if (products.isEmpty()) {
+            products = productService.getAllActiveProducts();
+        }
+        java.util.List<java.util.Map<String, Object>> data = new java.util.ArrayList<>();
+        int order = 1;
+        for (Product p : products) {
+            String hash = Integer.toHexString(Math.abs((p.getId().toString() + p.getSlug() + "popnow").hashCode())).toLowerCase();
+            String code = (hash.length() >= 8 ? hash.substring(0, 8) : (hash + "5g92apqk").substring(0, 8));
+            java.util.Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("id", p.getId());
+            item.put("code", code);
+            item.put("name", p.getName());
+            item.put("slug", p.getSlug());
+            item.put("priceFormatted", String.format("%,.0f ₫", p.getSinglePrice()));
+            item.put("imageUrl", p.getMainImageUrl());
+            item.put("displayOrder", order++);
+            item.put("status", Boolean.TRUE.equals(p.getActive()) ? "ACTIVE" : "INACTIVE");
+            data.add(item);
+        }
+        java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
+        response.put("data", data);
+        response.put("total", data.size());
+        return response;
     }
 
     /**

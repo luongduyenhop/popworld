@@ -13,40 +13,39 @@
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
     <style>
         .cabinet-shelf {
-            background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
-            border-radius: 28px;
-            padding: 2.5rem;
+            background: #000000;
+            border-radius: 0px;
+            padding: 40px 32px;
             color: #FFFFFF;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-            border: 2px solid #312E81;
-            margin-bottom: 2.5rem;
+            box-shadow: none;
+            border-left: 4px solid #D2001E;
+            margin-bottom: 36px;
         }
         .stat-card-cabinet {
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 1.25rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0px;
+            padding: 20px 24px;
             text-align: center;
         }
         .item-card-cabinet {
             background: #FFFFFF;
-            border-radius: 20px;
-            border: 1px solid #F1F5F9;
+            border-radius: 0px;
+            border: 1px solid #E0E0E0;
             overflow: hidden;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: none;
             height: 100%;
             display: flex;
             flex-direction: column;
         }
         .item-card-cabinet:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.1);
+            border-color: #000000;
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 10px 0px;
         }
         .item-img-wrap {
             position: relative;
-            background: #F8FAFC;
+            background: #F5F5F5;
             padding-top: 100%;
             overflow: hidden;
         }
@@ -57,22 +56,23 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            padding: 1rem;
-            transition: transform 0.3s ease;
+            padding: 16px;
+            transition: transform 0.25s ease;
         }
         .item-card-cabinet:hover .item-img-wrap img {
-            transform: scale(1.08);
+            transform: scale(1.06);
         }
         .badge-cabinet-secret {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            background: #D2001E;
             color: #FFFFFF;
-            font-weight: 800;
+            font-weight: 700;
+            border-radius: 3px 0px 0px 3px;
         }
         .badge-cabinet-regular {
-            background: #F1F5F9;
-            color: #334155;
-            font-weight: 700;
-            border: 1px solid #CBD5E1;
+            background: #333333;
+            color: #FFFFFF;
+            font-weight: 500;
+            border-radius: 3px 0px 0px 3px;
         }
     </style>
 </head>
