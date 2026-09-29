@@ -56,7 +56,9 @@ public class AccountWebController {
      * Hỗ trợ alias /orders tạm thời để duy trì tương thích cho đến khi tách riêng trang đơn hàng
      */
     @GetMapping({"/account", "/orders"})
-    public String showAccountHub(Model model, Principal principal) {
+    public String showAccountHub(@RequestParam(value = "tab", required = false) String tab,
+                                 jakarta.servlet.http.HttpServletRequest request,
+                                 Model model, Principal principal) {
         addCommonAttributes(model);
 
         if (principal == null) {
@@ -76,11 +78,19 @@ public class AccountWebController {
 
         List<UserAddress> addresses = userAddressRepository.findByUserId(user.getId());
 
+        String activeAccountTab = "REWARDS";
+        if (tab != null && !tab.isBlank()) {
+            activeAccountTab = tab.trim().toUpperCase();
+        } else if (request != null && request.getRequestURI() != null && request.getRequestURI().startsWith("/orders")) {
+            activeAccountTab = "ORDERS";
+        }
+
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         model.addAttribute("orderItemsMap", orderItemsMap);
         model.addAttribute("addresses", addresses);
         model.addAttribute("couponsCount", couponRepository.countByActiveTrue());
+        model.addAttribute("activeAccountTab", activeAccountTab);
 
         return "my-orders";
     }

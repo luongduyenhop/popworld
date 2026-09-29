@@ -30,71 +30,83 @@
 
         <div class="row g-4">
             <!-- ========================================================================= -->
-            <!-- 1. LEFT COLUMN: USER PROFILE & REWARDS & MENU                             -->
+            <!-- 1. LEFT COLUMN: USER PROFILE & REWARDS & MENU (POP MART US SPEC)          -->
             <!-- ========================================================================= -->
             <div class="col-lg-3">
                 <aside class="pop-account-sidebar">
                     <!-- Profile Card -->
-                    <div class="pop-user-card">
+                    <div class="pop-user-card position-relative">
+                        <!-- Floating + points yellow ribbon tag -->
+                        <div class="pop-floating-plus-points" onclick="switchAccountPanel('POINTS')" role="button">+ points</div>
+
                         <div class="pop-user-topbar">
-                            <span class="pop-points-badge" role="button" data-bs-toggle="modal" data-bs-target="#rewardsModal" title="Xem chi tiết điểm thưởng">
-                                <i class="bi bi-gift-fill me-1"></i> <span th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0} + ' pts'">0 pts</span>
-                            </span>
-                            <div class="pop-user-actions">
-                                <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#editProfileModal">Hồ sơ</a>
-                                <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Mật khẩu</a>
-                                <a th:href="@{/logout}" class="text-decoration-none text-danger fw-semibold">Đăng xuất</a>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit profile</a>
+                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Account settings</a>
                             </div>
+                            <form th:action="@{/logout}" method="post" class="m-0 p-0 d-inline">
+                                <button type="submit" class="pop-profile-top-link border-0 bg-transparent p-0">Sign out</button>
+                            </form>
                         </div>
 
-                        <div class="pop-user-profile-row">
-                            <div class="pop-user-avatar">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <div>
-                                <div class="pop-user-title">
-                                    <span th:text="${user != null && user.membershipTier == 'VIP' ? 'POPMART VIP' : 'POPMART MEMBER'}">POPMART MEMBER</span>
-                                    <i class="bi bi-upc pop-barcode-icon" title="Member Barcode ID"></i>
+                        <div class="pop-user-profile-row justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="pop-user-avatar">
+                                    <i class="bi bi-emoji-smile"></i>
                                 </div>
-                                <small class="text-muted" th:text="${user != null ? user.fullName : 'PopWorld Member'}">Customer</small>
+                                <div class="pop-user-title mb-0">
+                                    <span>POPMART MEMBER</span>
+                                </div>
                             </div>
+                            <i class="bi bi-upc-scan pop-barcode-icon" title="Member Barcode ID"></i>
                         </div>
 
                         <div class="pop-user-benefits">
                             <div class="pop-benefit-item">
-                                <span class="pop-benefit-label">ĐIỂM THƯỞNG</span>
-                                <a href="javascript:void(0)" class="pop-benefit-val" data-bs-toggle="modal" data-bs-target="#rewardsModal">
+                                <span class="pop-benefit-label">MY POINTS</span>
+                                <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-benefit-val" id="sidebarMyPointsVal">
                                     <span th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</span>
+                                    <i class="bi bi-chevron-right" style="font-size: 0.72rem;"></i>
+                                </a>
+                            </div>
+                            <div class="pop-benefit-item">
+                                <span class="pop-benefit-label">MORE BENEFITS</span>
+                                <a href="javascript:void(0)" onclick="switchAccountPanel('REWARDS')" class="pop-benefit-val" style="font-size: 12px;">
+                                    <span>MEMBER REWARDS</span>
                                     <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
                                 </a>
                             </div>
-                            <div class="pop-benefit-item text-end">
-                                <span class="pop-benefit-label">HẠNG THÀNH VIÊN</span>
-                                <a href="javascript:void(0)" class="pop-benefit-val" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#rewardsModal">
-                                    <span th:text="${user != null && user.membershipTier == 'VIP' ? 'VIP REWARDS' : 'MEMBER'}">MEMBER</span> <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
-                                </a>
-                            </div>
                         </div>
-
                     </div>
 
-                    <!-- Coupons Metric Card -->
-                    <div class="pop-metric-card">
-                        <div class="pop-metric-number" th:text="${couponsCount != null ? couponsCount : 5}">5</div>
-                        <div class="pop-metric-label">COUPONS</div>
+                    <!-- 2x2 Metrics Card: COUPONS / LUCKY POINTS / HINT CARD -->
+                    <div class="pop-metrics-grid-card">
+                        <div class="pop-metrics-cell pop-metrics-border-right pop-metrics-border-bottom">
+                            <div class="pop-metric-number" th:text="${couponsCount != null ? couponsCount : 0}">0</div>
+                            <div class="pop-metric-label">COUPONS</div>
+                        </div>
+                        <div class="pop-metrics-cell pop-metrics-border-bottom">
+                            <div class="pop-metric-number">0</div>
+                            <div class="pop-metric-label">LUCKY POINTS</div>
+                        </div>
+                        <div class="pop-metrics-cell pop-metrics-border-right pt-3">
+                            <div class="pop-metric-number">0</div>
+                            <div class="pop-metric-label">HINT CARD</div>
+                        </div>
+                        <div class="pop-metrics-cell pt-3"></div>
                     </div>
 
                     <!-- Orders Menu & Delivery Mode Toggle Card -->
                     <div class="pop-side-menu-card">
-                        <div class="pop-side-menu-title">My Orders</div>
-                        
-                        <!-- Delivery vs Pickup Toggle (Decision 2B) -->
+                        <div class="pop-side-menu-title" role="button" onclick="switchAccountPanel('ORDERS')">My Orders</div>
+
+                        <!-- Delivery vs Pickup Toggle -->
                         <div class="pop-delivery-toggle">
-                            <button type="button" class="pop-delivery-btn active" id="toggleDelivery" onclick="switchDeliveryMode('DELIVERY')">
-                                <i class="bi bi-box-seam"></i>
+                            <button type="button" class="pop-delivery-btn active" id="toggleDelivery" onclick="switchAccountPanel('ORDERS'); switchDeliveryMode('DELIVERY')">
+                                <i class="bi bi-shop"></i>
                                 <span>DELIVERY</span>
                             </button>
-                            <button type="button" class="pop-delivery-btn" id="togglePickup" onclick="switchDeliveryMode('PICKUP')">
+                            <button type="button" class="pop-delivery-btn" id="togglePickup" onclick="switchAccountPanel('ORDERS'); switchDeliveryMode('PICKUP')">
                                 <i class="bi bi-bag"></i>
                                 <span>PICKUP</span>
                             </button>
@@ -102,7 +114,7 @@
 
                         <!-- Sub-navigation links -->
                         <div class="pop-side-nav-links">
-                            <a href="#" class="pop-side-nav-item">
+                            <a href="javascript:void(0)" onclick="switchAccountPanel('ORDERS')" class="pop-side-nav-item">
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-ticket-perforated"></i>
                                     <div>
@@ -123,16 +135,292 @@
                                 </div>
                                 <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
                             </a>
+
+                            <a href="javascript:void(0)" class="pop-side-nav-item" onclick="switchAccountPanel('REWARDS'); setTimeout(() => document.getElementById('memberRewardsCatalogAnchor').scrollIntoView({behavior:'smooth'}), 80);">
+                                <div class="pop-side-nav-content">
+                                    <i class="bi bi-gift"></i>
+                                    <div>
+                                        <div class="pop-side-nav-name">Earned Rewards</div>
+                                        <div class="pop-side-nav-desc">Manage your earned rewards</div>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
+                            </a>
                         </div>
                     </div>
                 </aside>
             </div>
 
             <!-- ========================================================================= -->
-            <!-- 2. RIGHT COLUMN: MY ORDERS HUB & TABS                                     -->
+            <!-- 2. RIGHT COLUMN: MEMBER REWARDS / MY POINTS / MY ORDERS HUB               -->
             <!-- ========================================================================= -->
             <div class="col-lg-9">
-                <section class="pop-orders-hub">
+
+                <!-- ===================================================================== -->
+                <!-- PANEL A: MEMBER REWARDS (Matches Screenshot 1 & 3: My Rewards + Earn + Birthday + Member Rewards Catalog) -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelRewards" class="pop-account-main-panel"
+                         th:style="${activeAccountTab == 'REWARDS' ? 'display: block;' : 'display: none;'}">
+                    <!-- 1. My Rewards Dual Black Cards -->
+                    <h2 class="pop-rewards-section-title">My Rewards</h2>
+                    <div class="pop-rewards-black-row">
+                        <!-- Left Black Card: Points Balance & Points History Link -->
+                        <div class="pop-reward-black-card pop-reward-black-points">
+                            <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-reward-history-link">Points History</a>
+                            <div class="pop-reward-gold-number" id="rewardsBigPointsNum"
+                                 th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</div>
+                            <div class="pop-reward-points-caption">Points</div>
+                        </div>
+
+                        <!-- Right Black Card: 3 Benefit Quick Links -->
+                        <div class="pop-reward-black-card pop-reward-black-menu">
+                            <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-reward-black-menu-item">
+                                <span class="pop-reward-dark-circle"><i class="bi bi-award"></i></span>
+                                <span class="pop-reward-black-menu-text">POP POINTS &gt;</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="document.getElementById('birthdayRewardsAnchor').scrollIntoView({behavior:'smooth'})" class="pop-reward-black-menu-item">
+                                <span class="pop-reward-dark-circle"><i class="bi bi-cake2"></i></span>
+                                <span class="pop-reward-black-menu-text">BIRTHDAY REWARDS &gt;</span>
+                            </a>
+                            <a th:href="@{/popnow}" class="pop-reward-black-menu-item">
+                                <span class="pop-reward-dark-circle"><i class="bi bi-flag-fill"></i></span>
+                                <span class="pop-reward-black-menu-text">COMMUNITY EVENTS &gt;</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 2. Earn points Section -->
+                    <h2 class="pop-rewards-section-title mt-4 pt-2">Earn points</h2>
+                    <div class="pop-earn-points-row">
+                        <!-- Card 1: Place an Order -->
+                        <div class="pop-earn-card">
+                            <div>
+                                <div class="pop-earn-card-title">Place an Order</div>
+                                <div class="pop-earn-card-red">1 Point for every $1.00</div>
+                            </div>
+                            <div class="text-end mt-4">
+                                <a th:href="@{/categories/blind-box}" class="pop-earn-black-btn">SHOP NOW</a>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Review -->
+                        <div class="pop-earn-card">
+                            <div>
+                                <div class="pop-earn-card-title">Review</div>
+                                <div class="pop-earn-card-line">Review <span class="text-danger">+5 Points</span></div>
+                                <div class="pop-earn-card-line">Review + Photo <span class="text-danger">+10 Points</span></div>
+                            </div>
+                            <div class="text-end mt-3">
+                                <a href="javascript:void(0)" onclick="switchAccountPanel('ORDERS')" class="pop-earn-black-btn">WRITE NOW</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Birthday Rewards Section (Complete POP MART US Spec) -->
+                    <div id="birthdayRewardsAnchor">
+                        <h2 class="pop-rewards-section-title mt-4 pt-2">Birthday Rewards</h2>
+                        <div class="pop-birthday-notice-bar">
+                            <span>Your birthday isn't set! Update it now to receive your special birthday gift.</span>
+                            <button type="button" class="pop-birthday-go-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">GO</button>
+                        </div>
+
+                        <!-- Birthday Gift Set Full Redemption Card (Matches 1st column width) -->
+                        <div class="pop-birthday-redeem-wrapper">
+                            <div class="pop-birthday-gift-card">
+                                <div class="pop-birthday-gift-badge">BIRTHDAY GIFT SET</div>
+                                <div class="pop-birthday-gift-showcase">
+                                    <div class="pop-birthday-showcase-item">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2"
+                                             alt="Fuzzy Backpack">
+                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Fuzzy Backpack-Membership Exclusive</div>
+                                    </div>
+                                    <div class="pop-birthday-showcase-item">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5473/29602/monsterscamping_bb__83659.1649553079.jpg?c=2"
+                                             alt="Coffee Cup">
+                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Coffee Cup-Membership Exclusive</div>
+                                    </div>
+                                </div>
+                                <div class="pop-birthday-monsters-footer">
+                                    <span>🐰</span><span>👹</span><span>🐰</span>
+                                </div>
+                            </div>
+
+                            <div class="pop-redeem-item-title">
+                                Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack &amp; Coffee...
+                            </div>
+                            <div class="pop-redeem-meta-row">
+                                <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                   onclick="showRewardDetailToast('Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack & Coffee Cup', 899)">view details</a>
+                                <span class="pop-redeem-points-val">899 Points</span>
+                            </div>
+                            <button type="button" class="pop-redeem-black-btn"
+                                    onclick="redeemMemberReward('Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack & Coffee Cup', 899)">REDEEM</button>
+                        </div>
+
+                        <!-- Full-width white info bar: Learn more to claim your exclusive birthday gift. -->
+                        <a href="javascript:void(0)" class="pop-birthday-learn-more-bar"
+                           onclick="showRewardDetailToast('Birthday Gift Claim Rules: Set your birthday in Edit Profile and redeem with 899 POP Points during your birthday month!', 899)">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-shop" style="font-size: 18px; color: #000000;"></i>
+                                <span>Learn more to claim your exclusive birthday gift.</span>
+                            </div>
+                            <i class="bi bi-chevron-right" style="font-size: 13px; color: #000000;"></i>
+                        </a>
+                    </div>
+
+                    <!-- 4. Member Rewards Point-Redemption Catalog (Matches Screenshot 3: 4-Column Grid) -->
+                    <div id="memberRewardsCatalogAnchor" class="mt-4 pt-3">
+                        <h2 class="pop-rewards-section-title mb-3">Member Rewards</h2>
+                        <div class="pop-member-redeem-grid">
+
+                            <!-- Reward 1: THE MONSTERS Forest Fairy Tale Series - Pendant (429 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box" style="background: linear-gradient(135deg, #42A5F5 0%, #90CAF9 100%);">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5473/29602/monsterscamping_bb__83659.1649553079.jpg?c=2"
+                                         alt="THE MONSTERS Forest Fairy Tale Series - Pendant">
+                                </div>
+                                <div class="pop-redeem-item-title">THE MONSTERS Forest Fairy Tale Series - Pendant</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('THE MONSTERS Forest Fairy Tale Series - Pendant', 429)">view details</a>
+                                    <span class="pop-redeem-points-val">429 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('THE MONSTERS Forest Fairy Tale Series - Pendant', 429)">REDEEM</button>
+                            </div>
+
+                            <!-- Reward 2: Apple of My Eye Series Felt Storage Box (Green) (595 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/7169/51202/hirono_mischief_tmb__85325.1661682805.jpg?c=2"
+                                         alt="Apple of My Eye Series Felt Storage Box (Green)">
+                                </div>
+                                <div class="pop-redeem-item-title">Apple of My Eye Series Felt Storage Box (Green)</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Green)', 595)">view details</a>
+                                    <span class="pop-redeem-points-val">595 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('Apple of My Eye Series Felt Storage Box (Green)', 595)">REDEEM</button>
+                            </div>
+
+                            <!-- Reward 3: Apple of My Eye Series Felt Storage Box (Red) (595 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"
+                                         alt="Apple of My Eye Series Felt Storage Box (Red)">
+                                </div>
+                                <div class="pop-redeem-item-title">Apple of My Eye Series Felt Storage Box (Red)</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Red)', 595)">view details</a>
+                                    <span class="pop-redeem-points-val">595 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('Apple of My Eye Series Felt Storage Box (Red)', 595)">REDEEM</button>
+                            </div>
+
+                            <!-- Reward 4: CRYBABY CRYING FOR LOVE SERIES - Jewelry Box (689 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"
+                                         alt="CRYBABY CRYING FOR LOVE SERIES-Jewelry Box">
+                                </div>
+                                <div class="pop-redeem-item-title">CRYBABY CRYING FOR LOVE SERIES-Jewelry Box</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('CRYBABY CRYING FOR LOVE SERIES-Jewelry Box', 689)">view details</a>
+                                    <span class="pop-redeem-points-val">689 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('CRYBABY CRYING FOR LOVE SERIES-Jewelry Box', 689)">REDEEM</button>
+                            </div>
+
+                            <!-- Reward 5: Apple of My Eye Series Cushion (1279 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"
+                                         alt="Apple of My Eye Series Cushion">
+                                </div>
+                                <div class="pop-redeem-item-title">Apple of My Eye Series Cushion</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Cushion', 1279)">view details</a>
+                                    <span class="pop-redeem-points-val">1279 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('Apple of My Eye Series Cushion', 1279)">REDEEM</button>
+                            </div>
+
+                            <!-- Reward 6: THE MONSTERS - The Naughty Cashier Vinyl Plush Doll (2999 Points) -->
+                            <div class="pop-redeem-item-card">
+                                <div class="pop-redeem-img-box">
+                                    <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2"
+                                         alt="THE MONSTERS - The Naughty Cashier Vinyl Plush Doll">
+                                </div>
+                                <div class="pop-redeem-item-title">THE MONSTERS - The Naughty Cashier Vinyl Plush Doll</div>
+                                <div class="pop-redeem-meta-row">
+                                    <a href="javascript:void(0)" class="pop-redeem-view-details"
+                                       onclick="showRewardDetailToast('THE MONSTERS - The Naughty Cashier Vinyl Plush Doll', 2999)">view details</a>
+                                    <span class="pop-redeem-points-val">2999 Points</span>
+                                </div>
+                                <button type="button" class="pop-redeem-black-btn"
+                                        onclick="redeemMemberReward('THE MONSTERS - The Naughty Cashier Vinyl Plush Doll', 2999)">REDEEM</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- PANEL B: MY POINTS & POINTS HISTORY (Matches Screenshot 2)            -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelPoints" class="pop-account-main-panel"
+                         th:style="${activeAccountTab == 'POINTS' ? 'display: block;' : 'display: none;'}">
+                    <div class="d-flex align-items-center justify-content-between mb-2" style="max-width: 920px;">
+                        <h2 class="pop-rewards-section-title mb-0">My Points</h2>
+                        <a href="javascript:void(0)" class="pop-points-faq-link" data-bs-toggle="modal" data-bs-target="#rewardsModal">FAQs</a>
+                    </div>
+
+                    <!-- Full-width Black Points Banner -->
+                    <div class="pop-my-points-black-banner">
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="pop-my-points-gold-num" id="myPointsBannerNum"
+                                  th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</span>
+                            <span class="pop-my-points-unit">Points</span>
+                        </div>
+                        <button type="button" onclick="switchAccountPanel('REWARDS')" class="pop-my-rewards-peach-btn">
+                            MY REWARDS
+                        </button>
+                    </div>
+
+                    <!-- Points History Table Section -->
+                    <div style="max-width: 920px;" class="mt-4 pt-2">
+                        <h2 class="pop-rewards-section-title">Points History</h2>
+                        <div class="pop-points-history-card">
+                            <div class="pop-points-history-header">
+                                <div>Time</div>
+                                <div>Remarks</div>
+                                <div>Points</div>
+                            </div>
+
+                            <!-- Empty State (Matches Screenshot 2: Circular Crown Icon + Data Not Found) -->
+                            <div class="pop-points-empty-state">
+                                <div class="pop-points-empty-circle">
+                                    <i class="bi bi-award"></i>
+                                </div>
+                                <div class="pop-points-empty-label">Data Not Found</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- PANEL C: MY ORDERS HUB                                                -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelOrders" class="pop-orders-hub"
+                         th:style="${activeAccountTab == 'ORDERS' ? 'display: block;' : 'display: none;'}">
                     <h2 class="pop-orders-header-title">My Orders</h2>
 
                     <!-- Underline Tabs (Decision 1A: To Pay, Processing, Shipped, Completed, Cancel) -->
@@ -842,6 +1130,37 @@
 
             const editModal = new bootstrap.Modal(document.getElementById('editAddressModal'));
             editModal.show();
+        }
+
+        // Chuyển đổi tức thì giữa 3 giao diện: MEMBER REWARDS, MY POINTS & POINTS HISTORY, và MY ORDERS
+        function switchAccountPanel(panelName) {
+            const rewardsPanel = document.getElementById('accountPanelRewards');
+            const pointsPanel = document.getElementById('accountPanelPoints');
+            const ordersPanel = document.getElementById('accountPanelOrders');
+
+            if (rewardsPanel) rewardsPanel.style.display = (panelName === 'REWARDS') ? 'block' : 'none';
+            if (pointsPanel) pointsPanel.style.display = (panelName === 'POINTS') ? 'block' : 'none';
+            if (ordersPanel) ordersPanel.style.display = (panelName === 'ORDERS') ? 'block' : 'none';
+
+            if (window.history && window.history.replaceState) {
+                const tabQuery = panelName === 'POINTS' ? '?tab=points' : (panelName === 'ORDERS' ? '?tab=orders' : '?tab=rewards');
+                window.history.replaceState({}, '', '/account' + tabQuery);
+            }
+        }
+
+        // Xử lý đổi quà Member Rewards và xem chi tiết
+        function showRewardDetailToast(title, requiredPoints) {
+            alert('POP MART MEMBER REWARD\n\nItem: ' + title + '\nRedemption Cost: ' + requiredPoints + ' POP Points\nCondition: 100% Authentic Limited Member Exclusive.');
+        }
+
+        function redeemMemberReward(title, requiredPoints) {
+            const currentPtsEl = document.getElementById('rewardsBigPointsNum');
+            const currentPts = currentPtsEl ? parseInt(currentPtsEl.textContent.trim(), 10) || 0 : 0;
+            if (currentPts < requiredPoints) {
+                alert('Insufficient POP Points!\n\nYou currently have ' + currentPts + ' Points, but "' + title + '" requires ' + requiredPoints + ' Points.\nPlace an order or write a review to earn more points!');
+            } else {
+                alert('Congratulations! You have enough points (' + currentPts + ' pts) to redeem "' + title + '" (' + requiredPoints + ' pts).');
+            }
         }
 
         // Khởi động mặc định lọc theo Tab đầu tiên (To Pay như ảnh POP MART)
