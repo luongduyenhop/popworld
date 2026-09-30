@@ -141,8 +141,7 @@
                                 <button class="btn btn-pop-red px-4 py-2 fw-bold" onclick="manualCheck()">
                                     <i class="bi bi-arrow-clockwise me-1"></i> Kiểm Tra Thanh Toán
                                 </button>
-                                <button th:if="${order.deliveryMethod == 'POP_NOW_CABINET'}"
-                                        type="button"
+                                <button type="button"
                                         class="btn btn-warning text-dark px-4 py-2 fw-bold shadow-sm"
                                         onclick="simulatePopNowPayment()"
                                         title="Chế độ Demo dành cho chấm Đồ án / Thử nghiệm khui seal ngay lập tức">
@@ -325,35 +324,49 @@
             alert("Đã sao chép số tiền: " + val);
         }
 
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
         function simulatePopNowPayment() {
             if (!confirm("Kích hoạt chế độ mô phỏng thanh toán thành công để vào mở hộp ngay?")) return;
-            document.getElementById('pollingStatus').innerHTML = `
-                <span class="text-primary fw-bold fs-6">
-                    <span class="spinner-border spinner-border-sm me-2"></span> Đang mô phỏng giao dịch ngân hàng qua SePay...
-                </span>
-            `;
+            const statusEl = document.getElementById('pollingStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <span class="text-primary fw-bold fs-6">
+                        <span class="spinner-border spinner-border-sm me-2"></span> Đang mô phỏng giao dịch ngân hàng qua SePay...
+                    </span>
+                `;
+            }
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) {
+                reqHeaders[csrfHeader] = csrfToken;
+            }
             fetch('/api/popnow/simulate-payment?orderCode=' + encodeURIComponent(orderCode), {
                 method: 'POST',
-                headers: { [csrfHeader]: csrfToken }
+                headers: reqHeaders
             })
             .then(res => res.json())
             .then(response => {
                 if (response.success && response.data) {
-                    document.getElementById('pollingStatus').innerHTML = `
-                        <span class="text-success fw-bold fs-5">
-                            <i class="bi bi-check-circle-fill"></i> Thanh toán mô phỏng thành công! Đang chuyển hướng sang khui seal...
-                        </span>
-                    `;
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <span class="text-success fw-bold fs-5">
+                                <i class="bi bi-check-circle-fill"></i> Thanh toán mô phỏng thành công! Đang chuyển hướng...
+                            </span>
+                        `;
+                    }
                     setTimeout(() => {
                         window.location.href = response.data.redirectUrl;
-                    }, 800);
+                    }, 600);
                 } else {
+                    if (statusEl) statusEl.innerHTML = '';
                     alert(response.message || "Không thể mô phỏng thanh toán!");
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert("Lỗi khi kết nối máy chủ mô phỏng thanh toán!");
+                if (statusEl) statusEl.innerHTML = '';
+                alert("Lỗi khi kết nối máy chủ mô phỏng thanh toán: " + (err.message || err));
             });
         }
         /*]]>*/

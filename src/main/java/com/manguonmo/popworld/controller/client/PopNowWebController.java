@@ -109,6 +109,13 @@ public class PopNowWebController {
         addCommonAttributes(model);
         Optional<Product> productOpt = productService.getProductBySlug(slug);
         if (productOpt.isEmpty()) {
+            try {
+                Long id = Long.parseLong(slug);
+                productOpt = productService.getProductById(id);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (productOpt.isEmpty()) {
             return "redirect:/popnow";
         }
         Product product = productOpt.get();

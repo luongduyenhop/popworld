@@ -6,6 +6,7 @@ import com.manguonmo.popworld.dto.request.UnboxRequest;
 import com.manguonmo.popworld.dto.response.*;
 import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
+import com.manguonmo.popworld.entity.ReservationStatus;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
@@ -154,19 +155,34 @@ public class PopNowApiController {
             throw new BadRequestException("Bạn không có quyền thao tác trên đơn hàng này!");
         }
 
-        BoxReservation reservation = boxReservationRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new BadRequestException("Đơn hàng này không gắn liền với phiếu giữ hộp POP NOW!"));
+        if ("CANCELLED".equalsIgnoreCase(order.getStatus()) || "EXPIRED".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Đơn hàng này đã bị hủy hoặc hết hạn, không thể thanh toán!");
+        }
+
+        BoxReservation reservation = boxReservationRepository.findByOrderCode(orderCode).orElse(null);
 
         order.setStatus("PROCESSING");
+        if (order.getPaidAt() == null) {
+            order.setPaidAt(java.time.LocalDateTime.now());
+        }
         orderRepository.save(order);
 
-        popNowService.markPurchased(reservation.getReservationCode(), orderCode);
+        String redirectUrl;
+        if (reservation != null) {
+            if (reservation.getStatus() != ReservationStatus.PURCHASED
+                    && reservation.getStatus() != ReservationStatus.UNBOXED) {
+                popNowService.markPurchased(reservation.getReservationCode(), orderCode);
+            }
+            redirectUrl = "/popnow/reveal/" + reservation.getReservationCode();
+        } else {
+            redirectUrl = "/checkout/success/" + orderCode;
+        }
 
         Map<String, Object> data = Map.of(
                 "orderCode", orderCode,
-                "reservationCode", reservation.getReservationCode(),
-                "redirectUrl", "/popnow/reveal/" + reservation.getReservationCode()
+                "reservationCode", reservation != null ? reservation.getReservationCode() : "",
+                "redirectUrl", redirectUrl
         );
-        return ResponseEntity.ok(ApiResponse.success("Mô phỏng thanh toán VietQR thành công! Sẵn sàng khui hộp.", data));
+        return ResponseEntity.ok(ApiResponse.success("Mô phỏng thanh toán VietQR thành công!", data));
     }
 }

@@ -1125,14 +1125,14 @@
 
                 <!-- MODE B: Stage 2 — Checkout actions -->
                 <div id="rightPanelSingleMode" style="display: none;">
-                    <form id="checkoutForm" method="post" onsubmit="markProceedingToCheckout()">
+                    <form id="checkoutForm" method="post" onsubmit="event.preventDefault(); submitPopNowCheckout();">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <input type="hidden" name="paymentMethod" value="SEPAY">
                         <div class="pm-single-cta-grid">
                             <button type="button" class="pm-btn-add-cart-outline" onclick="submitPopNowCheckout()">
                                 ADD TO CART
                             </button>
-                            <button type="submit" class="pm-btn-buy-now-black">
+                            <button type="button" class="pm-btn-buy-now-black" onclick="submitPopNowCheckout()">
                                 BUY NOW
                             </button>
                         </div>
@@ -1624,11 +1624,14 @@
 
         function submitPopNowCheckout() {
             isProceedingToCheckout = true;
+            if (!currentReservationCode) {
+                alert("Đang hoàn tất giữ chỗ chiếc hộp của bạn, vui lòng đợi trong giây lát...");
+                return;
+            }
             const form = document.getElementById('checkoutForm');
-            if (form && form.action && !form.action.endsWith('/popnow/checkout/')) {
+            if (form) {
+                form.action = '/popnow/checkout/' + currentReservationCode;
                 form.submit();
-            } else {
-                window.location.href = '/cart';
             }
         }
 
