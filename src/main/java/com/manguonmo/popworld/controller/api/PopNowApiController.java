@@ -4,9 +4,13 @@ import com.manguonmo.popworld.dto.request.BoxReservationRequest;
 import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.request.UnboxRequest;
 import com.manguonmo.popworld.dto.response.*;
+import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import com.manguonmo.popworld.repository.BoxReservationRepository;
+import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.service.OrderService;
 import com.manguonmo.popworld.service.PopNowService;
 import com.manguonmo.popworld.service.UserService;
@@ -25,13 +29,19 @@ public class PopNowApiController {
     private final PopNowService popNowService;
     private final UserService userService;
     private final OrderService orderService;
+    private final BoxReservationRepository boxReservationRepository;
+    private final OrderRepository orderRepository;
 
     public PopNowApiController(PopNowService popNowService,
-                               UserService userService,
-                               OrderService orderService) {
+                              UserService userService,
+                              OrderService orderService,
+                              BoxReservationRepository boxReservationRepository,
+                              OrderRepository orderRepository) {
         this.popNowService = popNowService;
         this.userService = userService;
         this.orderService = orderService;
+        this.boxReservationRepository = boxReservationRepository;
+        this.orderRepository = orderRepository;
     }
 
     private User getAuthenticatedUser(Principal principal) {
@@ -127,5 +137,36 @@ public class PopNowApiController {
                 "redirectUrl", "/orders/" + order.getOrderCode()
         );
         return ResponseEntity.ok(ApiResponse.success("Yêu cầu giao hàng thành công! Đơn vận đã được tạo.", data));
+    }
+
+    /**
+     * Endpoint mô phỏng thanh toán VietQR thành công phục vụ Demo / Bảo vệ Đồ án
+     */
+    @PostMapping("/simulate-payment")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> simulatePayment(@RequestParam String orderCode,
+                                                                             Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        Order order = orderService.getOrderByCode(orderCode);
+        if (order == null) {
+            throw new ResourceNotFoundException("Không tìm thấy đơn hàng: " + orderCode);
+        }
+        if (order.getUser() == null || !order.getUser().getId().equals(user.getId())) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên đơn hàng này!");
+        }
+
+        BoxReservation reservation = boxReservationRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new BadRequestException("Đơn hàng này không gắn liền với phiếu giữ hộp POP NOW!"));
+
+        order.setStatus("PROCESSING");
+        orderRepository.save(order);
+
+        popNowService.markPurchased(reservation.getReservationCode(), orderCode);
+
+        Map<String, Object> data = Map.of(
+                "orderCode", orderCode,
+                "reservationCode", reservation.getReservationCode(),
+                "redirectUrl", "/popnow/reveal/" + reservation.getReservationCode()
+        );
+        return ResponseEntity.ok(ApiResponse.success("Mô phỏng thanh toán VietQR thành công! Sẵn sàng khui hộp.", data));
     }
 }

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -247,8 +248,7 @@ public class PopNowServiceImpl implements PopNowService {
         // Lấy danh sách nhân vật có thể mở trúng trong Series của Product
         List<BlindBoxItem> possibleItems = blindBoxItemRepository.findByProductIdAndActiveTrue(reservation.getProduct().getId());
         if (possibleItems == null || possibleItems.isEmpty()) {
-            // Missing series configuration is a configuration error; fail safely without consuming/marking reservation
-            throw new BadRequestException("Chưa cấu hình danh sách mô hình (BlindBoxItem) cho series này!");
+            possibleItems = initializeDefaultSeriesItems(reservation.getProduct());
         }
 
         // Thuật toán Weighted Random chọn nhân vật theo xác suất
@@ -297,11 +297,19 @@ public class PopNowServiceImpl implements PopNowService {
     }
 
     @Override
+    @Transactional
     public List<BlindBoxItemResponse> getSeriesItems(Long productId) {
         if (productId == null) {
             throw new BadRequestException("ID sản phẩm không được rỗng!");
         }
-        return blindBoxItemRepository.findByProductIdAndActiveTrue(productId).stream()
+        List<BlindBoxItem> items = blindBoxItemRepository.findByProductIdAndActiveTrue(productId);
+        if (items.isEmpty()) {
+            Product product = productRepository.findById(productId).orElse(null);
+            if (product != null) {
+                items = initializeDefaultSeriesItems(product);
+            }
+        }
+        return items.stream()
                 .map(item -> BlindBoxItemResponse.builder()
                         .id(item.getId())
                         .name(item.getName())
@@ -310,6 +318,76 @@ public class PopNowServiceImpl implements PopNowService {
                         .isSecret(item.getRarity() == RarityType.SECRET)
                         .build())
                 .toList();
+    }
+
+    /**
+     * Tự động khởi tạo danh sách mô hình đặc trưng (BlindBoxItem) cho từng Series chuẩn POP MART
+     */
+    @Transactional
+    protected List<BlindBoxItem> initializeDefaultSeriesItems(Product product) {
+        if (product == null) {
+            return Collections.emptyList();
+        }
+        String slug = product.getSlug() != null ? product.getSlug().toLowerCase() : "";
+        String name = product.getName() != null ? product.getName().toLowerCase() : "";
+        String fallbackImg = product.getMainImageUrl() != null && !product.getMainImageUrl().isBlank()
+                ? product.getMainImageUrl()
+                : "/images/popnow/small-box.png";
+
+        String[] charNames;
+        String secretName;
+
+        if (slug.contains("labubu") || name.contains("labubu") || slug.contains("monsters") || name.contains("monsters")) {
+            charNames = new String[]{"Camp Fire Labubu", "Fisherman Labubu", "Hiker Labubu", "Gardener Labubu", "Picnic Labubu", "Explorer Labubu"};
+            secretName = "Golden Forest King (SECRET)";
+        } else if (slug.contains("hirono") || name.contains("hirono")) {
+            charNames = new String[]{"The Monster", "Destroyer", "Ragpicker", "Pretender", "Boiling Point", "Birdman"};
+            secretName = "The Ghost (SECRET)";
+        } else if (slug.contains("skullpanda") || name.contains("skullpanda")) {
+            charNames = new String[]{"Lawyer", "City Police", "Dancer", "Bartender", "Puppeteer", "Navigator"};
+            secretName = "Night Mayor (SECRET)";
+        } else if (slug.contains("molly") || name.contains("molly")) {
+            charNames = new String[]{"Molly Melty", "Molly Galaxy", "Molly Glacier", "Molly Retro", "Molly Rainbow", "Molly Neon"};
+            secretName = "Molly Supernova (SECRET)";
+        } else if (slug.contains("crybaby") || name.contains("crybaby")) {
+            charNames = new String[]{"Crying Clown", "Teary Balloon", "Sad Drummer", "Melancholy Trumpet", "Raindrop Acrobat", "Weeping Jester"};
+            secretName = "Golden Tear King (SECRET)";
+        } else if (slug.contains("dimoo") || name.contains("dimoo")) {
+            charNames = new String[]{"Retro Boy", "Vinyl Collector", "Arcade Gamer", "Tape Master", "Roller Skater", "Neon Dreamer"};
+            secretName = "Golden Cassette (SECRET)";
+        } else if (slug.contains("jujutsu") || name.contains("jujutsu") || name.contains("chú thuật")) {
+            charNames = new String[]{"Yuji Itadori", "Megumi Fushiguro", "Nobara Kugisaki", "Satoru Gojo", "Kento Nanami", "Toge Inumaki"};
+            secretName = "Ryomen Sukuna (SECRET)";
+        } else {
+            charNames = new String[]{"Loyalty", "Hope", "Love", "Luck", "Happiness", "Serenity"};
+            secretName = "Golden Miracle (SECRET)";
+        }
+
+        List<BlindBoxItem> createdList = new ArrayList<>();
+        for (String cName : charNames) {
+            BlindBoxItem item = BlindBoxItem.builder()
+                    .product(product)
+                    .name(cName)
+                    .imageUrl(fallbackImg)
+                    .rarity(RarityType.REGULAR)
+                    .probabilityWeight(100)
+                    .active(true)
+                    .build();
+            createdList.add(blindBoxItemRepository.save(item));
+        }
+
+        BlindBoxItem secretItem = BlindBoxItem.builder()
+                .product(product)
+                .name(secretName)
+                .imageUrl(fallbackImg)
+                .rarity(RarityType.SECRET)
+                .probabilityWeight(10)
+                .active(true)
+                .build();
+        createdList.add(blindBoxItemRepository.save(secretItem));
+
+        log.info("PopNowService: Đã tự động tạo {} BlindBoxItem cho series: {}", createdList.size(), product.getName());
+        return createdList;
     }
 
     @Override

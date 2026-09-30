@@ -74,7 +74,7 @@ class AccountWebControllerTest {
     @Test
     @DisplayName("showAccountHub: Chuyển hướng đến /login khi chưa đăng nhập")
     void showAccountHub_WhenPrincipalNull_ShouldRedirectToLogin() {
-        String view = accountWebController.showAccountHub(model, null);
+        String view = accountWebController.showAccountHub(null, null, model, null);
         assertEquals("redirect:/login", view);
     }
 
@@ -87,7 +87,7 @@ class AccountWebControllerTest {
         when(couponRepository.countByActiveTrue()).thenReturn(3L);
         when(userAddressRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
 
-        String view = accountWebController.showAccountHub(model, principal);
+        String view = accountWebController.showAccountHub(null, null, model, principal);
 
         assertEquals("my-orders", view);
         verify(model).addAttribute("user", sampleUser);

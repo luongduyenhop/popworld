@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .addFilterBefore(new RateLimitingFilter(rateLimiterService), CsrfFilter.class)
                 .csrf(csrf -> csrf
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/payment/sepay/**")
+                        .ignoringRequestMatchers("/api/payment/sepay/**", "/api/popnow/simulate-payment")
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")

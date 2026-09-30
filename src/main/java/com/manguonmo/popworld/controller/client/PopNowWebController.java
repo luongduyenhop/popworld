@@ -4,6 +4,7 @@ import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
 import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.BoxReservationResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
+import com.manguonmo.popworld.dto.response.PopNowSeriesTheme;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OwnedItemRepository;
@@ -35,6 +36,7 @@ public class PopNowWebController {
     private final BoxReservationRepository boxReservationRepository;
     private final OwnedItemRepository ownedItemRepository;
     private final UserAddressService userAddressService;
+    private final PopNowThemeService popNowThemeService;
 
     public PopNowWebController(PopNowService popNowService,
                                ProductService productService,
@@ -45,7 +47,8 @@ public class PopNowWebController {
                                CartService cartService,
                                BoxReservationRepository boxReservationRepository,
                                OwnedItemRepository ownedItemRepository,
-                               UserAddressService userAddressService) {
+                               UserAddressService userAddressService,
+                               PopNowThemeService popNowThemeService) {
         this.popNowService = popNowService;
         this.productService = productService;
         this.orderService = orderService;
@@ -56,6 +59,7 @@ public class PopNowWebController {
         this.boxReservationRepository = boxReservationRepository;
         this.ownedItemRepository = ownedItemRepository;
         this.userAddressService = userAddressService;
+        this.popNowThemeService = popNowThemeService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -167,7 +171,10 @@ public class PopNowWebController {
             allSeriesProducts = productService.getAllActiveProducts();
         }
 
+        PopNowSeriesTheme theme = popNowThemeService.getThemeForProduct(product);
+
         model.addAttribute("product", product);
+        model.addAttribute("theme", theme);
         model.addAttribute("allSeriesProducts", allSeriesProducts);
         model.addAttribute("slots", slots);
         model.addAttribute("seriesItems", seriesItems);
@@ -201,6 +208,7 @@ public class PopNowWebController {
             item.put("imageUrl", p.getMainImageUrl());
             item.put("displayOrder", order++);
             item.put("status", Boolean.TRUE.equals(p.getActive()) ? "ACTIVE" : "INACTIVE");
+            item.put("theme", popNowThemeService.getThemeForProduct(p));
             data.add(item);
         }
         java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
@@ -212,7 +220,7 @@ public class PopNowWebController {
     /**
      * Handoff thanh toán: Tạo Order liên kết với phiếu giữ hộp và chuyển đến trang thanh toán VietQR SePay
      */
-    @PostMapping("/checkout/{reservationCode}")
+    @RequestMapping(value = "/checkout/{reservationCode}", method = {RequestMethod.GET, RequestMethod.POST})
     public String checkoutReservation(@PathVariable String reservationCode,
                                       @RequestParam(required = false, defaultValue = "SEPAY") String paymentMethod,
                                       RedirectAttributes redirectAttributes,
@@ -264,8 +272,11 @@ public class PopNowWebController {
             ownedItem = ownedItemRepository.findByReservationId(reservation.getId()).orElse(null);
         }
 
+        PopNowSeriesTheme theme = popNowThemeService.getThemeForProduct(reservation.getProduct());
+
         model.addAttribute("reservation", reservation);
         model.addAttribute("product", reservation.getProduct());
+        model.addAttribute("theme", theme);
         model.addAttribute("ownedItem", ownedItem);
         return "popnow-reveal";
     }
