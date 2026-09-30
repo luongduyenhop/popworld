@@ -86,11 +86,11 @@
                             <div class="pop-metric-label">COUPONS</div>
                         </div>
                         <div class="pop-metrics-cell pop-metrics-border-bottom">
-                            <div class="pop-metric-number">0</div>
+                            <div class="pop-metric-number" th:text="${user.luckyPoints != null ? user.luckyPoints : 50}">50</div>
                             <div class="pop-metric-label">LUCKY POINTS</div>
                         </div>
                         <div class="pop-metrics-cell pop-metrics-border-right pt-3">
-                            <div class="pop-metric-number">0</div>
+                            <div class="pop-metric-number" th:text="${user.hintCards != null ? user.hintCards : 1}">1</div>
                             <div class="pop-metric-label">HINT CARD</div>
                         </div>
                         <div class="pop-metrics-cell pt-3"></div>

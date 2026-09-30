@@ -861,6 +861,13 @@
             font-size: 13px;
             color: #333333;
         }
+        .box-sparkle-fx {
+            animation: box-sparkle-glow 1.2s ease-in-out infinite alternate !important;
+        }
+        @keyframes box-sparkle-glow {
+            0% { filter: drop-shadow(0 0 8px rgba(245, 197, 24, 0.6)) brightness(1); }
+            100% { filter: drop-shadow(0 0 25px rgba(245, 197, 24, 1)) drop-shadow(0 0 45px rgba(255, 215, 0, 0.8)) brightness(1.2); }
+        }
     </style>
 </head>
 <body>
@@ -987,6 +994,7 @@
                                  th:classappend="'slot-pos-' + ${slot.slotIndex} + (${slot.status != 'AVAILABLE'} ? ' box-unavailable' : '')"
                                  th:data-slot-index="${slot.slotIndex}"
                                  th:data-status="${slot.status}"
+                                 th:data-db-status="${slot.status}"
                                  role="button"
                                  tabindex="0"
                                  th:aria-label="'Select blind box ' + ${slot.slotIndex}"
@@ -1075,9 +1083,9 @@
 
                     <!-- Pill Buttons: HINT CARD & Shake for Hints -->
                     <div class="pm-single-box-pills">
-                        <button type="button" class="pm-pill-action-btn" onclick="openHintCardModal()">
-                            <i class="bi bi-lightbulb text-warning fs-6"></i>
-                            <span>HINT CARD</span>
+                        <button type="button" class="pm-pill-action-btn" id="btnHintCardOpen" onclick="openHintCardModal()">
+                            <i class="bi bi-lightbulb-fill text-warning fs-6"></i>
+                            <span>HINT CARD <span class="badge bg-warning text-dark rounded-pill ms-1" id="hintCardCountBadge" th:text="${hintCards != null ? hintCards : 0}">1</span></span>
                         </button>
                         <button type="button" class="pm-pill-action-btn" id="btnShakeForHints" onclick="triggerShakeForHints()">
                             <i class="bi bi-box-seam text-danger fs-6"></i>
@@ -1179,27 +1187,38 @@
          4. HINT CARD MODAL
          ========================================================================= -->
     <div class="modal fade" id="hintCardModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-            <div class="modal-content pm-hint-modal-content">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content pm-hint-modal-content border-0 rounded-4 shadow-lg p-3">
                 <button type="button" class="pm-hint-modal-close" data-bs-dismiss="modal" aria-label="Close">
                     <i class="bi bi-x-lg"></i>
                 </button>
-                <div>
-                    <div class="pm-hint-bulb-icon">
-                        <i class="bi bi-lightbulb"></i>
-                        <i class="bi bi-stars pm-hint-bulb-sparkle"></i>
+                <div class="text-center pt-2">
+                    <div class="pm-hint-bulb-icon mb-2">
+                        <i class="bi bi-lightbulb-fill text-warning" style="font-size: 38px;"></i>
+                        <i class="bi bi-stars pm-hint-bulb-sparkle text-warning"></i>
+                    </div>
+                    <h4 class="fw-black mb-1 text-dark" style="letter-spacing: -0.5px;">HINT CARD</h4>
+                    <p class="text-secondary small mb-3">Sử dụng Thẻ Gợi Ý để loại trừ thêm 1 nhân vật chắc chắn không nằm trong hộp này!</p>
+                </div>
+
+                <div class="pm-hint-points-box rounded-4 p-3 bg-light border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-semibold">Điểm May Mắn (Lucky Points):</span>
+                        <strong class="text-dark fs-6" id="modalLuckyPoints" th:text="${luckyPoints != null ? luckyPoints : 0} + ' PTS'">50 PTS</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small fw-semibold">Thẻ Gợi Ý sở hữu:</span>
+                        <span class="badge bg-warning text-dark px-2 py-1 fw-bold fs-6" id="modalHintCards" th:text="${hintCards != null ? hintCards : 0} + ' THẺ'">1 THẺ</span>
                     </div>
                 </div>
-                <h5 class="fw-black mb-1" style="font-size: 18px;">HINT CARD</h5>
-                <div class="text-secondary small mb-2">Use a HINT CARD to get an extra hint!</div>
 
-                <div class="pm-hint-points-box">
-                    <div class="mb-1">My Lucky Points: <strong class="text-dark">0</strong></div>
-                    <div>Spend <strong class="text-dark">10</strong> Lucky Points to redeem <strong class="text-dark">1</strong> HINT CARD?</div>
+                <!-- Dynamic Action Container -->
+                <div id="hintModalActionArea" class="mb-3">
+                    <!-- Sẽ được render động bởi JavaScript -->
                 </div>
 
-                <div class="small text-secondary">
-                    Go to <a th:href="@{/popnow}" class="text-dark fw-bold text-decoration-underline">POP NOW - Daily Tasks</a> to get Lucky Points.
+                <div class="text-center small text-secondary">
+                    Kiếm thêm điểm tại <a th:href="@{/popnow}" class="text-dark fw-bold text-decoration-underline">POP NOW — Daily Tasks</a>
                 </div>
             </div>
         </div>
@@ -1215,6 +1234,9 @@
         const isAuthenticated = /*[[${currentUser != null}]]*/ false;
         let baseSetCode = /*[[${setCode != null ? setCode : 'No.WwVfg66p'}]]*/ 'No.WwVfg66p';
         let currentTheme = /*[[${theme}]]*/ {};
+        let userLuckyPoints = /*[[${luckyPoints != null ? luckyPoints : 50}]]*/ 50;
+        let userHintCards = /*[[${hintCards != null ? hintCards : 1}]]*/ 1;
+        let canCheckInToday = /*[[${canCheckInToday}]]*/ false;
         /*]]>*/
     </script>
     <script th:inline="none">
@@ -1226,6 +1248,8 @@
         let isProceedingToCheckout = false;
         let timerInterval = null;
         let hasShakenCurrentBox = false;
+        let hasUsedHintCardOnCurrentBox = false;
+        let currentEliminatedCharacters = [];
 
         // Preset POP MART set configurations so clicking > cycles sets realistically
         const SET_CONFIGS = [
@@ -1326,7 +1350,10 @@
                 document.querySelectorAll('.pm-show-box-item').forEach(boxEl => {
                     boxEl.classList.remove('active-box');
                     const slotNum = parseInt(boxEl.getAttribute('data-slot-index'), 10);
-                    const isAvail = cfg.availableSlots.includes(slotNum);
+                    const dbStatus = boxEl.getAttribute('data-db-status');
+                    const isAvail = (idx === 0 && dbStatus) 
+                        ? (dbStatus === 'AVAILABLE')
+                        : cfg.availableSlots.includes(slotNum);
                     boxEl.setAttribute('data-status', isAvail ? 'AVAILABLE' : 'SOLD');
                     if (isAvail) {
                         boxEl.classList.remove('box-unavailable');
@@ -1439,22 +1466,27 @@
                         const targetExpiry = response.data.expiresAt ? new Date(response.data.expiresAt) : new Date(Date.now() + 5 * 60 * 1000);
                         enterSingleBoxStage(currentSelectedBoxIndex, targetExpiry);
                     } else {
-                        currentSelectedBoxIndex = slotIndex;
-                        enterSingleBoxStage(slotIndex, new Date(Date.now() + 5 * 60 * 1000));
+                        alert(response.message || "Vị trí hộp này hiện không khả dụng. Vui lòng chọn hộp khác!");
+                        const clickedBox = document.querySelector(`.pm-show-box-item[data-slot-index="${slotIndex}"]`);
+                        if (clickedBox) {
+                            clickedBox.classList.remove('active-box');
+                            clickedBox.classList.add('box-unavailable');
+                            clickedBox.setAttribute('data-status', 'SOLD');
+                        }
                     }
                 }, delayMs);
             })
-            .catch(() => {
-                setTimeout(() => {
-                    currentSelectedBoxIndex = slotIndex;
-                    enterSingleBoxStage(slotIndex, new Date(Date.now() + 5 * 60 * 1000));
-                }, delayMs);
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối khi giữ chỗ hộp!");
             });
         }
 
         function enterSingleBoxStage(slotIndex, expiryDate) {
             hasShakenCurrentBox = false;
+            hasUsedHintCardOnCurrentBox = false;
             clearEliminatedCharacters();
+            updateHintCardsPillUI();
 
             document.getElementById('stepNodePick').classList.remove('active');
             document.getElementById('stepNodeShake').classList.add('active');
@@ -1552,20 +1584,29 @@
         // Shake for Hints
         // ============================================================
         function triggerShakeForHints() {
-            const boxCard = document.getElementById('single3DBoxCard');
-            boxCard.classList.remove('shaking');
-            void boxCard.offsetWidth;
-            boxCard.classList.add('shaking');
+            if (hasShakenCurrentBox) return;
+            const heroImg = document.getElementById('singleBoxHeroImg');
+            if (heroImg) {
+                heroImg.classList.add('shake-anim');
+                setTimeout(() => heroImg.classList.remove('shake-anim'), 800);
+            }
+
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) reqHeaders[csrfHeader] = csrfToken;
 
             if (currentReservationCode) {
-                fetch(`/api/popnow/shake?reservationCode=${encodeURIComponent(currentReservationCode)}`, {
+                fetch('/api/popnow/shake/' + encodeURIComponent(currentReservationCode), {
                     method: 'POST',
-                    headers: { [csrfHeader]: csrfToken }
+                    headers: reqHeaders
                 })
                 .then(res => res.json())
                 .then(response => {
                     if (response.success && response.data && Array.isArray(response.data.eliminatedItemNames) && response.data.eliminatedItemNames.length > 0) {
-                        applyNotMeHints(response.data.eliminatedItemNames.slice(0, 2));
+                        applyNotMeHints(response.data.eliminatedItemNames);
+                        if (response.data.luckyPoints !== undefined) {
+                            userLuckyPoints = response.data.luckyPoints;
+                            updateLuckyPointsUI();
+                        }
                     } else {
                         applyDeterministicNotMeHints();
                     }
@@ -1589,12 +1630,15 @@
             applyNotMeHints(names);
         }
 
-        function applyNotMeHints(eliminatedNames) {
+        function applyNotMeHints(eliminatedNames, newlyEliminated) {
             clearEliminatedCharacters();
+            currentEliminatedCharacters = eliminatedNames;
             const speechBubble = document.getElementById('notMeSpeechBubble');
             const namesListEl = document.getElementById('notMeNamesList');
-            namesListEl.innerHTML = eliminatedNames.map(n => `<div>${n}</div>`).join('');
-            speechBubble.style.display = 'block';
+            if (namesListEl) {
+                namesListEl.innerHTML = eliminatedNames.map(n => `<div class="${n === newlyEliminated ? 'fw-black text-warning' : ''}">${n}</div>`).join('');
+            }
+            if (speechBubble) speechBubble.style.display = 'block';
             document.querySelectorAll('#seriesLineupRow .pm-lineup-char-card').forEach(card => {
                 if (eliminatedNames.includes(card.getAttribute('data-char-name'))) {
                     card.classList.add('eliminated');
@@ -1609,15 +1653,169 @@
             document.querySelectorAll('#seriesLineupRow .pm-lineup-char-card').forEach(card => {
                 card.classList.remove('eliminated');
             });
+            currentEliminatedCharacters = [];
         }
 
         // ============================================================
-        // Hint Card Modal & Checkout
+        // Hint Card Modal & Lucky Points Actions
         // ============================================================
+        function updateHintCardsPillUI() {
+            const badge = document.getElementById('hintCardCountBadge');
+            if (badge) badge.innerText = userHintCards;
+            const btn = document.getElementById('btnHintCardOpen');
+            if (btn) {
+                if (hasUsedHintCardOnCurrentBox) {
+                    btn.classList.add('opacity-75');
+                    btn.title = "Đã áp dụng Thẻ Gợi Ý cho chiếc hộp này";
+                } else {
+                    btn.classList.remove('opacity-75');
+                    btn.title = "Sử dụng Thẻ Gợi Ý";
+                }
+            }
+        }
+
+        function updateLuckyPointsUI() {
+            const modalPts = document.getElementById('modalLuckyPoints');
+            if (modalPts) modalPts.innerText = userLuckyPoints + ' PTS';
+            const modalCards = document.getElementById('modalHintCards');
+            if (modalCards) modalCards.innerText = userHintCards + ' THẺ';
+            updateHintCardsPillUI();
+            renderHintModalActions();
+        }
+
+        function renderHintModalActions() {
+            const container = document.getElementById('hintModalActionArea');
+            if (!container) return;
+
+            if (hasUsedHintCardOnCurrentBox) {
+                container.innerHTML = `
+                    <div class="alert alert-secondary text-center small py-2 mb-0 rounded-pill fw-bold">
+                        <i class="bi bi-check2-all text-success me-1"></i> Chiếc hộp này đã áp dụng Thẻ Gợi Ý!
+                    </div>
+                `;
+            } else if (userHintCards > 0) {
+                container.innerHTML = `
+                    <button type="button" class="btn btn-warning text-dark rounded-pill w-100 py-3 fw-black shadow-sm" onclick="useHintCardOnCurrentBox()">
+                        <i class="bi bi-stars me-1"></i> SỬ DỤNG 1 THẺ GỢI Ý NGAY
+                    </button>
+                `;
+            } else if (userLuckyPoints >= 10) {
+                container.innerHTML = `
+                    <button type="button" class="btn btn-dark text-white rounded-pill w-100 py-3 fw-bold shadow-sm" onclick="redeemHintCardFromModal()">
+                        <i class="bi bi-arrow-repeat text-warning me-1"></i> ĐỔI 10 LUCKY POINTS LẤY 1 THẺ
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="alert alert-warning small py-2 mb-2 rounded-3 text-center">
+                        <i class="bi bi-exclamation-circle me-1"></i> Bạn cần tối thiểu 10 Lucky Points để đổi thẻ (Hiện có: <strong>${userLuckyPoints} PTS</strong>)
+                    </div>
+                    <button type="button" class="btn btn-outline-warning text-dark rounded-pill w-100 py-2 fw-bold" onclick="checkInFromModal()">
+                        <i class="bi bi-calendar-check-fill text-danger me-1"></i> Điểm Danh Nhận +10 Điểm Ngay
+                    </button>
+                `;
+            }
+        }
+
         function openHintCardModal() {
+            if (!isAuthenticated) {
+                window.location.href = '/login';
+                return;
+            }
+            updateLuckyPointsUI();
             const modalEl = document.getElementById('hintCardModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
+        }
+
+        function redeemHintCardFromModal() {
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) reqHeaders[csrfHeader] = csrfToken;
+
+            fetch('/api/popnow/redeem-hint-card', {
+                method: 'POST',
+                headers: reqHeaders
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    userLuckyPoints = response.data.luckyPoints;
+                    userHintCards = response.data.hintCards;
+                    updateLuckyPointsUI();
+                    alert("Đổi thành công 1 Thẻ Gợi Ý! Bạn có thể sử dụng ngay bây giờ.");
+                } else {
+                    alert(response.message || "Không thể đổi thẻ!");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi khi kết nối đổi thẻ!");
+            });
+        }
+
+        function checkInFromModal() {
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) reqHeaders[csrfHeader] = csrfToken;
+
+            fetch('/api/popnow/check-in', {
+                method: 'POST',
+                headers: reqHeaders
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    userLuckyPoints = response.data.luckyPoints;
+                    updateLuckyPointsUI();
+                    alert(response.message || "Điểm danh thành công! Đã cộng +10 Lucky Points.");
+                } else {
+                    alert(response.message || "Hôm nay bạn đã điểm danh rồi!");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi khi kết nối điểm danh!");
+            });
+        }
+
+        function useHintCardOnCurrentBox() {
+            if (!currentReservationCode) {
+                alert("Vui lòng giữ chỗ một chiếc hộp trước khi sử dụng Thẻ Gợi Ý!");
+                return;
+            }
+            const modalEl = document.getElementById('hintCardModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Hiệu ứng hộp rung 3D + tia vàng phát sáng
+            const heroImg = document.getElementById('singleBoxHeroImg');
+            if (heroImg) {
+                heroImg.classList.add('shake-anim', 'box-sparkle-fx');
+                setTimeout(() => heroImg.classList.remove('shake-anim', 'box-sparkle-fx'), 1200);
+            }
+
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) reqHeaders[csrfHeader] = csrfToken;
+
+            fetch('/api/popnow/use-hint-card/' + encodeURIComponent(currentReservationCode), {
+                method: 'POST',
+                headers: reqHeaders
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success && response.data) {
+                    hasUsedHintCardOnCurrentBox = true;
+                    userHintCards = response.data.hintCards;
+                    userLuckyPoints = response.data.luckyPoints;
+                    updateHintCardsPillUI();
+                    applyNotMeHints(response.data.eliminatedItemNames, response.data.newlyEliminatedName);
+                } else {
+                    alert(response.message || "Không thể sử dụng Thẻ Gợi Ý!");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi khi kết nối sử dụng thẻ!");
+            });
         }
 
         function markProceedingToCheckout() { isProceedingToCheckout = true; }

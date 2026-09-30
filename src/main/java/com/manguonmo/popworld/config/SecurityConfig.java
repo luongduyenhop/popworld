@@ -41,7 +41,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/reserve", "/api/popnow/cancel", "/api/popnow/unbox", "/api/popnow/cabinet", "/api/popnow/checkout/**", "/api/popnow/ship", "/api/popnow/ship/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**").authenticated()
+                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

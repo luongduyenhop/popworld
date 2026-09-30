@@ -33,6 +33,17 @@ public class User extends BaseEntity {
     private Integer rewardPoints = 0;
 
     @Builder.Default
+    @Column(name = "lucky_points")
+    private Integer luckyPoints = 50;
+
+    @Builder.Default
+    @Column(name = "hint_cards")
+    private Integer hintCards = 1;
+
+    @Column(name = "last_check_in_date")
+    private java.time.LocalDate lastCheckInDate;
+
+    @Builder.Default
     @Column(name = "membership_tier", length = 30)
     private String membershipTier = "MEMBER";
 

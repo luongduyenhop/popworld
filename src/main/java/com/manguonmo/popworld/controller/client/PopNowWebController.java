@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,7 +91,7 @@ public class PopNowWebController {
      * Danh mục sản phẩm hỗ trợ bóc trực tuyến POP NOW
      */
     @GetMapping
-    public String popNowCatalog(Model model) {
+    public String popNowCatalog(Model model, Principal principal) {
         addCommonAttributes(model);
         List<Product> products = productService.getProductsByCategorySlug("blind-box");
         if (products.isEmpty()) {
@@ -98,6 +99,21 @@ public class PopNowWebController {
         }
         model.addAttribute("products", products);
         model.addAttribute("pageTitle", "POP NOW - Bóc Hộp Online");
+
+        User currentUser = getAuthenticatedUser(principal);
+        int luckyPoints = 0;
+        int hintCards = 0;
+        boolean canCheckInToday = false;
+        if (currentUser != null) {
+            luckyPoints = currentUser.getLuckyPoints() != null ? currentUser.getLuckyPoints() : 50;
+            hintCards = currentUser.getHintCards() != null ? currentUser.getHintCards() : 1;
+            canCheckInToday = currentUser.getLastCheckInDate() == null || !currentUser.getLastCheckInDate().equals(LocalDate.now());
+        }
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("luckyPoints", luckyPoints);
+        model.addAttribute("hintCards", hintCards);
+        model.addAttribute("canCheckInToday", canCheckInToday);
+
         return "popnow-catalog";
     }
 
@@ -111,8 +127,8 @@ public class PopNowWebController {
         if (productOpt.isEmpty()) {
             try {
                 Long id = Long.parseLong(slug);
-                productOpt = productService.getProductById(id);
-            } catch (NumberFormatException ignored) {
+                productOpt = Optional.ofNullable(productService.getProductById(id));
+            } catch (Exception ignored) {
             }
         }
         if (productOpt.isEmpty()) {
@@ -180,6 +196,15 @@ public class PopNowWebController {
 
         PopNowSeriesTheme theme = popNowThemeService.getThemeForProduct(product);
 
+        int luckyPoints = 0;
+        int hintCards = 0;
+        boolean canCheckInToday = false;
+        if (currentUser != null) {
+            luckyPoints = currentUser.getLuckyPoints() != null ? currentUser.getLuckyPoints() : 50;
+            hintCards = currentUser.getHintCards() != null ? currentUser.getHintCards() : 1;
+            canCheckInToday = currentUser.getLastCheckInDate() == null || !currentUser.getLastCheckInDate().equals(LocalDate.now());
+        }
+
         model.addAttribute("product", product);
         model.addAttribute("theme", theme);
         model.addAttribute("allSeriesProducts", allSeriesProducts);
@@ -187,6 +212,9 @@ public class PopNowWebController {
         model.addAttribute("seriesItems", seriesItems);
         model.addAttribute("activeReservation", activeReservation);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("luckyPoints", luckyPoints);
+        model.addAttribute("hintCards", hintCards);
+        model.addAttribute("canCheckInToday", canCheckInToday);
         model.addAttribute("setCode", setCode);
         return "popnow-pick";
     }

@@ -66,6 +66,9 @@ class PopNowWebControllerTest {
     private UserAddressService userAddressService;
 
     @Mock
+    private PopNowThemeService popNowThemeService;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -85,6 +88,7 @@ class PopNowWebControllerTest {
         sampleUser = User.builder().id(1L).email("user@test.com").fullName("Test User").enabled(true).build();
         sampleProduct = Product.builder().id(10L).name("Hirono Little Mischief").slug("hirono-little-mischief")
                 .active(true).singlePrice(BigDecimal.valueOf(350000)).build();
+        lenient().when(popNowThemeService.getThemeForProduct(any())).thenReturn(null);
     }
 
     @Test
@@ -92,7 +96,7 @@ class PopNowWebControllerTest {
     void popNowCatalog_ReturnsCatalogView() {
         when(productService.getProductsByCategorySlug("blind-box")).thenReturn(List.of(sampleProduct));
 
-        String view = controller.popNowCatalog(model);
+        String view = controller.popNowCatalog(model, null);
 
         assertEquals("popnow-catalog", view);
         verify(model).addAttribute(eq("products"), any());

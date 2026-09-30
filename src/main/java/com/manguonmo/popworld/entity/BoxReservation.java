@@ -57,6 +57,18 @@ public class BoxReservation extends BaseEntity {
     @Column(name = "order_code", length = 50)
     private String orderCode;
 
+    @Builder.Default
+    @Column(name = "has_shaken")
+    private Boolean hasShaken = false;
+
+    @Builder.Default
+    @Column(name = "has_used_hint_card")
+    private Boolean hasUsedHintCard = false;
+
+    // Danh sách tên nhân vật đã bị loại trừ bởi Shake & Hint Card (phân cách bằng dấu phẩy)
+    @Column(name = "eliminated_characters", length = 255)
+    private String eliminatedCharacters;
+
     public boolean isExpired() {
         return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
     }

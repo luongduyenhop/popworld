@@ -5,6 +5,7 @@ import com.manguonmo.popworld.dto.request.ShipCabinetRequest;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
 import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.BoxReservationResponse;
+import com.manguonmo.popworld.dto.response.HintCardActionResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -704,5 +706,252 @@ public class PopNowServiceImpl implements PopNowService {
                 userId, orderCode, itemsToShip.size());
 
         return order;
+    }
+
+    @Override
+    @Transactional
+    public HintCardActionResponse checkInDaily(Long userId) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu đăng nhập để điểm danh!");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+
+        int luckyPoints = user.getLuckyPoints() != null ? user.getLuckyPoints() : 50;
+        int hintCards = user.getHintCards() != null ? user.getHintCards() : 1;
+        LocalDate today = LocalDate.now();
+
+        if (user.getLastCheckInDate() != null && user.getLastCheckInDate().equals(today)) {
+            return HintCardActionResponse.builder()
+                    .luckyPoints(luckyPoints)
+                    .hintCards(hintCards)
+                    .canCheckInToday(false)
+                    .pointsEarned(0)
+                    .message("Hôm nay bạn đã hoàn thành điểm danh rồi! Hãy quay lại vào ngày mai nhé.")
+                    .build();
+        }
+
+        user.setLuckyPoints(luckyPoints + 10);
+        user.setLastCheckInDate(today);
+        userRepository.save(user);
+
+        return HintCardActionResponse.builder()
+                .luckyPoints(user.getLuckyPoints())
+                .hintCards(hintCards)
+                .canCheckInToday(false)
+                .pointsEarned(10)
+                .message("Điểm danh thành công! Bạn nhận được +10 Lucky Points.")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HintCardActionResponse shakeBox(Long userId, String reservationCode) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu đăng nhập để lắc hộp!");
+        }
+        if (reservationCode == null || reservationCode.isBlank()) {
+            throw new BadRequestException("Mã giữ hộp không được để trống!");
+        }
+
+        BoxReservation reservation = boxReservationRepository.findByReservationCode(reservationCode.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp: " + reservationCode));
+
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên phiếu giữ hộp này!");
+        }
+        if (reservation.getStatus() != ReservationStatus.RESERVED || reservation.isExpired()) {
+            throw new BadRequestException("Phiếu giữ hộp đã quá hạn hoặc không ở trạng thái hợp lệ để lắc!");
+        }
+
+        User user = reservation.getUser();
+        int luckyPoints = user.getLuckyPoints() != null ? user.getLuckyPoints() : 50;
+        int hintCards = user.getHintCards() != null ? user.getHintCards() : 1;
+
+        // Idempotency: Nếu đã lắc rồi, trả về danh sách nhân vật đã loại trừ
+        if (Boolean.TRUE.equals(reservation.getHasShaken()) && reservation.getEliminatedCharacters() != null) {
+            List<String> eliminated = List.of(reservation.getEliminatedCharacters().split(","));
+            return HintCardActionResponse.builder()
+                    .luckyPoints(luckyPoints)
+                    .hintCards(hintCards)
+                    .eliminatedItemNames(eliminated)
+                    .hasUsedHintCard(Boolean.TRUE.equals(reservation.getHasUsedHintCard()))
+                    .message("Đã nhận gợi ý cho chiếc hộp này.")
+                    .build();
+        }
+
+        // Lấy danh sách nhân vật thường (regular)
+        List<BlindBoxItemResponse> seriesItems = getSeriesItems(reservation.getProduct().getId());
+        List<String> regularNames = seriesItems.stream()
+                .filter(i -> !"SECRET".equalsIgnoreCase(i.getRarity()))
+                .map(BlindBoxItemResponse::getName)
+                .toList();
+
+        if (regularNames.isEmpty()) {
+            regularNames = List.of("Loyalty", "Hope", "Love", "Luck", "Happiness", "Serenity");
+        }
+
+        int boxIndex = reservation.getBoxIndex() != null ? reservation.getBoxIndex() : 1;
+        int offset = (boxIndex - 1) % regularNames.size();
+        String item1 = regularNames.get(offset);
+        String item2 = regularNames.get((offset + 1) % regularNames.size());
+        if (item1.equals(item2) && regularNames.size() > 1) {
+            item2 = regularNames.get((offset + 2) % regularNames.size());
+        }
+
+        List<String> eliminated = List.of(item1, item2);
+        reservation.setHasShaken(true);
+        reservation.setEliminatedCharacters(String.join(",", eliminated));
+        boxReservationRepository.save(reservation);
+
+        return HintCardActionResponse.builder()
+                .luckyPoints(luckyPoints)
+                .hintCards(hintCards)
+                .eliminatedItemNames(eliminated)
+                .hasUsedHintCard(false)
+                .message("Lắc hộp thành công! Chiếc hộp này không chứa 2 nhân vật trên.")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HintCardActionResponse redeemHintCard(Long userId) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu đăng nhập để đổi Thẻ Gợi Ý!");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+
+        int currentPts = user.getLuckyPoints() != null ? user.getLuckyPoints() : 50;
+        int currentCards = user.getHintCards() != null ? user.getHintCards() : 1;
+
+        if (currentPts < 10) {
+            throw new BadRequestException("Bạn không đủ Lucky Points! Cần 10 điểm để đổi 1 Hint Card (Hiện có: " + currentPts + " PTS).");
+        }
+
+        user.setLuckyPoints(currentPts - 10);
+        user.setHintCards(currentCards + 1);
+        userRepository.save(user);
+
+        return HintCardActionResponse.builder()
+                .luckyPoints(user.getLuckyPoints())
+                .hintCards(user.getHintCards())
+                .message("Đổi thành công 1 Thẻ Gợi Ý (Hint Card)!")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public HintCardActionResponse useHintCard(Long userId, String reservationCode) {
+        if (userId == null) {
+            throw new BadRequestException("Yêu cầu đăng nhập để sử dụng Thẻ Gợi Ý!");
+        }
+        if (reservationCode == null || reservationCode.isBlank()) {
+            throw new BadRequestException("Mã giữ hộp không được để trống!");
+        }
+
+        BoxReservation reservation = boxReservationRepository.findByReservationCode(reservationCode.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phiếu giữ hộp: " + reservationCode));
+
+        if (!reservation.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Bạn không có quyền thao tác trên phiếu giữ hộp này!");
+        }
+        if (reservation.getStatus() != ReservationStatus.RESERVED || reservation.isExpired()) {
+            throw new BadRequestException("Phiếu giữ hộp đã quá hạn hoặc không ở trạng thái hợp lệ!");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng!"));
+
+        int currentCards = user.getHintCards() != null ? user.getHintCards() : 0;
+        if (currentCards <= 0) {
+            throw new BadRequestException("Bạn không còn Thẻ Gợi Ý nào! Vui lòng đổi thêm bằng Lucky Points.");
+        }
+
+        if (Boolean.TRUE.equals(reservation.getHasUsedHintCard())) {
+            throw new BadRequestException("Mỗi chiếc hộp chỉ được phép áp dụng tối đa 1 Thẻ Gợi Ý!");
+        }
+
+        // Tự động đảm bảo hộp đã có 2 nhân vật loại trừ ban đầu từ lượt lắc
+        List<String> eliminatedList = new ArrayList<>();
+        if (reservation.getEliminatedCharacters() != null && !reservation.getEliminatedCharacters().isBlank()) {
+            for (String s : reservation.getEliminatedCharacters().split(",")) {
+                if (!s.isBlank()) eliminatedList.add(s.trim());
+            }
+        }
+
+        List<BlindBoxItemResponse> seriesItems = getSeriesItems(reservation.getProduct().getId());
+        List<String> regularNames = seriesItems.stream()
+                .filter(i -> !"SECRET".equalsIgnoreCase(i.getRarity()))
+                .map(BlindBoxItemResponse::getName)
+                .toList();
+
+        if (regularNames.isEmpty()) {
+            regularNames = List.of("Loyalty", "Hope", "Love", "Luck", "Happiness", "Serenity");
+        }
+
+        // Nếu chưa lắc, lấy 2 con đầu
+        if (eliminatedList.isEmpty()) {
+            int boxIndex = reservation.getBoxIndex() != null ? reservation.getBoxIndex() : 1;
+            int offset = (boxIndex - 1) % regularNames.size();
+            eliminatedList.add(regularNames.get(offset));
+            eliminatedList.add(regularNames.get((offset + 1) % regularNames.size()));
+            reservation.setHasShaken(true);
+        }
+
+        // Tìm 1 nhân vật thứ 3 chưa bị loại trừ
+        String thirdItem = null;
+        for (String regName : regularNames) {
+            if (!eliminatedList.contains(regName)) {
+                thirdItem = regName;
+                break;
+            }
+        }
+        if (thirdItem == null) {
+            thirdItem = "Extra Hint";
+        }
+
+        eliminatedList.add(thirdItem);
+        user.setHintCards(currentCards - 1);
+        userRepository.save(user);
+
+        reservation.setHasUsedHintCard(true);
+        reservation.setEliminatedCharacters(String.join(",", eliminatedList));
+        boxReservationRepository.save(reservation);
+
+        return HintCardActionResponse.builder()
+                .luckyPoints(user.getLuckyPoints())
+                .hintCards(user.getHintCards())
+                .eliminatedItemNames(eliminatedList)
+                .newlyEliminatedName(thirdItem)
+                .hasUsedHintCard(true)
+                .message("Đã kích hoạt Thẻ Gợi Ý! Loại trừ thêm: " + thirdItem)
+                .build();
+    }
+
+    @Override
+    public HintCardActionResponse getUserPopNowStatus(Long userId) {
+        if (userId == null) {
+            return HintCardActionResponse.builder()
+                    .luckyPoints(0)
+                    .hintCards(0)
+                    .canCheckInToday(false)
+                    .build();
+        }
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return HintCardActionResponse.builder()
+                    .luckyPoints(0)
+                    .hintCards(0)
+                    .canCheckInToday(false)
+                    .build();
+        }
+        LocalDate today = LocalDate.now();
+        boolean canCheckIn = user.getLastCheckInDate() == null || !user.getLastCheckInDate().equals(today);
+        return HintCardActionResponse.builder()
+                .luckyPoints(user.getLuckyPoints() != null ? user.getLuckyPoints() : 50)
+                .hintCards(user.getHintCards() != null ? user.getHintCards() : 1)
+                .canCheckInToday(canCheckIn)
+                .build();
     }
 }

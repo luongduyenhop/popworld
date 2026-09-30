@@ -185,4 +185,45 @@ public class PopNowApiController {
         );
         return ResponseEntity.ok(ApiResponse.success("Mô phỏng thanh toán VietQR thành công!", data));
     }
+
+    @PostMapping("/check-in")
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> dailyCheckIn(Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        HintCardActionResponse response = popNowService.checkInDaily(user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+    }
+
+    @PostMapping("/shake/{reservationCode}")
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> shakeForHints(@PathVariable String reservationCode,
+                                                                             Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        HintCardActionResponse response = popNowService.shakeBox(user.getId(), reservationCode);
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+    }
+
+    @PostMapping("/redeem-hint-card")
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> redeemHintCard(Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        HintCardActionResponse response = popNowService.redeemHintCard(user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+    }
+
+    @PostMapping("/use-hint-card/{reservationCode}")
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> useHintCard(@PathVariable String reservationCode,
+                                                                           Principal principal) {
+        User user = getAuthenticatedUser(principal);
+        HintCardActionResponse response = popNowService.useHintCard(user.getId(), reservationCode);
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+    }
+
+    @GetMapping("/user-status")
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> getUserStatus(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.ok(ApiResponse.success("Chưa đăng nhập", HintCardActionResponse.builder()
+                    .luckyPoints(0).hintCards(0).canCheckInToday(false).build()));
+        }
+        User user = getAuthenticatedUser(principal);
+        HintCardActionResponse response = popNowService.getUserPopNowStatus(user.getId());
+        return ResponseEntity.ok(ApiResponse.success("Thành công", response));
+    }
 }

@@ -67,4 +67,29 @@ public interface PopNowService {
     Order requestShipment(Long userId, ShipCabinetRequest request);
 
     Order requestShipment(Long userId, Long addressId, List<Long> ownedItemIds);
+
+    /**
+     * Điểm danh hàng ngày nhận Lucky Points (+10 điểm, tối đa 1 lần/ngày).
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse checkInDaily(Long userId);
+
+    /**
+     * Lắc hộp để nhận gợi ý miễn phí (loại trừ 2 nhân vật NOT ME), cộng +5 điểm nhiệm vụ ngày nếu hợp lệ.
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse shakeBox(Long userId, String reservationCode);
+
+    /**
+     * Đổi 10 Lucky Points lấy 1 Hint Card.
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse redeemHintCard(Long userId);
+
+    /**
+     * Sử dụng 1 Hint Card để loại trừ thêm 1 nhân vật thứ 3 (NOT ME) cho hộp đang giữ.
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse useHintCard(Long userId, String reservationCode);
+
+    /**
+     * Lấy thông tin tổng quan số dư Lucky Points, Hint Cards và trạng thái điểm danh hôm nay của user.
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse getUserPopNowStatus(Long userId);
 }
