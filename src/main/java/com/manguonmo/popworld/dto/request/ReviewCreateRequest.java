@@ -29,8 +29,10 @@ public class ReviewCreateRequest {
 
     @Size(max = 255, message = "Đường dẫn ảnh unboxing không được vượt quá 255 ký tự!")
     @Pattern(
-            regexp = "^$|^https?://[a-zA-Z0-9\\-._~:/?#\\[\\]@!$&'()*+,;%=]+$",
-            message = "Đường dẫn ảnh chỉ chấp nhận URL tuyệt đối sử dụng giao thức http:// hoặc https:// hợp lệ!"
+            regexp = "^$|^/uploads/.*$|^https?://[a-zA-Z0-9\\-._~:/?#\\[\\]@!$&'()*+,;%=]+$",
+            message = "Đường dẫn ảnh chỉ chấp nhận URL hợp lệ (http://, https:// hoặc /uploads/)!"
     )
     private String reviewImageUrl;
+
+    private org.springframework.web.multipart.MultipartFile reviewImageFile;
 }

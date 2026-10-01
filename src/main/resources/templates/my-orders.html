@@ -1112,7 +1112,7 @@
     <div class="modal fade text-start" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
-                <form th:action="@{/account/profile}" method="post">
+                <form th:action="@{/account/profile}" method="post" enctype="multipart/form-data">
                     <div class="modal-header border-bottom pb-3">
                         <h5 class="modal-title fw-bold text-dark" id="editProfileModalLabel">
                             <i class="bi bi-person-circle text-danger me-1"></i> Chỉnh Sửa Thông Tin Cá Nhân
@@ -1121,8 +1121,36 @@
                     </div>
                     <div class="modal-body py-3">
                         <!-- Avatar Selection -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Ảnh đại diện (Avatar nhân vật Art Toy)</label>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-dark d-block mb-2">Ảnh đại diện (Avatar)</label>
+                            
+                            <!-- Vùng Tải ảnh từ thiết bị + Xem trước tức thì -->
+                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-3">
+                                <div class="position-relative" style="width: 72px; height: 72px; flex-shrink: 0;">
+                                    <img id="profileAvatarPreviewImg" 
+                                         th:src="${user != null && user.avatarUrl != null && !user.avatarUrl.isBlank() ? user.avatarUrl : 'https://cdn-global.popmart.com/images/default-avatar.png'}" 
+                                         alt="Avatar Preview" 
+                                         class="rounded-circle border border-2 border-dark object-fit-cover shadow-sm w-100 h-100"
+                                         onerror="this.src='https://cdn-global.popmart.com/images/default-avatar.png';">
+                                    <label for="avatarFileInput" class="position-absolute bottom-0 end-0 bg-dark text-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center" 
+                                           style="width: 26px; height: 26px; cursor: pointer;" title="Chọn ảnh từ thiết bị">
+                                        <i class="bi bi-camera-fill" style="font-size: 13px;"></i>
+                                    </label>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="file" id="avatarFileInput" name="avatarFile" accept="image/png, image/jpeg, image/webp" class="d-none" onchange="previewAvatarFile(this)">
+                                    <button type="button" class="btn btn-sm btn-dark fw-bold px-3 py-1 mb-1" onclick="document.getElementById('avatarFileInput').click()">
+                                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Tải ảnh từ máy
+                                    </button>
+                                    <div class="text-muted small" style="font-size: 11px;">Hỗ trợ ảnh JPG, PNG, WEBP (Tối đa 8MB). Xem trước tức thì.</div>
+                                    <div id="avatarFileNameDisplay" class="small text-success fw-bold mt-1 d-none">
+                                        <i class="bi bi-check-circle-fill me-1"></i><span id="avatarFileNameText"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chọn nhanh Avatar Art Toy POP MART -->
+                            <label class="form-label fw-bold small text-muted d-block mb-1">Hoặc chọn nhanh Avatar Art Toy:</label>
                             <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                                 <div class="pop-avatar-choice" onclick="selectPresetAvatar('https://global-static.popmart.com/global-admin/1709193635749____molly____.png', this)" title="Molly">
                                     <img src="https://global-static.popmart.com/global-admin/1709193635749____molly____.png" alt="Molly">
@@ -1143,11 +1171,7 @@
                                     <img src="https://global-static.popmart.com/global-admin/1709193776269____crybaby____.png" alt="Crybaby">
                                 </div>
                             </div>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted small"><i class="bi bi-link-45deg"></i></span>
-                                <input type="url" id="profileAvatarUrlInput" name="avatarUrl" class="form-control rounded-end-3" 
-                                       th:value="${user != null ? user.avatarUrl : ''}" placeholder="Hoặc dán URL ảnh đại diện của bạn">
-                            </div>
+                            <input type="hidden" id="profileAvatarUrlInput" name="avatarUrl" th:value="${user != null ? user.avatarUrl : ''}">
                         </div>
 
                         <!-- Biệt danh -->
@@ -1454,10 +1478,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function previewAvatarFile(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('profileAvatarPreviewImg');
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                    }
+                    const nameDisplay = document.getElementById('avatarFileNameDisplay');
+                    const nameText = document.getElementById('avatarFileNameText');
+                    if (nameDisplay && nameText) {
+                        nameText.innerText = file.name;
+                        nameDisplay.classList.remove('d-none');
+                    }
+                    document.querySelectorAll('.pop-avatar-choice').forEach(c => c.classList.remove('active'));
+                    document.getElementById('profileAvatarUrlInput').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function selectPresetAvatar(url, el) {
             document.getElementById('profileAvatarUrlInput').value = url;
             document.querySelectorAll('.pop-avatar-choice').forEach(c => c.classList.remove('active'));
             if (el) el.classList.add('active');
+
+            const previewImg = document.getElementById('profileAvatarPreviewImg');
+            if (previewImg) {
+                previewImg.src = url;
+            }
+            const fileInput = document.getElementById('avatarFileInput');
+            if (fileInput) fileInput.value = '';
+            const nameDisplay = document.getElementById('avatarFileNameDisplay');
+            if (nameDisplay) nameDisplay.classList.add('d-none');
         }
 
         function copyCouponCode(code) {

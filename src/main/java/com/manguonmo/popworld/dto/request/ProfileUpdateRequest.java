@@ -25,6 +25,8 @@ public class ProfileUpdateRequest {
 
     private String avatarUrl;
 
+    private org.springframework.web.multipart.MultipartFile avatarFile;
+
     private String gender; // MALE, FEMALE, OTHER
 
     private java.time.LocalDate birthday;

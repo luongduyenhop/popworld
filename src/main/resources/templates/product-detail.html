@@ -341,7 +341,7 @@
                             </h6>
                             <p class="pdp-review-form-desc">Bạn đã nhận hàng thành công sản phẩm này. Hãy chia sẻ cảm xúc mở seal, độ hoàn thiện chi tiết và sắc sảo của figure nhé!</p>
 
-                            <form th:action="@{/reviews}" method="post">
+                            <form th:action="@{/reviews}" method="post" enctype="multipart/form-data">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <input type="hidden" name="productId" th:value="${product.id}" />
                                 <input type="hidden" name="rating" value="5" />
@@ -353,9 +353,42 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="reviewImageUrl" class="form-label small fw-bold text-dark mb-1">Đường dẫn ảnh unboxing thực tế (tùy chọn):</label>
-                                    <input type="url" class="form-control rounded-3" id="reviewImageUrl" name="reviewImageUrl"
-                                           placeholder="https://... ảnh chụp figure unboxed thực tế của bạn" maxlength="255">
+                                    <label class="form-label small fw-bold text-dark mb-1 d-block">
+                                        <i class="bi bi-camera-fill me-1"></i>Hình ảnh unboxing thực tế (tùy chọn):
+                                    </label>
+                                    
+                                    <!-- Dropzone Upload Ảnh từ thiết bị -->
+                                    <div class="border border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative" 
+                                         id="reviewUploadDropzone" style="cursor: pointer; border-color: #cbd5e1 !important;" 
+                                         onclick="document.getElementById('reviewImageFileInput').click()">
+                                        <input type="file" id="reviewImageFileInput" name="reviewImageFile" accept="image/png, image/jpeg, image/webp" class="d-none" onchange="previewReviewImage(this)">
+                                        
+                                        <div id="reviewUploadPrompt" class="py-2">
+                                            <i class="bi bi-cloud-arrow-up-fill text-muted d-block" style="font-size: 28px;"></i>
+                                            <div class="small fw-bold text-dark mt-1">Chạm để chọn ảnh mở hộp từ thiết bị</div>
+                                            <div class="text-muted small" style="font-size: 11px;">Hỗ trợ ảnh JPG, PNG, WEBP (Tối đa 8MB). Xem trước tức thì.</div>
+                                        </div>
+
+                                        <div id="reviewImagePreviewContainer" class="d-none position-relative py-2">
+                                            <img id="reviewImagePreviewImg" src="" alt="Ảnh unboxing" class="rounded-3 shadow-sm border" style="max-height: 180px; max-width: 100%; object-fit: contain;">
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-danger px-3 py-1 fw-bold" onclick="clearReviewImage(event)">
+                                                    <i class="bi bi-trash3-fill me-1"></i>Xóa ảnh này
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Fallback URL nhập link nếu muốn -->
+                                    <div class="mt-2 text-end">
+                                        <a href="javascript:void(0)" class="text-muted small text-decoration-none" onclick="document.getElementById('manualUrlGroup').classList.toggle('d-none')">
+                                            <i class="bi bi-link-45deg me-1"></i>Hoặc dán URL ảnh trực tiếp
+                                        </a>
+                                    </div>
+                                    <div id="manualUrlGroup" class="d-none mt-2">
+                                        <input type="url" class="form-control rounded-3 form-control-sm" id="reviewImageUrl" name="reviewImageUrl"
+                                               placeholder="https://... ảnh chụp figure unboxed thực tế của bạn" maxlength="255">
+                                    </div>
                                 </div>
 
                                 <button type="submit" class="pdp-review-submit-btn">
@@ -737,6 +770,43 @@
                 navigator.clipboard.writeText(window.location.href);
                 alert('Đã sao chép liên kết sản phẩm vào bộ nhớ tạm!');
             }
+        }
+
+        // 8. Xem trước và xóa ảnh đánh giá unboxing
+        function previewReviewImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('reviewImagePreviewImg');
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                    }
+                    const prompt = document.getElementById('reviewUploadPrompt');
+                    if (prompt) prompt.classList.add('d-none');
+                    const container = document.getElementById('reviewImagePreviewContainer');
+                    if (container) container.classList.remove('d-none');
+                    // Reset link manual URL nếu đã upload file
+                    const urlInput = document.getElementById('reviewImageUrl');
+                    if (urlInput) urlInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearReviewImage(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const fileInput = document.getElementById('reviewImageFileInput');
+            if (fileInput) fileInput.value = '';
+            const previewImg = document.getElementById('reviewImagePreviewImg');
+            if (previewImg) previewImg.src = '';
+            const container = document.getElementById('reviewImagePreviewContainer');
+            if (container) container.classList.add('d-none');
+            const prompt = document.getElementById('reviewUploadPrompt');
+            if (prompt) prompt.classList.remove('d-none');
         }
         /*]]>*/
     </script>

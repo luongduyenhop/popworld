@@ -8,6 +8,7 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.UserRepository;
+import com.manguonmo.popworld.service.FileStorageService;
 import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RewardRedemptionRepository rewardRedemptionRepository;
     private final OrderRepository orderRepository;
+    private final FileStorageService fileStorageService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -114,7 +116,14 @@ public class UserServiceImpl implements UserService {
         if (request.getNickname() != null) {
             user.setNickname(request.getNickname().trim());
         }
-        if (request.getAvatarUrl() != null && !request.getAvatarUrl().trim().isBlank()) {
+        if (request.getAvatarFile() != null && !request.getAvatarFile().isEmpty()) {
+            String oldAvatar = user.getAvatarUrl();
+            String uploadedUrl = fileStorageService.storeFile(request.getAvatarFile(), "avatars");
+            user.setAvatarUrl(uploadedUrl);
+            if (oldAvatar != null && oldAvatar.startsWith("/uploads/avatars/")) {
+                fileStorageService.deleteFile(oldAvatar);
+            }
+        } else if (request.getAvatarUrl() != null && !request.getAvatarUrl().trim().isBlank()) {
             user.setAvatarUrl(request.getAvatarUrl().trim());
         }
         if (request.getGender() != null && !request.getGender().trim().isBlank()) {

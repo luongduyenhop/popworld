@@ -38,6 +38,8 @@ build/
 
 ### Coach / Agent rules (Local only) ###
 COACHING_GUIDELINES.md
+/uploads/*
+!/uploads/.gitkeep
 AGENTS.md
 .env
 *.env

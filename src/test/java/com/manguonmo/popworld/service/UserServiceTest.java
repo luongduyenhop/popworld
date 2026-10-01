@@ -30,6 +30,9 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private com.manguonmo.popworld.service.FileStorageService fileStorageService;
+
     @InjectMocks
     private UserServiceImpl userService;
 

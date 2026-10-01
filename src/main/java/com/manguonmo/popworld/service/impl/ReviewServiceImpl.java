@@ -12,6 +12,7 @@ import com.manguonmo.popworld.repository.OrderItemRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.repository.ReviewRepository;
 import com.manguonmo.popworld.repository.UserRepository;
+import com.manguonmo.popworld.service.FileStorageService;
 import com.manguonmo.popworld.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
+    private final com.manguonmo.popworld.service.FileStorageService fileStorageService;
 
     @Override
     public List<ReviewResponse> getAdminReviews(String status, String keyword) {
@@ -123,6 +125,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public void deleteReview(Long id) {
         Review review = findReviewOrThrow(id);
+        if (review.getReviewImageUrl() != null && review.getReviewImageUrl().startsWith("/uploads/reviews/")) {
+            fileStorageService.deleteFile(review.getReviewImageUrl());
+        }
         reviewRepository.delete(review);
         log.info("Admin đã xóa đánh giá ID={} an toàn khỏi hệ thống (không ảnh hưởng lịch sử mua hàng)", id);
     }
@@ -176,7 +181,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         String cleanComment = (request.getComment() != null && !request.getComment().trim().isEmpty())
                 ? request.getComment().trim() : null;
-        String cleanImageUrl = validateAndSanitizeImageUrl(request.getReviewImageUrl());
+
+        String cleanImageUrl = null;
+        if (request.getReviewImageFile() != null && !request.getReviewImageFile().isEmpty()) {
+            cleanImageUrl = fileStorageService.storeFile(request.getReviewImageFile(), "reviews");
+        } else if (request.getReviewImageUrl() != null && !request.getReviewImageUrl().trim().isEmpty()) {
+            cleanImageUrl = validateAndSanitizeImageUrl(request.getReviewImageUrl());
+        }
 
         // Áp dụng cơ chế Hậu kiểm (Post-moderation): Khách hàng đã nhận hàng thành công (DELIVERED)
         // được tin tưởng và cho phép hiển thị đánh giá công khai ngay lập tức (approved = true).
@@ -293,6 +304,11 @@ public class ReviewServiceImpl implements ReviewService {
         // Ngăn chặn các scheme nguy hiểm (XSS/RFI/Local File): javascript:, data:, vbscript:, file:
         if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:") || lower.startsWith("file:")) {
             throw new BadRequestException("Đường dẫn ảnh chứa giao thức không an toàn!");
+        }
+
+        // Chấp nhận đường dẫn cục bộ bắt đầu bằng /uploads/
+        if (lower.startsWith("/uploads/")) {
+            return trimmed;
         }
 
         // Bắt buộc URL tuyệt đối với scheme http hoặc https

@@ -44,6 +44,9 @@ class ReviewServiceTest {
     @Mock
     private OrderItemRepository orderItemRepository;
 
+    @Mock
+    private com.manguonmo.popworld.service.FileStorageService fileStorageService;
+
     @InjectMocks
     private ReviewServiceImpl reviewService;
 
