@@ -7,7 +7,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.1')}">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.2')}">
 </head>
 <body style="background-color: #FAFAFB;">
 
@@ -227,6 +227,31 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 3 Tiêu Chuẩn Cam Kết Dịch Vụ POP MART -->
+                    <div class="row g-3 mt-3 pt-3 border-top">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center small h-100">
+                                <i class="bi bi-patch-check-fill text-danger fs-5 d-block mb-1"></i>
+                                <strong class="text-dark">100% Chính Hãng POP MART</strong>
+                                <div class="text-secondary mt-1" style="font-size: 11px;">Màng seal bảo mật nguyên vẹn</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center small h-100">
+                                <i class="bi bi-arrow-repeat text-danger fs-5 d-block mb-1"></i>
+                                <strong class="text-dark">Hỗ Trợ Đổi Mới</strong>
+                                <div class="text-secondary mt-1" style="font-size: 11px;">Nếu lỗi do nhà sản xuất</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded-3 text-center small h-100">
+                                <i class="bi bi-shield-check text-danger fs-5 d-block mb-1"></i>
+                                <strong class="text-dark">Giao Hàng Toàn Quốc</strong>
+                                <div class="text-secondary mt-1" style="font-size: 11px;">Bảo hiểm 100% chống va đập</div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- KHỐI 6: CÂU CHUYỆN BỘ SƯU TẬP (STORYTELLING & DESCRIPTION) -->
@@ -403,17 +428,16 @@
                 </section>
             </div>
 
-            <!-- CỘT PHẢI (~38%): STICKY PURCHASE BOX CỐ ĐỊNH THEO CUỘN CHUẨN POP MART US -->
+            <!-- CỘT PHẢI (~38%): STICKY PURCHASE BOX COMPACT CHUẨN POP MART US (~380px) -->
             <div class="col-lg-5">
                 <div class="pdp-sticky-box">
                     <!-- Badges & Action Icons Row -->
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-black text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">NEW</span>
-                            <span class="badge bg-danger text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;" th:if="${product.isFeatured}">HOT</span>
-                            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill fw-bold" style="font-size: 10px;">OFFICIAL</span>
+                            <span class="badge bg-black text-white px-2 py-1 rounded-1 fw-bold" style="font-size: 10px;">NEW</span>
+                            <span class="badge bg-danger text-white px-2 py-1 rounded-1 fw-bold" style="font-size: 10px;" th:if="${product.isFeatured}">HOT</span>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-1">
                             <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle" 
                                     onclick="toggleFavorite(this)" title="Yêu thích" aria-label="Yêu thích">
                                 <i class="bi bi-heart fs-6"></i>
@@ -428,163 +452,95 @@
                     <!-- Tên Sản Phẩm Chuẩn POP MART Typography -->
                     <h1 class="pdp-product-title" th:text="${product.name}">Tên Sản Phẩm</h1>
 
-                    <!-- Tên Series / IP Subtitle -->
-                    <div class="mb-3">
-                        <span class="text-secondary small">Bộ sưu tập: </span>
-                        <span class="fw-bold small text-dark" th:text="${product.series != null ? product.series.name : 'POP MART Exclusive'}">Series Name</span>
-                    </div>
-
-                    <!-- Giá Niêm Yết & Tích Điểm Hội Viên PopPoints -->
-                    <div class="mb-3 pb-3 border-bottom">
+                    <!-- Giá Niêm Yết & Tích Điểm Hội Viên PopPoints (Inline Flex Row) -->
+                    <div class="d-flex align-items-baseline justify-content-between mb-1">
                         <div class="pdp-price-hero" id="displayedPrice"
                              th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                             350.000 ₫
                         </div>
                         <div class="pdp-reward-points">
-                            <i class="bi bi-coin"></i> 
-                            Ước tính tích luỹ <span id="displayedPoints" th:text="'+' + ${estimatedPoints}">+350</span> PopPoints
-                        </div>
-                        <div class="text-secondary small mt-2 d-flex align-items-center gap-1">
-                            <i class="bi bi-truck text-dark"></i>
-                            <span>Miễn phí giao hàng tiêu chuẩn cho đơn từ <strong>500.000 ₫</strong></span>
+                            Estimated <span id="displayedPoints" th:text="'+' + ${estimatedPoints}">+350</span> Points
                         </div>
                     </div>
 
-                    <!-- Segmented Delivery Controls (Phương Thức Nhận Hàng) -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-uppercase small text-secondary" style="font-size: 11px;">Phương Thức Nhận Hàng:</label>
-                        <div class="pdp-delivery-toggle">
-                            <!-- Tab Giao tận nơi -->
-                            <div class="pdp-delivery-item active" id="deliveryTabHome" onclick="selectDeliveryTab('HOME')">
-                                <i class="bi bi-house-door"></i> Giao Tận Nơi
-                            </div>
-                            <!-- Tab Bốc Online POP NOW -->
-                            <a th:if="${product.category != null && product.category.slug == 'blind-box'}"
-                               th:href="@{'/popnow/pick/' + ${product.slug}}" 
-                               class="pdp-delivery-item pop-now-item text-danger fw-bold"
-                               title="Bốc hộp online mở seal trực tuyến trên khay 12 hộp">
-                                <span class="pdp-pop-now-pulse"></span>
-                                <i class="bi bi-box-seam-fill"></i> POP NOW
-                            </a>
-                            <!-- Tab Nhận tại quầy -->
-                            <div class="pdp-delivery-item" id="deliveryTabPickup" onclick="selectDeliveryTab('PICKUP')">
-                                <i class="bi bi-shop"></i> Tại Cửa Hàng
-                            </div>
-                        </div>
+                    <!-- Dòng Ghi Chú Miễn Phí Giao Hàng -->
+                    <div class="pdp-shipping-note mb-2">
+                        <i class="bi bi-truck text-dark me-1"></i> Miễn phí vận chuyển cho đơn từ 500.000 ₫
                     </div>
 
-                    <!-- Bộ Chọn Quy Cách (Variant Selector: Hộp Lẻ vs Cả Set) -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-uppercase small text-secondary" style="font-size: 11px;">Chọn Quy Cách Hộp:</label>
-                        <div class="pdp-variant-grid">
-                            <!-- Thẻ Hộp Lẻ -->
-                            <div class="pdp-variant-card active" id="variantCardSingle" onclick="selectVariant('SINGLE_BOX')">
-                                <div class="pdp-variant-check"><i class="bi bi-check-lg"></i></div>
-                                <div>
-                                    <div class="pdp-variant-title">
-                                        <i class="bi bi-box"></i> Hộp Lẻ
-                                    </div>
-                                    <div class="pdp-variant-price" 
-                                         th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                        350.000 ₫
-                                    </div>
-                                </div>
-                                <div class="pdp-variant-desc">1 Hộp bí mật ngẫu nhiên</div>
-                            </div>
-
-                            <!-- Thẻ Cả Set (nguyên thùng) -->
-                            <div class="pdp-variant-card" id="variantCardWhole" 
-                                 th:if="${product.wholeSetPrice != null}"
-                                 onclick="selectVariant('WHOLE_SET')">
-                                <div class="pdp-variant-check"><i class="bi bi-check-lg"></i></div>
-                                <div>
-                                    <div class="pdp-variant-title">
-                                        <i class="bi bi-boxes"></i> Cả Set
-                                    </div>
-                                    <div class="pdp-variant-price" 
-                                         th:text="${#numbers.formatDecimal(product.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                        2.100.000 ₫
-                                    </div>
-                                </div>
-                                <div class="pdp-variant-desc">Nguyên thùng không trùng</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tình Trạng Tồn Kho & Bộ Điều Chỉnh Số Lượng -->
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <label class="form-label fw-bold text-uppercase small text-secondary mb-0" style="font-size: 11px;">Số Lượng:</label>
-                        <div class="small fw-bold" 
-                             th:classappend="${product.stockQuantity != null && product.stockQuantity > 0 ? 'text-success' : 'text-danger'}">
-                            <i th:class="${product.stockQuantity != null && product.stockQuantity > 0 ? 'bi bi-check-circle-fill me-1' : 'bi bi-x-circle-fill me-1'}"></i>
-                            <span th:text="${product.stockQuantity != null && product.stockQuantity > 0 ? 'Còn hàng (' + product.stockQuantity + ' hộp)' : 'Tạm hết hàng'}">Còn hàng</span>
-                        </div>
-                    </div>
-
-                    <!-- Hai Nút Thao Tác Song Song: ADD TO CART & BUY NOW -->
-                    <div th:if="${product.stockQuantity != null && product.stockQuantity > 0}">
-                        <!-- Hàng số lượng và 2 nút -->
-                        <div class="d-flex gap-3 align-items-center mb-3">
-                            <!-- Stepper số lượng -->
-                            <div class="pdp-qty-stepper">
-                                <button type="button" class="pdp-qty-btn" onclick="adjustQty(-1)" aria-label="Giảm">-</button>
-                                <input type="number" id="sharedQuantityInput" class="pdp-qty-input" value="1" min="1" max="50" readonly>
-                                <button type="button" class="pdp-qty-btn" onclick="adjustQty(1)" aria-label="Tăng">+</button>
-                            </div>
-
-                            <!-- Nút THÊM VÀO GIỎ HÀNG -->
-                            <form th:action="@{/cart/add}" method="post" id="addToCartForm" class="flex-grow-1 m-0">
-                                <input type="hidden" name="productId" th:value="${product.id}">
-                                <input type="hidden" name="purchaseType" id="cartPurchaseType" value="SINGLE_BOX">
-                                <input type="hidden" name="quantity" id="cartQuantity" value="1">
-                                <button type="submit" class="pdp-btn-add-cart w-100">
-                                    <i class="bi bi-bag-plus"></i> THÊM VÀO GIỎ
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Nút MUA NGAY (Nền đen tuyền sang trọng) -->
-                        <form th:action="@{/cart/buy-now}" method="post" id="buyNowForm" class="mb-3">
-                            <input type="hidden" name="productId" th:value="${product.id}">
-                            <input type="hidden" name="purchaseType" id="buyNowPurchaseType" value="SINGLE_BOX">
-                            <input type="hidden" name="quantity" id="buyNowQuantity" value="1">
-                            <button type="submit" class="pdp-btn-buy-now w-100">
-                                <i class="bi bi-lightning-fill"></i> MUA NGAY
+                    <!-- Block 1: Purchase Options (3 Compact Pills) -->
+                    <div class="pdp-section-block">
+                        <div class="pdp-section-title">Purchase Options</div>
+                        <div class="pdp-options-row">
+                            <button type="button" class="pdp-option-btn active" id="optBtnHome" onclick="selectDeliveryTab('HOME')">
+                                Deliver To Home
                             </button>
-                        </form>
-                    </div>
-
-                    <!-- Trạng thái tạm hết hàng -->
-                    <div th:unless="${product.stockQuantity != null && product.stockQuantity > 0}" class="mb-3">
-                        <button type="button" class="btn btn-secondary w-100 py-3 fw-bold rounded-3" disabled>
-                            <i class="bi bi-slash-circle me-2"></i> TẠM HẾT HÀNG (OUT OF STOCK)
-                        </button>
-                    </div>
-
-                    <!-- Nút Bốc Hộp Trực Tuyến POP NOW Nổi Bật -->
-                    <div th:if="${product.category != null && product.category.slug == 'blind-box' && product.stockQuantity != null && product.stockQuantity > 0}">
-                        <a th:href="@{'/popnow/pick/' + ${product.slug}}" 
-                           class="btn btn-warning w-100 py-2 fw-black text-dark text-uppercase fs-6 border border-warning-subtle d-flex align-items-center justify-content-center gap-2 rounded-3 shadow-sm mb-3">
-                            <span class="pdp-pop-now-pulse"></span>
-                            <i class="bi bi-box-seam-fill"></i> BỐC HỘP ONLINE (POP NOW)
-                        </a>
-                    </div>
-
-                    <!-- Cam Kết Chất Lượng 3 Tiêu Chuẩn POP MART -->
-                    <div class="pdp-guarantee-box">
-                        <div class="pdp-guarantee-item">
-                            <i class="bi bi-patch-check-fill"></i>
-                            <span><strong>100% Chính Hãng POP MART</strong> — Nguyên vẹn màng seal bảo mật</span>
-                        </div>
-                        <div class="pdp-guarantee-item">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span><strong>Hỗ Trợ Đổi Mới</strong> — Nếu lỗi do sản xuất hoặc rách màng bạc</span>
-                        </div>
-                        <div class="pdp-guarantee-item">
-                            <i class="bi bi-shield-check"></i>
-                            <span><strong>Giao Hàng Toàn Quốc</strong> — Đóng gói chống sốc hộp bảo vệ chuẩn</span>
+                            <a th:if="${product.category != null && product.category.slug == 'blind-box'}" 
+                               th:href="@{'/popnow/pick/' + ${product.slug}}" 
+                               class="pdp-option-btn text-danger fw-bold" title="Bốc hộp trực tuyến POP NOW">
+                                <i class="bi bi-box-seam me-1"></i> POP NOW
+                            </a>
+                            <button type="button" class="pdp-option-btn" id="optBtnPickup" onclick="selectDeliveryTab('PICKUP')">
+                                Store Pickup
+                            </button>
                         </div>
                     </div>
+
+                    <!-- Block 2: Size / Quy Cách Hộp (2 Compact Pills) -->
+                    <div class="pdp-section-block">
+                        <div class="pdp-section-title">Size</div>
+                        <div class="pdp-size-row">
+                            <button type="button" class="pdp-size-btn active" id="sizeBtnSingle" onclick="selectVariant('SINGLE_BOX')">
+                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Single box">
+                                <span class="pdp-size-name">Single box</span>
+                            </button>
+                            <button type="button" class="pdp-size-btn" id="sizeBtnWhole" 
+                                    th:if="${product.wholeSetPrice != null}" onclick="selectVariant('WHOLE_SET')">
+                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Whole Set">
+                                <span class="pdp-size-name">Whole Set</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Block 3: Quantity & Tình Trạng Tồn Kho -->
+                    <div class="pdp-section-block">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="pdp-section-title mb-0">Quantity</div>
+                            <div class="small fw-semibold" 
+                                 th:classappend="${product.stockQuantity != null && product.stockQuantity > 0 ? 'text-success' : 'text-danger'}"
+                                 style="font-size: 11.5px;">
+                                <span th:text="${product.stockQuantity != null && product.stockQuantity > 0 ? 'Còn hàng (' + product.stockQuantity + ')' : 'Tạm hết hàng'}">Còn hàng</span>
+                            </div>
+                        </div>
+                        <div class="pdp-stepper">
+                            <button type="button" class="pdp-stepper-btn" onclick="adjustQty(-1)" aria-label="Giảm">−</button>
+                            <input type="text" id="sharedQuantityInput" class="pdp-stepper-input" value="1" readonly>
+                            <button type="button" class="pdp-stepper-btn" onclick="adjustQty(1)" aria-label="Tăng">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Block 4: Form Đặt Mua & Cặp Nút Hành Động Song Song (ADD TO CART & BUY NOW) -->
+                    <form th:action="@{/cart/add}" method="post" id="purchaseForm" class="m-0">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <input type="hidden" name="purchaseType" id="cartPurchaseType" value="SINGLE_BOX">
+                        <input type="hidden" name="quantity" id="cartQuantity" value="1">
+
+                        <div class="pdp-btn-row" th:if="${product.stockQuantity != null && product.stockQuantity > 0}">
+                            <button type="submit" class="pdp-btn-add-cart">
+                                ADD TO CART
+                            </button>
+                            <button type="submit" class="pdp-btn-buy-now" th:formaction="@{/cart/buy-now}">
+                                BUY NOW
+                            </button>
+                        </div>
+
+                        <!-- Trạng thái tạm hết hàng -->
+                        <div th:unless="${product.stockQuantity != null && product.stockQuantity > 0}" class="mt-3">
+                            <button type="button" class="btn btn-secondary w-100 py-3 fw-bold rounded-1" disabled>
+                                TẠM HẾT HÀNG (OUT OF STOCK)
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -620,6 +576,16 @@
         </section>
     </main>
 
+    <!-- Mobile Fixed Bottom Action Bar (Dành cho điện thoại / Tablet) -->
+    <div class="pdp-mobile-bottom-bar" th:if="${product.stockQuantity != null && product.stockQuantity > 0}">
+        <button type="button" class="pdp-btn-add-cart" onclick="document.querySelector('#purchaseForm .pdp-btn-add-cart').click()">
+            THÊM VÀO GIỎ
+        </button>
+        <button type="button" class="pdp-btn-buy-now" onclick="document.querySelector('#purchaseForm .pdp-btn-buy-now').click()">
+            MUA NGAY
+        </button>
+    </div>
+
     <!-- Footer Fragment -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
@@ -636,27 +602,26 @@
         // 1. Chuyển đổi Quy cách (Single Box vs Whole Set)
         function selectVariant(type) {
             document.getElementById('cartPurchaseType').value = type;
-            document.getElementById('buyNowPurchaseType').value = type;
 
-            const cardSingle = document.getElementById('variantCardSingle');
-            const cardWhole = document.getElementById('variantCardWhole');
+            const btnSingle = document.getElementById('sizeBtnSingle');
+            const btnWhole = document.getElementById('sizeBtnWhole');
             const priceEl = document.getElementById('displayedPrice');
             const pointsEl = document.getElementById('displayedPoints');
 
             if (type === 'WHOLE_SET') {
-                if (cardWhole) cardWhole.classList.add('active');
-                if (cardSingle) cardSingle.classList.remove('active');
+                if (btnWhole) btnWhole.classList.add('active');
+                if (btnSingle) btnSingle.classList.remove('active');
                 if (wholeSetPriceFormatted) priceEl.innerText = wholeSetPriceFormatted;
                 if (pointsEl) pointsEl.innerText = '+' + wholeSetPricePoints;
             } else {
-                if (cardSingle) cardSingle.classList.add('active');
-                if (cardWhole) cardWhole.classList.remove('active');
+                if (btnSingle) btnSingle.classList.add('active');
+                if (btnWhole) btnWhole.classList.remove('active');
                 priceEl.innerText = singlePriceFormatted;
                 if (pointsEl) pointsEl.innerText = '+' + singlePricePoints;
             }
         }
 
-        // 2. Tăng giảm số lượng (Quantity Stepper đồng bộ cả 2 form)
+        // 2. Tăng giảm số lượng (Quantity Stepper)
         function adjustQty(delta) {
             const input = document.getElementById('sharedQuantityInput');
             let val = parseInt(input.value) || 1;
@@ -666,7 +631,6 @@
             input.value = val;
 
             document.getElementById('cartQuantity').value = val;
-            document.getElementById('buyNowQuantity').value = val;
         }
 
         // 3. Chọn nhân vật trên thanh Rail Dọc hoặc Lưới All Characters
@@ -716,14 +680,14 @@
 
         // 5. Chuyển đổi tab nhận hàng (Deliver To Home vs Store Pickup)
         function selectDeliveryTab(tab) {
-            const homeTab = document.getElementById('deliveryTabHome');
-            const pickupTab = document.getElementById('deliveryTabPickup');
+            const homeBtn = document.getElementById('optBtnHome');
+            const pickupBtn = document.getElementById('optBtnPickup');
             if (tab === 'HOME') {
-                homeTab.classList.add('active');
-                if (pickupTab) pickupTab.classList.remove('active');
+                if (homeBtn) homeBtn.classList.add('active');
+                if (pickupBtn) pickupBtn.classList.remove('active');
             } else {
-                if (pickupTab) pickupTab.classList.add('active');
-                homeTab.classList.remove('active');
+                if (pickupBtn) pickupBtn.classList.add('active');
+                if (homeBtn) homeBtn.classList.remove('active');
             }
         }
 
