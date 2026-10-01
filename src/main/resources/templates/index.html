@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PopWorld - Sàn Thương Mại Điện Tử Art Toy & Blind Box POP MART Chính Hãng</title>
+    <title>PopWorld - Brand Showcase & Triển Lãm Art Toy POP MART Chính Hãng</title>
     
     <!-- Google Fonts & Bootstrap 5.3 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
     <!-- Custom POP MART Theme CSS -->
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.2')}">
 </head>
 <body>
 
@@ -18,172 +18,278 @@
     <header th:replace="~{fragments/header :: header}"></header>
 
     <main>
-        <!-- ========================================== -->
-        <!-- 1. HERO CAROUSEL BANNER                    -->
-        <!-- ========================================== -->
-        <section class="container mt-3 mt-lg-4">
-            <div id="heroCarousel" class="carousel slide carousel-fade shadow-sm overflow-hidden" 
-                 data-bs-ride="carousel" style="border-radius: var(--pop-radius-xl);">
+        <!-- ========================================================================== -->
+        <!-- 1. FULL-WIDTH CINEMATIC HERO CAROUSEL (POP MART US SPEC)                  -->
+        <!-- ========================================================================== -->
+        <section class="pop-home-hero position-relative">
+            <div id="popHeroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="6000">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active rounded-pill" style="width: 30px; height: 6px;"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" class="rounded-pill" style="width: 30px; height: 6px;"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" class="rounded-pill" style="width: 30px; height: 6px;"></button>
+                    <button type="button" data-bs-target="#popHeroCarousel" data-bs-slide-to="0" class="active"></button>
+                    <button type="button" data-bs-target="#popHeroCarousel" data-bs-slide-to="1"></button>
+                    <button type="button" data-bs-target="#popHeroCarousel" data-bs-slide-to="2"></button>
                 </div>
                 <div class="carousel-inner">
-                    <!-- Slide 1: Labubu -->
-                    <div class="carousel-item active" style="height: 480px;">
+                    <!-- Slide 1: Labubu The Monsters -->
+                    <div class="carousel-item active">
                         <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" 
-                             class="d-block w-100 h-100 object-fit-cover" alt="The Monsters Fall in Wild">
-                        <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-danger text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Hot Drop Toàn Cầu</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">The Monsters<br><span class="text-danger">Fall In Wild</span></h1>
-                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Bộ sưu tập hộp mù Labubu phủ nỉ mịn cao cấp phong cách dã ngoại. Cơ hội săn trúng mẫu Secret tỷ lệ 1/72!</p>
-                            <div class="mt-3 d-flex gap-2">
-                                <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="btn btn-pop-red">
-                                    <i class="bi bi-stars me-1"></i> Khám Phá Ngay
+                             class="pop-hero-slide-img" alt="The Monsters Fall in Wild">
+                        <div class="pop-hero-cinematic-overlay">
+                            <span class="badge bg-danger text-uppercase px-3 py-1 mb-2 fw-bold" style="font-size: 11px; letter-spacing: 1.5px;">Global Hot Drop</span>
+                            <h1 class="pop-hero-title mb-3">THE MONSTERS FALL IN WILD SERIES</h1>
+                            <div class="pop-hero-cta-group">
+                                <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-hero-btn-shop">
+                                    <i class="bi bi-bag me-1"></i> SHOP NOW
                                 </a>
-                                <a th:href="@{/categories/blind-box}" class="btn btn-pop-outline text-white border-white">
-                                    Xem Tất Cả Hộp Mù
+                                <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
+                                    <i class="bi bi-box-seam me-1"></i> POP NOW
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Slide 2: Space Molly -->
-                    <div class="carousel-item" style="height: 480px;">
-                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" 
-                             class="d-block w-100 h-100 object-fit-cover" alt="Mega Space Molly">
-                        <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-warning text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Mega Collection</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">Mega Space Molly<br><span class="text-warning">Series 2</span></h1>
-                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Phi hành gia nhí Molly du hành qua các thiên hà cùng phụ kiện súng laser và bình dưỡng khí tháo rời.</p>
-                            <div class="mt-3">
-                                <a th:href="@{/categories/mega-collection}" class="btn btn-pop-red">
-                                    <i class="bi bi-box-seam me-1"></i> Sưu Tập Ngay
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slide 3: Skullpanda -->
-                    <div class="carousel-item" style="height: 480px;">
+                    <!-- Slide 2: Skullpanda City of Night -->
+                    <div class="carousel-item">
                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" 
-                             class="d-block w-100 h-100 object-fit-cover" alt="Skullpanda City of Night">
-                        <div class="carousel-caption text-start d-flex flex-column justify-content-center h-100 bottom-0 start-0 p-4 p-lg-5" 
-                             style="background: linear-gradient(90deg, rgba(17,17,19,0.85) 0%, rgba(17,17,19,0.3) 60%, transparent 100%);">
-                            <span class="badge bg-info text-dark text-uppercase px-3 py-2 rounded-pill mb-2 fw-bold align-self-start shadow-sm">Cyberpunk Neon</span>
-                            <h1 class="display-4 fw-black text-white text-uppercase tracking-tight">Skullpanda<br><span class="text-info">City Of Night</span></h1>
-                            <p class="fs-5 text-light opacity-90 d-none d-md-block" style="max-width: 480px;">Tuyệt tác bóng đêm huyền bí tôn vinh vẻ đẹp nổi loạn và cá tính nghệ thuật tự do.</p>
-                            <div class="mt-3">
-                                <a th:href="@{/products/skullpanda-city-of-night-series}" class="btn btn-pop-red">
-                                    <i class="bi bi-eye me-1"></i> Xem Chi Tiết
+                             class="pop-hero-slide-img" alt="Skullpanda City of Night">
+                        <div class="pop-hero-cinematic-overlay">
+                            <span class="badge bg-dark border border-secondary text-uppercase px-3 py-1 mb-2 fw-bold" style="font-size: 11px; letter-spacing: 1.5px;">Cyberpunk Aesthetics</span>
+                            <h1 class="pop-hero-title mb-3">SKULLPANDA CITY OF NIGHT SERIES</h1>
+                            <div class="pop-hero-cta-group">
+                                <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-hero-btn-shop">
+                                    <i class="bi bi-bag me-1"></i> SHOP NOW
+                                </a>
+                                <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
+                                    <i class="bi bi-box-seam me-1"></i> POP NOW
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3: Mega Space Molly -->
+                    <div class="carousel-item">
+                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" 
+                             class="pop-hero-slide-img" alt="Mega Space Molly">
+                        <div class="pop-hero-cinematic-overlay">
+                            <span class="badge bg-warning text-dark text-uppercase px-3 py-1 mb-2 fw-bold" style="font-size: 11px; letter-spacing: 1.5px;">Art Toy Monument</span>
+                            <h1 class="pop-hero-title mb-3">MEGA SPACE MOLLY 400% &amp; 1000%</h1>
+                            <div class="pop-hero-cta-group">
+                                <a th:href="@{/categories/mega-collection}" class="pop-hero-btn-shop">
+                                    <i class="bi bi-bag me-1"></i> SHOP NOW
+                                </a>
+                                <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
+                                    <i class="bi bi-box-seam me-1"></i> POP NOW
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#popHeroCarousel" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <button class="carousel-control-next" type="button" data-bs-target="#popHeroCarousel" data-bs-slide="next">
                     <span class="carousel-control-next-icon"></span>
                 </button>
             </div>
+
+            <!-- Floating Pick & Reveal sticker -->
+            <a th:href="@{/popnow}" class="pop-floating-pick-sticker" title="Bóc Hộp Online POP NOW">
+                <div class="badge bg-danger rounded-pill px-3 py-2 shadow-lg d-flex align-items-center gap-2 text-white border border-white">
+                    <i class="bi bi-stars fs-6 animate-pulse"></i>
+                    <span class="fw-black text-uppercase" style="font-size: 12px; letter-spacing: 0.5px;">POP NOW</span>
+                </div>
+            </a>
         </section>
 
-        <!-- ========================================== -->
-        <!-- POPULAR SEARCHES STRIP (POP MART US STYLE) -->
-        <!-- ========================================== -->
-        <section class="container mt-3 pt-2">
-            <div class="d-flex align-items-center gap-2 overflow-x-auto py-1" style="scrollbar-width: none;">
-                <span class="small fw-bold text-dark text-uppercase me-2 flex-shrink-0">
-                    <i class="bi bi-fire text-danger me-1"></i> Xu Hướng:
-                </span>
-                <a th:href="@{/search(keyword='Labubu')}" class="popular-search-tag hot-tag">🔥 Labubu The Monsters</a>
-                <a th:href="@{/search(keyword='Molly')}" class="popular-search-tag">Molly Space</a>
-                <a th:href="@{/search(keyword='Skullpanda')}" class="popular-search-tag">Skullpanda</a>
-                <a th:href="@{/search(keyword='Hirono')}" class="popular-search-tag">Hirono</a>
-                <a th:href="@{/search(keyword='Crybaby')}" class="popular-search-tag">Crybaby</a>
-                <a th:href="@{/categories/mega-collection}" class="popular-search-tag">Mega 400%</a>
-                <a th:href="@{/categories/blind-box}" class="popular-search-tag">Hộp Mù Secret</a>
-            </div>
-        </section>
-
-        <!-- ========================================== -->
-        <!-- 2. CHARACTER IP UNIVERSE                   -->
-        <!-- ========================================== -->
-        <section class="container mt-4 pt-2">
-            <div class="section-title-wrap">
-                <span class="section-kicker">Universe of Art Toys</span>
-                <h2 class="section-title">Vũ Trụ Nhân Vật Biểu Tượng</h2>
-                <div class="section-subtitle">Khám phá các nhân vật nghệ thuật đình đám của gia đình POP MART</div>
-            </div>
-
-            <div class="row row-cols-3 row-cols-md-6 g-4 justify-content-center">
-                <div class="col" th:each="ip : ${characterIps}">
-                    <a th:href="@{'/characters/' + ${ip.id}}" class="ip-circle-wrapper">
-                        <div class="ip-circle-img-box">
-                            <img th:src="${ip.avatarUrl}" class="ip-circle-img" th:alt="${ip.name}">
-                        </div>
-                        <div class="ip-circle-title" th:text="${ip.name}">Labubu</div>
-                    </a>
+        <!-- ========================================================================== -->
+        <!-- 2. TRIPTYCH SERIES SPOTLIGHT (BỘ 3 NGHỆ THUẬT TIÊU ĐIỂM)                   -->
+        <!-- ========================================================================== -->
+        <section class="pop-triptych-section">
+            <div class="container-fluid px-lg-5 px-3">
+                <div class="row g-3 g-lg-4">
+                    <!-- Spotlight 1 -->
+                    <div class="col-12 col-md-4">
+                        <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-triptych-card">
+                            <div class="pop-triptych-img-box">
+                                <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" class="pop-triptych-img" alt="The Monsters">
+                            </div>
+                            <div class="pop-triptych-overlay">
+                                <div class="pop-triptych-title">THE MONSTERS<br>FALL IN WILD SERIES</div>
+                                <span class="pop-triptych-btn">VIEW MORE</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Spotlight 2 -->
+                    <div class="col-12 col-md-4">
+                        <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-triptych-card">
+                            <div class="pop-triptych-img-box">
+                                <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" class="pop-triptych-img" alt="Skullpanda">
+                            </div>
+                            <div class="pop-triptych-overlay">
+                                <div class="pop-triptych-title">SKULLPANDA<br>CITY OF NIGHT SERIES</div>
+                                <span class="pop-triptych-btn">VIEW MORE</span>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Spotlight 3 -->
+                    <div class="col-12 col-md-4">
+                        <a th:href="@{/categories/mega-collection}" class="pop-triptych-card">
+                            <div class="pop-triptych-img-box">
+                                <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" class="pop-triptych-img" alt="Molly">
+                            </div>
+                            <div class="pop-triptych-overlay">
+                                <div class="pop-triptych-title">MEGA SPACE MOLLY<br>GALLERY SERIES</div>
+                                <span class="pop-triptych-btn">VIEW MORE</span>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- 3. HOT DROPS / SẢN PHẨM NỔI BẬT            -->
-        <!-- ========================================== -->
-        <section class="container mt-5 pt-4">
+        <!-- ========================================================================== -->
+        <!-- 3. POP NOW INTERACTIVE 3D SHELF (KỆ BÓC HỘP ONLINE)                        -->
+        <!-- ========================================================================== -->
+        <section class="pop-shelf-section">
+            <div class="container-fluid px-lg-5 px-3">
+                <div class="pop-shelf-header">
+                    <h2 class="pop-shelf-title">POP NOW - ONLINE UNBOXING SHELF</h2>
+                    <p class="pop-shelf-subtitle">Trải nghiệm chọn khay, lắc hộp, thử vận may trúng Secret trực tuyến ngay hôm nay</p>
+                </div>
+                
+                <div class="pop-shelf-scroll-wrap">
+                    <div class="pop-shelf-card" th:each="p : ${popNowProducts}">
+                        <img th:src="${p.mainImageUrl}" th:alt="${p.name}" class="pop-shelf-box-img">
+                        <div class="pop-shelf-series-name" th:text="${p.name}">Tên Series Hộp Mù</div>
+                        <div class="pop-shelf-price-tag" 
+                             th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫ / PICK'">350.000 ₫ / PICK</div>
+                        <a th:href="@{/popnow}" class="pop-shelf-pick-btn">
+                            <i class="bi bi-dice-5-fill me-1"></i> PICK NOW
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================== -->
+        <!-- 4. EXPLORE BY THEME & POPULAR SEARCHES PILLS                               -->
+        <!-- ========================================================================== -->
+        <section class="pop-theme-section">
+            <div class="container-fluid px-lg-5 px-3">
+                <!-- Popular Searches Pills Row -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fw-black text-uppercase small tracking-wide me-3 text-secondary">
+                            <i class="bi bi-fire text-danger me-1"></i> POPULAR SEARCHES:
+                        </span>
+                    </div>
+                    <div class="pop-search-pills-row">
+                        <a th:href="@{/search(keyword='Labubu')}" class="pop-pill-badge">
+                            <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" class="pop-pill-icon" alt="Labubu">
+                            Labubu The Monsters
+                        </a>
+                        <a th:href="@{/search(keyword='Molly')}" class="pop-pill-badge">
+                            <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" class="pop-pill-icon" alt="Molly">
+                            Space Molly
+                        </a>
+                        <a th:href="@{/search(keyword='Skullpanda')}" class="pop-pill-badge">
+                            <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" class="pop-pill-icon" alt="Skullpanda">
+                            Skullpanda
+                        </a>
+                        <a th:href="@{/search(keyword='Hirono')}" class="pop-pill-badge">
+                            <i class="bi bi-person-fill text-muted"></i>
+                            Hirono
+                        </a>
+                        <a th:href="@{/search(keyword='Crybaby')}" class="pop-pill-badge">
+                            <i class="bi bi-emoji-tear-fill text-warning"></i>
+                            Crybaby
+                        </a>
+                        <a th:href="@{/categories/mega-collection}" class="pop-pill-badge">
+                            <i class="bi bi-gem text-primary"></i>
+                            MEGA 400% &amp; 1000%
+                        </a>
+                        <a th:href="@{/popnow}" class="pop-pill-badge">
+                            <i class="bi bi-stars text-danger"></i>
+                            POP NOW Trúng Secret
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Theme Cards 4-grid -->
+                <div class="pop-theme-section-title">EXPLORE BY THEME</div>
+                <div class="row g-3 g-lg-4">
+                    <div class="col-6 col-md-3">
+                        <a th:href="@{/categories/blind-box}" class="pop-theme-card" style="background: linear-gradient(135deg, #F3ECE7 0%, #E5DACF 100%);">
+                            <div class="pop-theme-card-body">
+                                <div class="pop-theme-card-tag">TRENDING PLUSH</div>
+                                <div class="pop-theme-card-sub">Gấu bông &amp; Móc khóa biểu tượng</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a th:href="@{/categories/blind-box}" class="pop-theme-card" style="background: linear-gradient(135deg, #E6EFF8 0%, #CDDEEE 100%);">
+                            <div class="pop-theme-card-body">
+                                <div class="pop-theme-card-tag">COLLABORATIONS</div>
+                                <div class="pop-theme-card-sub">Nghệ thuật hợp tác đỉnh cao</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a th:href="@{/categories/mega-collection}" class="pop-theme-card" style="background: linear-gradient(135deg, #EAEAEA 0%, #D8D8D8 100%);">
+                            <div class="pop-theme-card-body">
+                                <div class="pop-theme-card-tag">MEGA ART TOYS</div>
+                                <div class="pop-theme-card-sub">Kích thước 400% &amp; 1000% bảo tàng</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a th:href="@{/popnow}" class="pop-theme-card" style="background: linear-gradient(135deg, #F9E7E7 0%, #EFCFCF 100%);">
+                            <div class="pop-theme-card-body">
+                                <div class="pop-theme-card-tag">SECRET DROPS</div>
+                                <div class="pop-theme-card-sub">Hộp mù hiếm &amp; Phiên bản giới hạn</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================== -->
+        <!-- 5. FEATURED ART TOY SHOWCASE (BỘ SƯU TẬP NỔI BẬT - 4 CỘT CÂN ĐỐI)         -->
+        <!-- ========================================================================== -->
+        <section class="container-fluid px-lg-5 px-3 py-5 bg-white">
             <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
                 <div>
-                    <span class="section-kicker mb-1">Most Wanted Drops</span>
-                    <h2 class="section-title mb-0">Hộp Mù Nổi Bật Nhất</h2>
+                    <span class="text-secondary small fw-bold text-uppercase tracking-wider">Gallery Collection</span>
+                    <h2 class="h3 fw-black text-uppercase mb-0 tracking-tight">BỘ SƯU TẬP NGHỆ THUẬT NỔI BẬT</h2>
                 </div>
-                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1">
-                    Xem tất cả <i class="bi bi-arrow-right text-danger"></i>
+                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1 small">
+                    XEM TẤT CẢ <i class="bi bi-arrow-right text-danger"></i>
                 </a>
             </div>
 
-            <div class="row g-4">
-                <div class="col-6 col-md-4 col-lg-3" th:each="p : ${featuredProducts}">
-                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
-                        <!-- Khung ảnh 1:1 Stage -->
+            <div class="row g-3 g-lg-4">
+                <div class="col-6 col-md-4 col-lg-3" th:each="p, iterStat : ${featuredProducts}" th:if="${iterStat.index < 4}">
+                    <div class="pop-product-card" th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.dataset.url">
                         <div class="pop-product-img-box">
                             <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            
-                            <!-- Badge Secret Ratio Ánh Kim -->
                             <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
                             </span>
-                            
-                            <!-- Badge Hot -->
                             <span class="badge-pop-hot" th:if="${p.isFeatured}">HOT</span>
                         </div>
-
-                        <!-- Thông tin sản phẩm -->
                         <div class="pop-card-body">
-                            <span class="badge-series-tag" 
-                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
+                            <span class="badge-series-tag" th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
                             <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
-
-                            <!-- Phân khúc giá kép (Hộp lẻ & Cả set) -->
                             <div class="pop-pricing-box">
                                 <div>
-                                    <span class="single-box-price"
-                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
+                                    <span class="single-box-price" th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
                                 </div>
                                 <div th:if="${p.wholeSetPrice != null}">
-                                    <span class="whole-set-pill"
-                                          th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
+                                    <span class="whole-set-pill" th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
                                 </div>
                             </div>
-
-                            <!-- Nút Thao Tác Mềm Mại -->
                             <div class="pop-quick-action">
-                                <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
+                                <i class="bi bi-eye me-1"></i> XEM CHI TIẾT
                             </div>
                         </div>
                     </div>
@@ -191,49 +297,133 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- 4. NEW RELEASES / HÀNG MỚI CẬP BẾN         -->
-        <!-- ========================================== -->
-        <section class="container mt-5 pt-4">
-            <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
-                <div>
-                    <span class="section-kicker mb-1">New Arrivals</span>
-                    <h2 class="section-title mb-0">Hàng Mới Cập Bến</h2>
-                </div>
-                <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1">
-                    Xem tất cả <i class="bi bi-arrow-right text-danger"></i>
-                </a>
-            </div>
-
+        <!-- ========================================================================== -->
+        <!-- 6. SPECIAL OFFERS & CAMPAIGNS (CHIẾN DỊCH ĐỘC QUYỀN 4 CỘT)                 -->
+        <!-- ========================================================================== -->
+        <section class="container-fluid px-lg-5 px-3 py-5" style="background: #FAFAFA;">
+            <div class="pop-theme-section-title">EXCLUSIVE CAMPAIGNS &amp; OFFERS</div>
             <div class="row g-4">
-                <div class="col-6 col-md-4 col-lg-3" th:each="p : ${newReleases}">
-                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
-                        <div class="pop-product-img-box">
-                            <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                            <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
-                                <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/72</span>
-                            </span>
-                            <span class="badge-pop-new">NEW</span>
+                <!-- Offer 1 -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="pop-offer-card">
+                        <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" class="pop-offer-card-img" alt="The Monsters Exhibition">
+                        <div class="p-3 bg-white">
+                            <div class="pop-offer-card-title">THE MONSTERS 10TH ANNIVERSARY</div>
+                            <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-offer-card-btn">DISCOVER NOW</a>
                         </div>
-
-                        <div class="pop-card-body">
-                            <span class="badge-series-tag" 
-                                  th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
-                            <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
-
-                            <div class="pop-pricing-box">
-                                <div>
-                                    <span class="single-box-price"
-                                          th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
-                                </div>
-                                <div th:if="${p.wholeSetPrice != null}">
-                                    <span class="whole-set-pill"
-                                          th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
-                                </div>
+                    </div>
+                </div>
+                <!-- Offer 2 -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="pop-offer-card">
+                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" class="pop-offer-card-img" alt="Hirono & Skullpanda">
+                        <div class="p-3 bg-white">
+                            <div class="pop-offer-card-title">DARK AESTHETICS COLLECTION</div>
+                            <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-offer-card-btn">EXPLORE</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Offer 3 -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="pop-offer-card">
+                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" class="pop-offer-card-img" alt="POP NOW Experience">
+                        <div class="p-3 bg-white">
+                            <div class="pop-offer-card-title">POP NOW UNBOXING EXPERIENCE</div>
+                            <a th:href="@{/popnow}" class="pop-offer-card-btn">PLAY NOW</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Offer 4 -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="pop-offer-card">
+                        <div class="d-flex align-items-center justify-content-center text-white" style="height: 360px; background: linear-gradient(135deg, #111111 0%, #2A2A2A 100%);">
+                            <div class="text-center p-4">
+                                <i class="bi bi-shield-check text-warning fs-1 mb-3"></i>
+                                <div class="h5 fw-bold mb-2">VIP REWARDS CLUB</div>
+                                <p class="small text-secondary mb-0">Tích lũy Lucky Points, đổi Hint Cards và nhận quà tri ân</p>
                             </div>
+                        </div>
+                        <div class="p-3 bg-white">
+                            <div class="pop-offer-card-title">POPWORLD VIP MEMBERSHIP</div>
+                            <a th:href="@{/account}" class="pop-offer-card-btn">VIEW PROFILE</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                            <div class="pop-quick-action">
-                                <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
+        <!-- ========================================================================== -->
+        <!-- 7. MEGA COLLECTION 3D STAGE (BỤC DIỄN SIÊU PHẨM 400% & 1000%)             -->
+        <!-- ========================================================================== -->
+        <section class="pop-mega-stage-section">
+            <div class="container">
+                <span class="badge bg-dark text-white text-uppercase px-3 py-1 mb-2 fw-bold" style="letter-spacing: 1.5px; font-size: 11px;">Exhibition Highlight</span>
+                <h2 class="pop-mega-title">MEGA COLLECTION ART STAGE</h2>
+                
+                <div class="pop-mega-pedestal-wrap">
+                    <img id="megaFigureImg" src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" 
+                         class="pop-mega-figure-img" alt="MEGA Space Molly">
+                    <div class="pop-mega-arc-line"></div>
+                    <h4 id="megaFigureName" class="fw-black text-uppercase mt-2 mb-3">SPACE MOLLY 400%</h4>
+                    
+                    <div class="pop-mega-size-group">
+                        <button type="button" class="pop-mega-size-btn active" onclick="switchMegaSize('400%', event)">400% (29.5 CM)</button>
+                        <button type="button" class="pop-mega-size-btn" onclick="switchMegaSize('1000%', event)">1000% (70 CM)</button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a th:href="@{/categories/mega-collection}" class="btn btn-dark text-uppercase px-4 py-2 fw-bold" style="border-radius: 2px; font-size: 13px;">
+                            <i class="bi bi-box-seam me-1"></i> KHÁM PHÁ DÒNG MEGA
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================== -->
+        <!-- 8. DROP CALENDAR & NEW ARRIVALS (LỊCH MỞ BÁN & HÀNG MỚI LÊN KỆ)           -->
+        <!-- ========================================================================== -->
+        <section class="pop-launch-section">
+            <div class="container-fluid px-lg-5 px-3">
+                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase tracking-wider">Drop Calendar</span>
+                        <h2 class="h3 fw-black text-uppercase mb-0 tracking-tight">LỊCH MỞ BÁN &amp; HÀNG MỚI LÊN KỆ</h2>
+                    </div>
+                    <a th:href="@{/categories/blind-box}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1 small">
+                        XEM TẤT CẢ <i class="bi bi-arrow-right text-danger"></i>
+                    </a>
+                </div>
+
+                <div class="row g-3 g-lg-4">
+                    <div class="col-6 col-md-4 col-lg-3" th:each="p, iterStat : ${newReleases}" th:if="${iterStat.index < 4}">
+                        <div class="pop-product-card">
+                            <div class="pop-product-img-box" th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.dataset.url" style="cursor: pointer;">
+                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
+                                <span class="badge-pop-new">NEW DROP</span>
+                            </div>
+                            <div class="pop-card-body">
+                                <!-- Launch Time Tag -->
+                                <div class="pop-launch-tag">
+                                    <span>LAUNCH</span>
+                                    <span th:text="${iterStat.index % 2 == 0 ? '10.02 07:00' : 'VỪA LÊN KỆ'}">10.02 07:00</span>
+                                </div>
+
+                                <h3 class="pop-product-title" th:text="${p.name}" th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.dataset.url" style="cursor: pointer;">Tên sản phẩm</h3>
+                                
+                                <div class="pop-pricing-box">
+                                    <span class="single-box-price" th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
+                                </div>
+
+                                <!-- Notify Me / Buy Action -->
+                                <div class="mt-2 pt-1 border-top d-flex gap-2">
+                                    <button type="button" class="pop-notify-btn flex-grow-1" th:data-name="${p.name}" onclick="notifyProductLaunch(this.dataset.name)">
+                                        <i class="bi bi-bell"></i> NOTIFY ME
+                                    </button>
+                                    <a th:href="@{'/products/' + ${p.slug}}" class="btn btn-outline-dark btn-sm d-flex align-items-center" style="border-radius: 2px;">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -241,50 +431,90 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- 5. VALUE PROPOSITIONS (CAM KẾT THƯƠNG HIỆU) -->
-        <!-- ========================================== -->
-        <section class="container mt-5 pt-4">
-            <div class="p-4 p-lg-5" 
-                 style="background: var(--pop-neutral-1); border-radius: 0px; border: 1px solid #E0E0E0;">
-                <div class="row g-4 text-center">
-                    <div class="col-md-3 col-6">
-                        <div class="p-2">
-                            <div class="fs-1 text-danger mb-2"><i class="bi bi-patch-check-fill"></i></div>
-                            <h6 class="fw-bold mb-1">100% Chính Hãng</h6>
-                            <p class="text-secondary small mb-0">Nhập khẩu chính hãng POP MART, nguyên seal túi bạc 100%.</p>
-                        </div>
+        <!-- ========================================================================== -->
+        <!-- 9. BRAND TRUST & VALUE PROPOSITIONS                                       -->
+        <!-- ========================================================================== -->
+        <section class="container-fluid px-lg-5 px-3 py-5" style="background: #F8F9FA; border-top: 1px solid #EEEEEE;">
+            <div class="row g-4 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="p-2">
+                        <div class="fs-2 text-danger mb-2"><i class="bi bi-patch-check-fill"></i></div>
+                        <h6 class="fw-black text-uppercase mb-1" style="font-size: 14px;">100% CHÍNH HÃNG</h6>
+                        <p class="text-secondary small mb-0">Nhập khẩu chính ngạch POP MART, nguyên seal túi bạc 100%.</p>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-2">
-                            <div class="fs-1 text-warning mb-2"><i class="bi bi-stars"></i></div>
-                            <h6 class="fw-bold mb-1">Tỷ Lệ Secret Chuẩn</h6>
-                            <p class="text-secondary small mb-0">Tỷ lệ mở trúng mẫu hiếm 1/72 hoặc 1/144 theo quy chuẩn hãng.</p>
-                        </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-2">
+                        <div class="fs-2 text-warning mb-2"><i class="bi bi-stars"></i></div>
+                        <h6 class="fw-black text-uppercase mb-1" style="font-size: 14px;">TỶ LỆ SECRET MINH BẠCH</h6>
+                        <p class="text-secondary small mb-0">Tỷ lệ mở trúng mẫu hiếm 1/72 hoặc 1/144 theo quy chuẩn quốc tế.</p>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-2">
-                            <div class="fs-1 text-primary mb-2"><i class="bi bi-box-seam-fill"></i></div>
-                            <h6 class="fw-bold mb-1">Đóng Gói 4 Lớp</h6>
-                            <p class="text-secondary small mb-0">Bọc xốp chống sốc đa tầng, cam kết hộp góc cạnh không móp méo.</p>
-                        </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-2">
+                        <div class="fs-2 text-primary mb-2"><i class="bi bi-box-seam-fill"></i></div>
+                        <h6 class="fw-black text-uppercase mb-1" style="font-size: 14px;">ĐÓNG GÓI 4 LỚP</h6>
+                        <p class="text-secondary small mb-0">Bọc xốp chống sốc đa tầng bảo vệ góc hộp nguyên vẹn khi giao.</p>
                     </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-2">
-                            <div class="fs-1 text-success mb-2"><i class="bi bi-truck"></i></div>
-                            <h6 class="fw-bold mb-1">Freeship Từ 500K</h6>
-                            <p class="text-secondary small mb-0">Giao hàng hỏa tốc và miễn phí vận chuyển trên toàn quốc.</p>
-                        </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="p-2">
+                        <div class="fs-2 text-success mb-2"><i class="bi bi-truck"></i></div>
+                        <h6 class="fw-black text-uppercase mb-1" style="font-size: 14px;">FREESHIP TOÀN QUỐC</h6>
+                        <p class="text-secondary small mb-0">Miễn phí giao hàng cho đơn từ 500K và hỗ trợ kiểm tra kiện.</p>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Toast Notification for NOTIFY ME -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div id="notifyToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-bell-fill text-warning fs-5"></i>
+                    <span id="notifyToastMessage">Đã đăng ký thông báo mở bán thành công!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Fragment -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Interactive Scripts for Homepage -->
+    <script>
+        function switchMegaSize(size, ev) {
+            const img = document.getElementById('megaFigureImg');
+            const name = document.getElementById('megaFigureName');
+            const buttons = document.querySelectorAll('.pop-mega-size-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (ev && ev.currentTarget) {
+                ev.currentTarget.classList.add('active');
+            }
+
+            if (size === '1000%') {
+                img.style.transform = 'scale(1.22)';
+                name.textContent = 'SPACE MOLLY 1000% (70 CM)';
+            } else {
+                img.style.transform = 'scale(1)';
+                name.textContent = 'SPACE MOLLY 400% (29.5 CM)';
+            }
+        }
+
+        function notifyProductLaunch(productName) {
+            const toastEl = document.getElementById('notifyToast');
+            const msgEl = document.getElementById('notifyToastMessage');
+            msgEl.textContent = 'Đã bật thông báo mở bán: ' + productName;
+            const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+            toast.show();
+        }
+    </script>
 </body>
 </html>

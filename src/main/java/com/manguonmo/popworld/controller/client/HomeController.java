@@ -41,9 +41,21 @@ public class HomeController {
     public String home(Model model, Principal principal) {
         List<Product> featuredProducts = productService.getFeaturedProducts();
         List<Product> newReleases = productService.getNewReleases();
+        List<Product> popNowProducts = productService.getProductsByCategorySlug("blind-box");
+        if (popNowProducts.isEmpty()) {
+            popNowProducts = productService.getAllActiveProducts();
+        }
+        List<Product> megaProducts = productService.getProductsByCategorySlug("mega-collection");
+        if (megaProducts.isEmpty()) {
+            megaProducts = productService.getAllActiveProducts().stream()
+                    .filter(p -> p.getName() != null && (p.getName().toUpperCase().contains("MEGA") || p.getName().toUpperCase().contains("MOLLY") || p.getName().toUpperCase().contains("400%") || p.getName().toUpperCase().contains("1000%")))
+                    .toList();
+        }
 
         model.addAttribute("featuredProducts", featuredProducts);
         model.addAttribute("newReleases", newReleases);
+        model.addAttribute("popNowProducts", popNowProducts);
+        model.addAttribute("megaProducts", megaProducts);
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("characterIps", characterIpService.getAllCharacterIps());
 

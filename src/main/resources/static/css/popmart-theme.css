@@ -4123,3 +4123,587 @@ header.sticky-top,
     background: #F9FAFB !important;
     box-shadow: inset 0 0 0 1.5px #111111 !important;
 }
+
+/* ==========================================================================
+   POP MART US HOMEPAGE SPEC (Brand Showcase & Digital Exhibition)
+   ========================================================================== */
+
+/* 1. Full-Width Cinematic Hero Carousel */
+.pop-home-hero {
+    position: relative;
+    width: 100%;
+    background: #000000;
+    overflow: hidden;
+}
+
+.pop-home-hero .carousel-item {
+    height: 640px;
+    background-color: #050505;
+}
+
+@media (max-width: 768px) {
+    .pop-home-hero .carousel-item {
+        height: 480px;
+    }
+}
+
+.pop-hero-slide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.pop-hero-cinematic-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0.88) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 56px;
+    text-align: center;
+}
+
+.pop-hero-title {
+    font-family: var(--pop-font);
+    font-size: 38px;
+    font-weight: 900;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .pop-hero-title {
+        font-size: 24px;
+        margin-bottom: 18px;
+    }
+}
+
+.pop-hero-cta-group {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pop-hero-btn-shop {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 2px;
+    padding: 11px 36px;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.pop-hero-btn-shop:hover {
+    background: #FFFFFF;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+
+.pop-hero-btn-popnow {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 2px;
+    padding: 11px 36px;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.pop-hero-btn-popnow:hover {
+    background: var(--pop-red);
+    border-color: var(--pop-red);
+    color: #FFFFFF;
+}
+
+/* Floating Pick & Reveal sticker icon on bottom right */
+.pop-floating-pick-sticker {
+    position: fixed;
+    right: 20px;
+    bottom: 28px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.25s ease;
+}
+
+.pop-floating-pick-sticker:hover {
+    transform: scale(1.08) rotate(3deg);
+}
+
+.pop-floating-pick-sticker img {
+    width: 68px;
+    height: auto;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+}
+
+/* 2. Triptych Series Spotlight */
+.pop-triptych-section {
+    padding: 56px 0 32px;
+    background: #FFFFFF;
+}
+
+.pop-triptych-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #111111;
+    display: block;
+    text-decoration: none;
+}
+
+.pop-triptych-img-box {
+    width: 100%;
+    height: 520px;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .pop-triptych-img-box {
+        height: 380px;
+    }
+}
+
+.pop-triptych-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pop-triptych-card:hover .pop-triptych-img {
+    transform: scale(1.04);
+}
+
+.pop-triptych-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 28px;
+}
+
+.pop-triptych-title {
+    font-family: var(--pop-font);
+    font-size: 20px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 16px;
+    line-height: 1.25;
+}
+
+.pop-triptych-btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+    padding: 8px 22px;
+    font-family: var(--pop-font);
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.pop-triptych-card:hover .pop-triptych-btn {
+    background: #FFFFFF;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+
+/* 3. POP NOW 3D Shelf Section */
+.pop-shelf-section {
+    background: #EDE8E2;
+    padding: 56px 0 48px;
+}
+
+.pop-shelf-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.pop-shelf-title {
+    font-family: var(--pop-font);
+    font-size: 26px;
+    font-weight: 900;
+    color: #111111;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.pop-shelf-subtitle {
+    font-size: 13.5px;
+    color: #666666;
+}
+
+.pop-shelf-scroll-wrap {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 16px 4px 28px;
+    scrollbar-width: none;
+}
+
+.pop-shelf-scroll-wrap::-webkit-scrollbar {
+    display: none;
+}
+
+.pop-shelf-card {
+    flex: 0 0 220px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.25s ease;
+}
+
+.pop-shelf-card:hover {
+    transform: translateY(-6px);
+}
+
+.pop-shelf-box-img {
+    width: 170px;
+    height: 170px;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.16));
+    margin-bottom: 14px;
+}
+
+.pop-shelf-series-name {
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 6px;
+    height: 38px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.pop-shelf-price-tag {
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    color: #444444;
+    margin-bottom: 12px;
+}
+
+.pop-shelf-pick-btn {
+    background: rgba(0, 0, 0, 0.22);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 2px;
+    padding: 7px 20px;
+    font-family: var(--pop-font);
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.pop-shelf-card:hover .pop-shelf-pick-btn {
+    background: #000000;
+    color: #FFFFFF;
+    border-color: #000000;
+}
+
+/* 4. Explore by Theme & Popular Searches */
+.pop-theme-section {
+    padding: 48px 0;
+    background: #FFFFFF;
+}
+
+.pop-theme-section-title {
+    font-family: var(--pop-font);
+    font-size: 22px;
+    font-weight: 900;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+}
+
+.pop-theme-card {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    display: block;
+    text-decoration: none;
+    min-height: 240px;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pop-theme-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.pop-theme-card-body {
+    padding: 24px;
+    position: relative;
+    z-index: 2;
+}
+
+.pop-theme-card-tag {
+    font-family: var(--pop-font);
+    font-size: 18px;
+    font-weight: 900;
+    color: #111111;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.pop-theme-card-sub {
+    font-size: 12.5px;
+    color: #555555;
+}
+
+/* Popular searches pills */
+.pop-search-pills-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 8px 0 16px;
+    scrollbar-width: none;
+}
+
+.pop-search-pills-row::-webkit-scrollbar {
+    display: none;
+}
+
+.pop-pill-badge {
+    background: #F4F4F4;
+    color: #222222;
+    border-radius: 9999px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.pop-pill-badge:hover {
+    background: #000000;
+    color: #FFFFFF;
+}
+
+.pop-pill-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* 5. MEGA Collection 3D Stage */
+.pop-mega-stage-section {
+    padding: 56px 0;
+    background: #FAFAFA;
+    text-align: center;
+}
+
+.pop-mega-pedestal-wrap {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.pop-mega-figure-img {
+    width: 280px;
+    height: auto;
+    filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.18));
+    transition: transform 0.3s ease;
+}
+
+.pop-mega-figure-img:hover {
+    transform: scale(1.05);
+}
+
+.pop-mega-arc-line {
+    width: 320px;
+    height: 30px;
+    margin: 10px auto 20px;
+    border-bottom: 2px dashed #D0D0D0;
+    border-radius: 50%;
+}
+
+.pop-mega-title {
+    font-family: var(--pop-font);
+    font-size: 22px;
+    font-weight: 900;
+    color: #111111;
+    margin-bottom: 20px;
+}
+
+.pop-mega-size-group {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.pop-mega-size-btn {
+    border: 1px solid #111111;
+    background: transparent;
+    color: #111111;
+    padding: 8px 22px;
+    white-space: nowrap;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pop-mega-size-btn.active,
+.pop-mega-size-btn:hover {
+    background: #000000;
+    color: #FFFFFF;
+}
+
+/* 6. Launch Calendar & New Arrivals */
+.pop-launch-section {
+    padding: 56px 0 40px;
+    background: #FFFFFF;
+}
+
+.pop-launch-tag {
+    background: #000000;
+    color: #FFFFFF;
+    font-family: var(--pop-font);
+    font-size: 11px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.pop-launch-tag span:first-child {
+    padding: 3px 6px;
+    background: #222222;
+}
+
+.pop-launch-tag span:last-child {
+    padding: 3px 8px;
+    background: #FACC15;
+    color: #111111;
+}
+
+.pop-notify-btn {
+    background: transparent;
+    color: #111111;
+    border: 1px solid #CCCCCC;
+    border-radius: 2px;
+    padding: 7px 18px;
+    font-family: var(--pop-font);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pop-notify-btn:hover {
+    border-color: #000000;
+    background: #000000;
+    color: #FFFFFF;
+}
+
+/* 7. Special Offers 4-Grid */
+.pop-offer-card {
+    border-radius: 4px;
+    overflow: hidden;
+    background: #111111;
+    position: relative;
+    display: block;
+    text-decoration: none;
+}
+
+.pop-offer-card-img {
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.pop-offer-card:hover .pop-offer-card-img {
+    transform: scale(1.03);
+}
+
+.pop-offer-card-footer {
+    padding: 16px 0 0;
+}
+
+.pop-offer-card-title {
+    font-family: var(--pop-font);
+    font-size: 14.5px;
+    font-weight: 800;
+    color: #111111;
+    margin-bottom: 10px;
+}
+
+.pop-offer-card-btn {
+    border: 1px solid #111111;
+    background: transparent;
+    color: #111111;
+    padding: 6px 18px;
+    font-family: var(--pop-font);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.pop-offer-card:hover .pop-offer-card-btn {
+    background: #000000;
+    color: #FFFFFF;
+}

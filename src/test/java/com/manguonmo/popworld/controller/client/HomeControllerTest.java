@@ -51,6 +51,8 @@ public class HomeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
                 .andExpect(model().attributeExists("featuredProducts"))
-                .andExpect(model().attributeExists("newReleases"));
+                .andExpect(model().attributeExists("newReleases"))
+                .andExpect(model().attributeExists("popNowProducts"))
+                .andExpect(model().attributeExists("megaProducts"));
     }
 }
