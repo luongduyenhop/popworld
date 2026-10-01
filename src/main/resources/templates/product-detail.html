@@ -317,11 +317,14 @@
                                     </div>
                                 </div>
                                 <span th:if="${userReview.approved}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Đã duyệt công khai
+                                    <i class="bi bi-check-circle-fill me-1"></i>Đã đăng công khai
                                 </span>
-                                <span th:unless="${userReview.approved}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
-                                    <i class="bi bi-hourglass-split me-1"></i>Đang chờ kiểm duyệt
+                                <span th:unless="${userReview.approved}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                                    <i class="bi bi-eye-slash-fill me-1"></i>Đã bị ẩn bởi quản trị viên
                                 </span>
+                            </div>
+                            <div th:unless="${userReview.approved}" class="alert alert-danger py-2 px-3 small rounded-3 mb-2">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Đánh giá này đang tạm thời bị ẩn khỏi cộng đồng do vi phạm chính sách hoặc tiêu chuẩn kiểm duyệt.
                             </div>
                             <p class="text-dark mb-2" style="white-space: pre-line;" th:text="${userReview.comment != null ? userReview.comment : '(Không có lời nhận xét)'}"></p>
                             <div th:if="${userReview.reviewImageUrl != null and !userReview.reviewImageUrl.isEmpty()}" class="mt-2">

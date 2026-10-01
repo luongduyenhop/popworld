@@ -33,18 +33,18 @@
             <div class="col-sm-6 col-xl-3">
                 <div class="admin-stat-card py-3">
                     <div>
-                        <div class="admin-stat-label">Chờ Duyệt (Đang Ẩn)</div>
+                        <div class="admin-stat-label">Đang Bị Ẩn (Vi Phạm)</div>
                         <div class="admin-stat-number fs-3 text-warning" th:text="${stats.pendingReviews}">0</div>
                     </div>
                     <div class="admin-stat-icon icon-yellow" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="bi bi-hourglass-split"></i>
+                        <i class="bi bi-eye-slash-fill"></i>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-xl-3">
                 <div class="admin-stat-card py-3">
                     <div>
-                        <div class="admin-stat-label">Đã Duyệt (Hiển Thị)</div>
+                        <div class="admin-stat-label">Đang Hiển Thị Công Khai</div>
                         <div class="admin-stat-number fs-3 text-success" th:text="${stats.approvedReviews}">0</div>
                     </div>
                     <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
@@ -78,17 +78,17 @@
                    th:classappend="${currentStatus == 'ALL' ? 'active' : ''}">
                     Tất Cả (<span th:text="${stats.totalReviews}">0</span>)
                 </a>
-                <a th:href="@{/admin/reviews(status='PENDING', keyword=${keyword})}"
-                   class="admin-tab-item"
-                   th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}">
-                    <span class="text-warning"><i class="bi bi-hourglass-split me-1"></i>Chờ Duyệt</span>
-                    (<span th:text="${stats.pendingReviews}">0</span>)
-                </a>
                 <a th:href="@{/admin/reviews(status='APPROVED', keyword=${keyword})}"
                    class="admin-tab-item"
                    th:classappend="${currentStatus == 'APPROVED' ? 'active' : ''}">
-                    <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Đã Duyệt</span>
+                    <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Đang Hiển Thị</span>
                     (<span th:text="${stats.approvedReviews}">0</span>)
+                </a>
+                <a th:href="@{/admin/reviews(status='PENDING', keyword=${keyword})}"
+                   class="admin-tab-item"
+                   th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}">
+                    <span class="text-warning"><i class="bi bi-eye-slash-fill me-1"></i>Đang Bị Ẩn</span>
+                    (<span th:text="${stats.pendingReviews}">0</span>)
                 </a>
             </div>
 
@@ -217,31 +217,31 @@
                         <td class="text-center">
                             <span th:if="${r.approved}"
                                   class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-check-circle-fill me-1"></i>Đã Duyệt
+                                <i class="bi bi-check-circle-fill me-1"></i>Đang Hiển Thị
                             </span>
                             <span th:unless="${r.approved}"
-                                  class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-2 fw-semibold">
-                                <i class="bi bi-hourglass-split me-1"></i>Chờ Duyệt
+                                  class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-eye-slash-fill me-1"></i>Đang Bị Ẩn
                             </span>
                         </td>
 
                         <!-- Thao Tác Kiểm Duyệt -->
                         <td class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-2">
-                                <!-- Nút Duyệt / Hủy Duyệt -->
+                                <!-- Nút Hiện Lại / Ẩn Bài -->
                                 <form th:if="${!r.approved}" th:action="@{'/admin/reviews/' + ${r.id} + '/approve'}" method="post" class="d-inline">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm"
-                                            title="Phê duyệt hiển thị trên trang sản phẩm">
-                                        <i class="bi bi-check-lg me-1"></i>Duyệt
+                                            title="Khôi phục hiển thị trên trang sản phẩm">
+                                        <i class="bi bi-eye me-1"></i>Hiện Lại
                                     </button>
                                 </form>
 
                                 <form th:if="${r.approved}" th:action="@{'/admin/reviews/' + ${r.id} + '/unapprove'}" method="post" class="d-inline">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1"
-                                            title="Bỏ duyệt và ẩn đánh giá này">
-                                        <i class="bi bi-eye-slash me-1"></i>Ẩn
+                                    <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 shadow-sm"
+                                            title="Tạm ẩn đánh giá khỏi trang sản phẩm">
+                                        <i class="bi bi-eye-slash me-1"></i>Ẩn Bài
                                     </button>
                                 </form>
 

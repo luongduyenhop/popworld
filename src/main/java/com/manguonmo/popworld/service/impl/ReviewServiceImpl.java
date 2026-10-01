@@ -178,18 +178,20 @@ public class ReviewServiceImpl implements ReviewService {
                 ? request.getComment().trim() : null;
         String cleanImageUrl = validateAndSanitizeImageUrl(request.getReviewImageUrl());
 
-        // Mặc định luôn là approved = false để chờ admin kiểm duyệt
+        // Áp dụng cơ chế Hậu kiểm (Post-moderation): Khách hàng đã nhận hàng thành công (DELIVERED)
+        // được tin tưởng và cho phép hiển thị đánh giá công khai ngay lập tức (approved = true).
+        // Ban quản trị (Admin) có toàn quyền ẩn hoặc xóa nếu phát hiện nội dung vi phạm.
         Review review = Review.builder()
                 .user(user)
                 .product(product)
                 .rating(rating)
                 .comment(cleanComment)
                 .reviewImageUrl(cleanImageUrl)
-                .approved(false)
+                .approved(true)
                 .build();
 
         Review saved = reviewRepository.save(review);
-        log.info("Khách hàng userId={} đã gửi đánh giá mới cho productId={}, chờ duyệt: reviewId={}",
+        log.info("Khách hàng userId={} đã đăng đánh giá mở hộp thành công cho productId={}, công khai ngay: reviewId={}",
                 userId, product.getId(), saved.getId());
 
         return mapToResponse(saved);

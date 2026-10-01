@@ -308,7 +308,7 @@ class ReviewServiceTest {
         assertEquals(500L, response.getId());
         assertEquals(5, response.getRating());
         assertEquals("Tuyệt phẩm!", response.getComment());
-        assertFalse(response.getApproved()); // Bắt buộc approved=false chờ duyệt
+        assertTrue(response.getApproved()); // Hậu kiểm: Khách hàng mua hàng thành công được duyệt ngay lập tức
         verify(reviewRepository).save(any(Review.class));
     }
 
@@ -378,6 +378,23 @@ class ReviewServiceTest {
         assertNotNull(res);
         assertEquals(5, res.getRating());
         assertEquals("Đẹp xuất sắc", res.getComment());
+        assertTrue(res.getApproved());
+    }
+
+    @Test
+    @DisplayName("createReview: Khách hàng mua hàng thành công sẽ được duyệt ngay (approved=true) theo cơ chế hậu kiểm")
+    void createReview_PostModeration_ApprovedIsTrue() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(sampleProduct));
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(orderItemRepository.hasUserPurchasedProductDelivered(1L, 10L)).thenReturn(true);
+        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ReviewCreateRequest req = ReviewCreateRequest.builder().productId(10L).comment("Hàng chuẩn đẹp").build();
+        ReviewResponse res = reviewService.createReview(1L, req);
+
+        assertNotNull(res);
+        assertTrue(res.getApproved(), "Hậu kiểm: Đánh giá phải được duyệt ngay (approved = true) để hiển thị công khai");
     }
 
     @Test
