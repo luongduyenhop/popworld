@@ -125,6 +125,29 @@ public class CartWebController {
         return "redirect:/cart";
     }
 
+    @PostMapping("/buy-now")
+    public String buyNow(@RequestParam Long productId,
+                         @RequestParam(defaultValue = "SINGLE_BOX") String purchaseType,
+                         @RequestParam(defaultValue = "1") int quantity,
+                         RedirectAttributes redirectAttributes,
+                         Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            String username = principal.getName();
+            User user = userService.getUserByEmail(username);
+            // Bỏ chọn các món khác trong giỏ để chỉ thanh toán món Mua Ngay
+            cartService.selectAll(user.getId(), false);
+            CartItem item = cartService.addToCart(user.getId(), productId, purchaseType, quantity);
+            cartService.updateSelection(user.getId(), item.getId(), true);
+            return "redirect:/checkout";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể mua ngay: " + e.getMessage());
+            return "redirect:/cart";
+        }
+    }
+
     @PostMapping("/update")
     public String updateQuantity(@RequestParam Long cartItemId,
                                  @RequestParam int quantity,

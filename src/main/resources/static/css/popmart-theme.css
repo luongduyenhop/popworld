@@ -2998,3 +2998,610 @@ header.sticky-top,
     border-bottom: 1px solid #F0F0F0;
     align-items: center;
 }
+
+/* ==========================================================================
+   POP MART US OFFICIAL PDP REDESIGN (PRODUCT DETAIL PAGE STYLES)
+   ========================================================================== */
+
+/* 1. Vertical Figure Styles Rail (Cột rail nhân vật dọc) */
+.pdp-figure-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 64px;
+    flex-shrink: 0;
+}
+
+.pdp-figure-rail-title {
+    font-family: var(--pop-font);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888888;
+    text-align: center;
+    margin-bottom: 2px;
+}
+
+.pdp-figure-thumb {
+    width: 58px;
+    height: 58px;
+    border-radius: 8px;
+    border: 1.5px solid #EAEAEA;
+    background: #F9F9F9;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdp-figure-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.25s ease;
+}
+
+.pdp-figure-thumb:hover {
+    border-color: #111111;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.pdp-figure-thumb:hover img {
+    transform: scale(1.08);
+}
+
+.pdp-figure-thumb.active {
+    border-color: #000000;
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.pdp-figure-thumb-secret-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #C59B27;
+    color: #FFFFFF;
+    font-size: 7px;
+    font-weight: 800;
+    padding: 1px 3px;
+    border-radius: 3px;
+    line-height: 1;
+}
+
+/* 2. Main Showcase Viewport */
+.pdp-showcase-box {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #FFFFFF 45%, #F4F5F7 100%);
+    border: 1px solid #ECECEC;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.pdp-showcase-box img.main-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease-out;
+    transform-origin: center center;
+}
+
+.pdp-counter-pill {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #FFFFFF;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: var(--pop-font);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    z-index: 5;
+}
+
+.pdp-active-char-banner {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* 3. Sticky Purchase Box (Cột phải cố định) */
+.pdp-sticky-box {
+    position: sticky;
+    top: 90px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 28px 24px;
+    border: 1px solid #EEEEEE;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.pdp-product-title {
+    font-family: var(--pop-font);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.25;
+    color: #000000;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.pdp-price-hero {
+    font-family: var(--pop-font);
+    font-size: 32px;
+    font-weight: 900;
+    color: #000000;
+    letter-spacing: -0.8px;
+    line-height: 1;
+}
+
+.pdp-reward-points {
+    color: #B48220;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+/* 4. Segmented Delivery Options */
+.pdp-delivery-toggle {
+    display: flex;
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+    margin-bottom: 18px;
+}
+
+.pdp-delivery-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    font-family: var(--pop-font);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    color: #555555;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.pdp-delivery-item:hover {
+    color: #000000;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.pdp-delivery-item.active {
+    background: #FFFFFF;
+    color: #000000;
+    border-color: #000000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pdp-delivery-item.pop-now-item {
+    position: relative;
+}
+
+.pdp-pop-now-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #E50012;
+    display: inline-block;
+    animation: pdpPulse 1.6s infinite;
+}
+
+@keyframes pdpPulse {
+    0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(229, 0, 18, 0.7); }
+    70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 6px rgba(229, 0, 18, 0); }
+    100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(229, 0, 18, 0); }
+}
+
+/* 5. Variant Selection Cards (Hộp Lẻ vs Cả Set) */
+.pdp-variant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.pdp-variant-card {
+    border: 1.5px solid #EAEAEA;
+    border-radius: 12px;
+    padding: 14px 12px;
+    cursor: pointer;
+    background: #FFFFFF;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.pdp-variant-card:hover {
+    border-color: #888888;
+    background: #FAFAFA;
+}
+
+.pdp-variant-card.active {
+    border-color: #000000;
+    border-width: 2px;
+    background: #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.pdp-variant-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #EEEEEE;
+    color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.pdp-variant-card.active .pdp-variant-check {
+    background: #000000;
+    color: #FFFFFF;
+}
+
+.pdp-variant-title {
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    color: #000000;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pdp-variant-price {
+    font-family: var(--pop-font);
+    font-size: 15px;
+    font-weight: 800;
+    color: #000000;
+    margin-bottom: 2px;
+}
+
+.pdp-variant-desc {
+    font-family: var(--pop-font);
+    font-size: 11px;
+    color: #777777;
+    line-height: 1.3;
+}
+
+/* 6. Quantity Stepper */
+.pdp-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    background: #F5F5F7;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 48px;
+    width: 130px;
+}
+
+.pdp-qty-btn {
+    width: 40px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-family: var(--pop-font);
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdp-qty-btn:hover {
+    background: #E5E5E8;
+}
+
+.pdp-qty-input {
+    width: 50px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: var(--pop-font);
+    font-size: 15px;
+    font-weight: 800;
+    color: #000000;
+}
+
+.pdp-qty-input:focus {
+    outline: none;
+}
+
+/* 7. Action Buttons (ADD TO CART & BUY NOW) */
+.pdp-btn-add-cart {
+    flex: 1;
+    height: 50px;
+    background: #FFFFFF;
+    color: #000000;
+    border: 1.5px solid #000000;
+    border-radius: 8px;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.pdp-btn-add-cart:hover {
+    background: #F5F5F7;
+    border-color: #000000;
+    color: #000000;
+}
+
+.pdp-btn-buy-now {
+    flex: 1;
+    height: 50px;
+    background: #000000;
+    color: #FFFFFF;
+    border: 1.5px solid #000000;
+    border-radius: 8px;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.pdp-btn-buy-now:hover {
+    background: #262626;
+    border-color: #262626;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 8. Service Highlights Guarantee Bar */
+.pdp-guarantee-box {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #EEEEEE;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pdp-guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--pop-font);
+    font-size: 12px;
+    color: #444444;
+}
+
+.pdp-guarantee-item i {
+    font-size: 15px;
+    color: #000000;
+}
+
+/* 9. Downstream Showcase: All Characters Grid */
+.pdp-characters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.pdp-character-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #ECECEC;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.pdp-character-card:hover {
+    border-color: #111111;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pdp-character-card-img {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #F9F9F9;
+    margin-bottom: 8px;
+}
+
+.pdp-character-card-img img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pdp-character-name {
+    font-family: var(--pop-font);
+    font-size: 12px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pdp-character-badge {
+    font-family: var(--pop-font);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #888888;
+}
+
+/* 10. Downstream Showcase: Secret Edition Spotlight */
+.pdp-secret-spotlight {
+    background: linear-gradient(135deg, #1C1917 0%, #292524 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(243, 213, 181, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.pdp-secret-spotlight::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(243, 213, 181, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.pdp-secret-tag {
+    background: #F3D5B5;
+    color: #1A1A1A;
+    font-family: var(--pop-font);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* 11. Specifications Table (Chuẩn POP MART Information) */
+.pdp-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pdp-spec-row {
+    border-bottom: 1px solid #F0F0F0;
+    display: flex;
+    padding: 12px 0;
+    font-family: var(--pop-font);
+    font-size: 13.5px;
+}
+
+.pdp-spec-label {
+    width: 160px;
+    color: #888888;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-size: 12px;
+}
+
+.pdp-spec-value {
+    flex: 1;
+    color: #111111;
+    font-weight: 700;
+}
+
+/* 12. Packaging Comparison (Single Box vs Whole Sets) */
+.pdp-pack-compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.pdp-pack-compare-card {
+    background: #FBFBFC;
+    border: 1px solid #EAEAEA;
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pdp-pack-compare-title {
+    font-family: var(--pop-font);
+    font-size: 14px;
+    font-weight: 800;
+    color: #000000;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pdp-pack-compare-desc {
+    font-family: var(--pop-font);
+    font-size: 12.5px;
+    color: #666666;
+    line-height: 1.5;
+}

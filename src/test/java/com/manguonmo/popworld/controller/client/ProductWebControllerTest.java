@@ -45,6 +45,9 @@ class ProductWebControllerTest {
     @MockitoBean
     private com.manguonmo.popworld.service.ReviewService reviewService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.service.PopNowService popNowService;
+
     @Test
     @DisplayName("Truy cập trang chi tiết sản phẩm /products/{slug} thành công và nạp đánh giá đã duyệt")
     void test_ProductDetail_Success() throws Exception {

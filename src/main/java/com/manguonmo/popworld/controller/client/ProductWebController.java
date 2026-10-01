@@ -22,6 +22,8 @@ import com.manguonmo.popworld.dto.response.ReviewResponse;
 import com.manguonmo.popworld.service.ReviewService;
 
 import java.math.BigDecimal;
+import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
+import com.manguonmo.popworld.service.PopNowService;
 import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
@@ -38,19 +40,22 @@ public class ProductWebController {
     private final CartService cartService;
     private final UserService userService;
     private final ReviewService reviewService;
+    private final PopNowService popNowService;
 
     public ProductWebController(ProductService productService,
                                 CategoryService categoryService,
                                 CharacterIpService characterIpService,
                                 CartService cartService,
                                 UserService userService,
-                                ReviewService reviewService) {
+                                ReviewService reviewService,
+                                PopNowService popNowService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.cartService = cartService;
         this.userService = userService;
         this.reviewService = reviewService;
+        this.popNowService = popNowService;
     }
 
     private void addCommonAttributes(Model model) {
@@ -134,6 +139,28 @@ public class ProductWebController {
         model.addAttribute("canReview", canReview);
         model.addAttribute("userReview", userReview);
         model.addAttribute("reviewForm", new ReviewCreateRequest());
+
+        // Lấy danh sách nhân vật trong series cho Showcase / Figure Styles / All Characters
+        List<BlindBoxItemResponse> characters = Collections.emptyList();
+        try {
+            characters = popNowService.getSeriesItems(product.getId());
+        } catch (Exception ignored) {
+        }
+        model.addAttribute("characters", characters);
+
+        BlindBoxItemResponse secretCharacter = characters.stream()
+                .filter(c -> Boolean.TRUE.equals(c.getIsSecret()))
+                .findFirst()
+                .orElse(null);
+        model.addAttribute("secretCharacter", secretCharacter);
+
+        List<BlindBoxItemResponse> regularCharacters = characters.stream()
+                .filter(c -> !Boolean.TRUE.equals(c.getIsSecret()))
+                .toList();
+        model.addAttribute("regularCharacters", regularCharacters);
+
+        long estimatedPoints = product.getSinglePrice() != null ? product.getSinglePrice().longValue() / 1000 : 0;
+        model.addAttribute("estimatedPoints", estimatedPoints);
 
         return "product-detail";
     }
