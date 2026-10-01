@@ -76,7 +76,7 @@ public class AccountWebController {
         Map<Long, List<OrderItem>> orderItemsMap = orders.stream()
                 .collect(Collectors.toMap(Order::getId, order -> orderService.getOrderItems(order.getId()), (a, b) -> a));
 
-        List<UserAddress> addresses = userAddressRepository.findByUserId(user.getId());
+        List<UserAddress> addresses = userAddressService.getAddressesByUserId(user.getId());
 
         String activeAccountTab = "REWARDS";
         if (tab != null && !tab.isBlank()) {
@@ -85,6 +85,8 @@ public class AccountWebController {
                 activeAccountTab = "LUCKY_POINTS";
             } else if ("HINTCARD".equals(tabUpper) || "HINT_CARD".equals(tabUpper)) {
                 activeAccountTab = "HINT_CARD";
+            } else if ("ADDRESS".equals(tabUpper) || "ADDRESSES".equals(tabUpper) || "ADDRESS_BOOK".equals(tabUpper)) {
+                activeAccountTab = "ADDRESSES";
             } else {
                 activeAccountTab = tabUpper;
             }
@@ -268,7 +270,7 @@ public class AccountWebController {
                     .findFirst()
                     .orElse("Thông tin địa chỉ không hợp lệ");
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:/account";
+            return "redirect:/account?tab=addresses";
         }
         try {
             userAddressService.createAddress(user.getId(), request);
@@ -279,7 +281,7 @@ public class AccountWebController {
             log.error("Lỗi khi thêm địa chỉ: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể lưu địa chỉ. Vui lòng thử lại!");
         }
-        return "redirect:/account";
+        return "redirect:/account?tab=addresses";
     }
 
     /**
@@ -304,7 +306,7 @@ public class AccountWebController {
                     .findFirst()
                     .orElse("Thông tin cập nhật địa chỉ không hợp lệ");
             redirectAttributes.addFlashAttribute("errorMessage", errorMsg);
-            return "redirect:/account";
+            return "redirect:/account?tab=addresses";
         }
         try {
             userAddressService.updateAddress(user.getId(), id, request);
@@ -315,7 +317,7 @@ public class AccountWebController {
             log.error("Lỗi khi sửa địa chỉ: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật địa chỉ. Vui lòng thử lại!");
         }
-        return "redirect:/account";
+        return "redirect:/account?tab=addresses";
     }
 
     /**
@@ -341,7 +343,7 @@ public class AccountWebController {
             log.error("Lỗi khi xóa địa chỉ: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa địa chỉ. Vui lòng thử lại!");
         }
-        return "redirect:/account";
+        return "redirect:/account?tab=addresses";
     }
 
     /**
@@ -367,7 +369,7 @@ public class AccountWebController {
             log.error("Lỗi khi đặt địa chỉ mặc định: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể đặt địa chỉ mặc định. Vui lòng thử lại!");
         }
-        return "redirect:/account";
+        return "redirect:/account?tab=addresses";
     }
 }
 

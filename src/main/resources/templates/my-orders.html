@@ -143,7 +143,7 @@
                                 <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
                             </a>
 
-                            <a href="javascript:void(0)" class="pop-side-nav-item" data-bs-toggle="modal" data-bs-target="#addressBookModal">
+                            <a href="javascript:void(0)" class="pop-side-nav-item" onclick="switchAccountPanel('ADDRESSES')">
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-geo-alt"></i>
                                     <div>
@@ -924,6 +924,91 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- ===================================================================== -->
+                <!-- PANEL F: SỔ ĐỊA CHỈ (DELIVERY ADDRESS BOOK - POP MART US SPEC)        -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelAddresses" class="pop-account-main-panel"
+                         th:style="${activeAccountTab == 'ADDRESSES' ? 'display: block;' : 'display: none;'}">
+                    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                        <div>
+                            <h2 class="pop-rewards-section-title mb-1">Sổ Địa Chỉ Giao Hàng</h2>
+                            <p class="text-secondary small mb-0">Quản lý các địa chỉ nhận hàng và chỉ định địa chỉ giao hàng mặc định.</p>
+                        </div>
+                        <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm"
+                                data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            <i class="bi bi-plus-lg me-1 text-danger"></i> Thêm Địa Chỉ Mới
+                        </button>
+                    </div>
+
+                    <!-- Address Cards Grid -->
+                    <div th:if="${addresses != null && !addresses.isEmpty()}" class="row g-3">
+                        <div class="col-md-6" th:each="addr : ${addresses}">
+                            <div class="card h-100 rounded-3 p-4 bg-white position-relative shadow-sm"
+                                 th:style="${addr.isDefault ? 'border: 2px solid #E60012 !important; background: #FFFDFD;' : 'border: 1px solid #ECEEF2 !important;'}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <h5 class="fw-bold mb-0 text-dark" th:text="${addr.recipientName}">Nguyễn Văn A</h5>
+                                        <span class="badge bg-light text-secondary border font-monospace" th:text="${addr.recipientPhone}">0912345678</span>
+                                    </div>
+                                    <span th:if="${addr.isDefault}" class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 11px;">
+                                        <i class="bi bi-check2-circle me-1"></i> MẶC ĐỊNH
+                                    </span>
+                                </div>
+
+                                <div class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">
+                                    <div class="fw-semibold text-dark mb-1" th:text="${addr.detailedAddress}">Số 10 Phạm Văn Bạch</div>
+                                    <div th:text="${(addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + addr.district + ', ' + addr.provinceCity}">
+                                        Dịch Vọng, Cầu Giấy, Hà Nội
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto gap-2 flex-wrap">
+                                    <div>
+                                        <form th:unless="${addr.isDefault}" th:action="@{'/account/addresses/' + ${addr.id} + '/default'}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                                                Đặt làm mặc định
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="d-flex gap-2 ms-auto">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold"
+                                                th:data-id="${addr.id}"
+                                                th:data-name="${addr.recipientName}"
+                                                th:data-phone="${addr.recipientPhone}"
+                                                th:data-province="${addr.provinceCity}"
+                                                th:data-district="${addr.district}"
+                                                th:data-ward="${addr.ward}"
+                                                th:data-address="${addr.detailedAddress}"
+                                                th:data-default="${addr.isDefault}"
+                                                onclick="openEditAddressModal(this)">
+                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                        </button>
+                                        <form th:action="@{'/account/addresses/' + ${addr.id} + '/delete'}" method="post" class="d-inline"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                                                <i class="bi bi-trash3 me-1"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${addresses == null || addresses.isEmpty()}" class="pop-orders-empty-state bg-white rounded-3 p-5 text-center border" style="border-color: #ECEEF2 !important;">
+                        <div class="pop-empty-icon-box mb-3">
+                            <i class="bi bi-geo-alt text-muted" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Chưa có địa chỉ giao hàng nào</h5>
+                        <p class="pop-empty-text text-secondary mb-3">Lưu địa chỉ nhận hàng để thanh toán nhanh hơn chỉ với 1 chạm khi săn Art Toys!</p>
+                        <button type="button" class="btn btn-danger rounded-pill px-4 py-2 fw-bold"
+                                data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            <i class="bi bi-plus-lg me-1"></i> Thêm Địa Chỉ Đầu Tiên
+                        </button>
+                    </div>
+                </section>
             </div>
         </div>
     </main>
@@ -1023,16 +1108,22 @@
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                                <input type="text" name="provinceCity" class="form-control rounded-3" placeholder="Hà Nội / TP.HCM" required>
+                                <select id="addProvinceSelect" name="provinceCity" class="form-select rounded-3" required>
+                                    <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
-                                <input type="text" name="district" class="form-control rounded-3" placeholder="Cầu Giấy / Quận 1" required>
+                                <select id="addDistrictSelect" name="district" class="form-select rounded-3" required disabled>
+                                    <option value="">-- Chọn Quận / Huyện --</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Phường / Xã</label>
-                            <input type="text" name="ward" class="form-control rounded-3" placeholder="Dịch Vọng / Bến Nghé">
+                            <select id="addWardSelect" name="ward" class="form-select rounded-3" disabled>
+                                <option value="">-- Chọn Phường / Xã --</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
@@ -1077,16 +1168,22 @@
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                                <input type="text" id="editProvinceCity" name="provinceCity" class="form-control rounded-3" required>
+                                <select id="editProvinceSelect" name="provinceCity" class="form-select rounded-3" required>
+                                    <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
-                                <input type="text" id="editDistrict" name="district" class="form-control rounded-3" required>
+                                <select id="editDistrictSelect" name="district" class="form-select rounded-3" required disabled>
+                                    <option value="">-- Chọn Quận / Huyện --</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Phường / Xã</label>
-                            <input type="text" id="editWard" name="ward" class="form-control rounded-3">
+                            <select id="editWardSelect" name="ward" class="form-select rounded-3" disabled>
+                                <option value="">-- Chọn Phường / Xã --</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
@@ -1477,6 +1574,7 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/vietnam-address.js}"></script>
     <script>
         function previewAvatarFile(input) {
             if (input.files && input.files[0]) {
@@ -1642,11 +1740,19 @@
 
             document.getElementById('editRecipientName').value = name;
             document.getElementById('editRecipientPhone').value = phone;
-            document.getElementById('editProvinceCity').value = province;
-            document.getElementById('editDistrict').value = district;
-            document.getElementById('editWard').value = ward;
             document.getElementById('editDetailedAddress').value = address;
             document.getElementById('editIsDefault').checked = isDefault;
+
+            if (window.VietnamAddressSelector) {
+                window.VietnamAddressSelector.init({
+                    provinceElId: 'editProvinceSelect',
+                    districtElId: 'editDistrictSelect',
+                    wardElId: 'editWardSelect',
+                    initialProvince: province,
+                    initialDistrict: district,
+                    initialWard: ward
+                });
+            }
 
             // Đóng modal address book tạm thời nếu đang mở
             const addressBookEl = document.getElementById('addressBookModal');
@@ -1659,19 +1765,21 @@
             editModal.show();
         }
 
-        // Chuyển đổi tức thì giữa các giao diện: MEMBER REWARDS, MY POINTS, MY ORDERS, LUCKY POINTS, HINT CARD
+        // Chuyển đổi tức thì giữa các giao diện: MEMBER REWARDS, MY POINTS, MY ORDERS, LUCKY POINTS, HINT CARD, ADDRESSES
         function switchAccountPanel(panelName) {
             const rewardsPanel = document.getElementById('accountPanelRewards');
             const pointsPanel = document.getElementById('accountPanelPoints');
             const ordersPanel = document.getElementById('accountPanelOrders');
             const lpPanel = document.getElementById('accountPanelLuckyPoints');
             const hintPanel = document.getElementById('accountPanelHintCard');
+            const addrPanel = document.getElementById('accountPanelAddresses');
 
             if (rewardsPanel) rewardsPanel.style.display = (panelName === 'REWARDS') ? 'block' : 'none';
             if (pointsPanel) pointsPanel.style.display = (panelName === 'POINTS') ? 'block' : 'none';
             if (ordersPanel) ordersPanel.style.display = (panelName === 'ORDERS') ? 'block' : 'none';
             if (lpPanel) lpPanel.style.display = (panelName === 'LUCKY_POINTS') ? 'block' : 'none';
             if (hintPanel) hintPanel.style.display = (panelName === 'HINT_CARD') ? 'block' : 'none';
+            if (addrPanel) addrPanel.style.display = (panelName === 'ADDRESSES') ? 'block' : 'none';
 
             // Active indicator on sidebar 2x2 grid
             const cellLp = document.getElementById('sidebarCellLuckyPoints');
@@ -1685,6 +1793,7 @@
                 else if (panelName === 'ORDERS') tabQuery = '?tab=orders';
                 else if (panelName === 'LUCKY_POINTS') tabQuery = '?tab=lucky-points';
                 else if (panelName === 'HINT_CARD') tabQuery = '?tab=hint-card';
+                else if (panelName === 'ADDRESSES') tabQuery = '?tab=addresses';
                 window.history.replaceState({}, '', '/account' + tabQuery);
             }
         }
@@ -1848,13 +1957,29 @@
                 filterOrders(status, initialTab);
             }
 
-            // Đồng bộ trạng thái active-metric nếu tab ban đầu là LUCKY_POINTS hoặc HINT_CARD
+            // Đồng bộ trạng thái active-metric nếu tab ban đầu là LUCKY_POINTS, HINT_CARD hoặc ADDRESSES
             const params = new URLSearchParams(window.location.search);
             const tabParam = params.get('tab');
             if (tabParam === 'lucky-points') {
                 switchAccountPanel('LUCKY_POINTS');
             } else if (tabParam === 'hint-card') {
                 switchAccountPanel('HINT_CARD');
+            } else if (tabParam === 'addresses' || tabParam === 'address') {
+                switchAccountPanel('ADDRESSES');
+            }
+
+            // Gắn lắng nghe sự kiện khi mở modal thêm địa chỉ để nạp danh sách tỉnh thành
+            const addModalEl = document.getElementById('addAddressModal');
+            if (addModalEl) {
+                addModalEl.addEventListener('show.bs.modal', function () {
+                    if (window.VietnamAddressSelector) {
+                        window.VietnamAddressSelector.init({
+                            provinceElId: 'addProvinceSelect',
+                            districtElId: 'addDistrictSelect',
+                            wardElId: 'addWardSelect'
+                        });
+                    }
+                });
             }
         });
     </script>

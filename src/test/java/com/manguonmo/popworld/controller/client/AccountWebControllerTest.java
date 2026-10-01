@@ -85,7 +85,7 @@ class AccountWebControllerTest {
         when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
         when(orderService.getOrdersByUser(1L)).thenReturn(Collections.emptyList());
         when(couponRepository.countByActiveTrue()).thenReturn(3L);
-        when(userAddressRepository.findByUserId(1L)).thenReturn(Collections.emptyList());
+        when(userAddressService.getAddressesByUserId(1L)).thenReturn(Collections.emptyList());
 
         String view = accountWebController.showAccountHub(null, null, model, principal);
 
@@ -205,7 +205,7 @@ class AccountWebControllerTest {
     }
 
     @Test
-    @DisplayName("addAddress: Thành công redirect về /account kèm flash message")
+    @DisplayName("addAddress: Thành công redirect về /account?tab=addresses kèm flash message")
     void addAddress_Success_RedirectsToAccount() {
         when(principal.getName()).thenReturn("test@popworld.com");
         when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
@@ -219,13 +219,33 @@ class AccountWebControllerTest {
 
         String view = accountWebController.addAddress(req, br, ra, principal);
 
-        assertEquals("redirect:/account", view);
+        assertEquals("redirect:/account?tab=addresses", view);
         verify(userAddressService).createAddress(1L, req);
         verify(ra).addFlashAttribute(eq("successMessage"), anyString());
     }
 
     @Test
-    @DisplayName("deleteAddress: Thành công redirect về /account")
+    @DisplayName("editAddress: Thành công redirect về /account?tab=addresses kèm flash message")
+    void editAddress_Success_RedirectsToAccount() {
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+
+        org.springframework.validation.BindingResult br = mock(org.springframework.validation.BindingResult.class);
+        when(br.hasErrors()).thenReturn(false);
+        org.springframework.web.servlet.mvc.support.RedirectAttributes ra = mock(org.springframework.web.servlet.mvc.support.RedirectAttributes.class);
+
+        com.manguonmo.popworld.dto.request.AddressRequest req = com.manguonmo.popworld.dto.request.AddressRequest.builder()
+                .recipientName("A").recipientPhone("0912").provinceCity("HN").district("CG").detailedAddress("123").build();
+
+        String view = accountWebController.editAddress(10L, req, br, ra, principal);
+
+        assertEquals("redirect:/account?tab=addresses", view);
+        verify(userAddressService).updateAddress(1L, 10L, req);
+        verify(ra).addFlashAttribute(eq("successMessage"), anyString());
+    }
+
+    @Test
+    @DisplayName("deleteAddress: Thành công redirect về /account?tab=addresses")
     void deleteAddress_Success_RedirectsToAccount() {
         when(principal.getName()).thenReturn("test@popworld.com");
         when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
@@ -233,8 +253,21 @@ class AccountWebControllerTest {
 
         String view = accountWebController.deleteAddress(10L, ra, principal);
 
-        assertEquals("redirect:/account", view);
+        assertEquals("redirect:/account?tab=addresses", view);
         verify(userAddressService).deleteAddress(1L, 10L);
+    }
+
+    @Test
+    @DisplayName("setDefaultAddress: Thành công redirect về /account?tab=addresses")
+    void setDefaultAddress_Success_RedirectsToAccount() {
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+        org.springframework.web.servlet.mvc.support.RedirectAttributes ra = mock(org.springframework.web.servlet.mvc.support.RedirectAttributes.class);
+
+        String view = accountWebController.setDefaultAddress(10L, ra, principal);
+
+        assertEquals("redirect:/account?tab=addresses", view);
+        verify(userAddressService).setDefaultAddress(1L, 10L);
     }
 }
 

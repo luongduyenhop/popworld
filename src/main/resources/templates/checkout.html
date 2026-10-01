@@ -84,21 +84,21 @@
 
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small" for="provinceCity">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="provinceCity" id="provinceCity"
-                                       th:value="${defaultAddress != null ? defaultAddress.provinceCity : ''}"
-                                       placeholder="Hà Nội / TP.HCM" required>
+                                <select class="form-select rounded-3" name="provinceCity" id="provinceCity" required>
+                                    <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small" for="district">Quận / Huyện <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control rounded-3" name="district" id="district"
-                                       th:value="${defaultAddress != null ? defaultAddress.district : ''}"
-                                       placeholder="Cầu Giấy / Quận 1" required>
+                                <select class="form-select rounded-3" name="district" id="district" required disabled>
+                                    <option value="">-- Chọn Quận / Huyện --</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small" for="ward">Phường / Xã</label>
-                                <input type="text" class="form-control rounded-3" name="ward" id="ward"
-                                       th:value="${defaultAddress != null ? defaultAddress.ward : ''}"
-                                       placeholder="Dịch Vọng / Bến Nghé">
+                                <select class="form-select rounded-3" name="ward" id="ward" disabled>
+                                    <option value="">-- Chọn Phường / Xã --</option>
+                                </select>
                             </div>
 
                             <div class="col-12">
@@ -286,6 +286,7 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/vietnam-address.js}"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         const originalSubtotal = /*[[${subtotal}]]*/ 0;
@@ -303,15 +304,56 @@
 
         function selectSavedAddress(selectEl) {
             const selectedOpt = selectEl.options[selectEl.selectedIndex];
-            if (!selectedOpt || !selectedOpt.value) return;
+            if (!selectedOpt || !selectedOpt.value) {
+                document.getElementById('recipientName').value = '';
+                document.getElementById('recipientPhone').value = '';
+                document.getElementById('detailedAddress').value = '';
+                if (window.VietnamAddressSelector) {
+                    window.VietnamAddressSelector.init({
+                        provinceElId: 'provinceCity',
+                        districtElId: 'district',
+                        wardElId: 'ward'
+                    });
+                }
+                return;
+            }
 
             document.getElementById('recipientName').value = selectedOpt.getAttribute('data-name') || '';
             document.getElementById('recipientPhone').value = selectedOpt.getAttribute('data-phone') || '';
-            document.getElementById('provinceCity').value = selectedOpt.getAttribute('data-province') || '';
-            document.getElementById('district').value = selectedOpt.getAttribute('data-district') || '';
-            document.getElementById('ward').value = selectedOpt.getAttribute('data-ward') || '';
             document.getElementById('detailedAddress').value = selectedOpt.getAttribute('data-address') || '';
+
+            const prov = selectedOpt.getAttribute('data-province') || '';
+            const dist = selectedOpt.getAttribute('data-district') || '';
+            const ward = selectedOpt.getAttribute('data-ward') || '';
+
+            if (window.VietnamAddressSelector) {
+                window.VietnamAddressSelector.init({
+                    provinceElId: 'provinceCity',
+                    districtElId: 'district',
+                    wardElId: 'ward',
+                    initialProvince: prov,
+                    initialDistrict: dist,
+                    initialWard: ward
+                });
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialProvince = /*[[${defaultAddress != null ? defaultAddress.provinceCity : ''}]]*/ '';
+            const initialDistrict = /*[[${defaultAddress != null ? defaultAddress.district : ''}]]*/ '';
+            const initialWard = /*[[${defaultAddress != null ? defaultAddress.ward : ''}]]*/ '';
+
+            if (window.VietnamAddressSelector) {
+                window.VietnamAddressSelector.init({
+                    provinceElId: 'provinceCity',
+                    districtElId: 'district',
+                    wardElId: 'ward',
+                    initialProvince: initialProvince,
+                    initialDistrict: initialDistrict,
+                    initialWard: initialWard
+                });
+            }
+        });
 
         function applyPointsDiscount(inputEl) {
             const maxPoints = Number(inputEl.getAttribute('max')) || 0;
