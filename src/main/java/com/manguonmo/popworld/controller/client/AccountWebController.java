@@ -80,7 +80,14 @@ public class AccountWebController {
 
         String activeAccountTab = "REWARDS";
         if (tab != null && !tab.isBlank()) {
-            activeAccountTab = tab.trim().toUpperCase();
+            String tabUpper = tab.trim().toUpperCase().replace("-", "_");
+            if ("LUCKYPOINTS".equals(tabUpper) || "LUCKY_POINTS".equals(tabUpper)) {
+                activeAccountTab = "LUCKY_POINTS";
+            } else if ("HINTCARD".equals(tabUpper) || "HINT_CARD".equals(tabUpper)) {
+                activeAccountTab = "HINT_CARD";
+            } else {
+                activeAccountTab = tabUpper;
+            }
         } else if (request != null && request.getRequestURI() != null && request.getRequestURI().startsWith("/orders")) {
             activeAccountTab = "ORDERS";
         }
@@ -89,6 +96,7 @@ public class AccountWebController {
         List<com.manguonmo.popworld.dto.response.PointTransactionResponse> pointHistory = userService.getPointHistory(user.getId());
         List<com.manguonmo.popworld.entity.RewardRedemption> redeemedRewards = userService.getRedeemedRewards(user.getId());
         boolean isBirthdayMonth = user.getBirthday() != null && user.getBirthday().getMonth() == java.time.LocalDate.now().getMonth();
+        boolean canCheckInToday = user.getLastCheckInDate() == null || !user.getLastCheckInDate().equals(java.time.LocalDate.now());
 
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
@@ -99,6 +107,7 @@ public class AccountWebController {
         model.addAttribute("pointHistory", pointHistory);
         model.addAttribute("redeemedRewards", redeemedRewards);
         model.addAttribute("isBirthdayMonth", isBirthdayMonth);
+        model.addAttribute("canCheckInToday", canCheckInToday);
         model.addAttribute("activeAccountTab", activeAccountTab);
 
         return "my-orders";

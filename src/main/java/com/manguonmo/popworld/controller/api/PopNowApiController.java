@@ -202,9 +202,11 @@ public class PopNowApiController {
     }
 
     @PostMapping("/redeem-hint-card")
-    public ResponseEntity<ApiResponse<HintCardActionResponse>> redeemHintCard(Principal principal) {
+    public ResponseEntity<ApiResponse<HintCardActionResponse>> redeemHintCard(
+            @RequestParam(value = "packageType", defaultValue = "1") int packageType,
+            Principal principal) {
         User user = getAuthenticatedUser(principal);
-        HintCardActionResponse response = popNowService.redeemHintCard(user.getId());
+        HintCardActionResponse response = popNowService.redeemHintCard(user.getId(), packageType);
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
 

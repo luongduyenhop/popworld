@@ -250,7 +250,12 @@ public class PopNowServiceImpl implements PopNowService {
         // Lấy danh sách nhân vật có thể mở trúng trong Series của Product
         List<BlindBoxItem> possibleItems = blindBoxItemRepository.findByProductIdAndActiveTrue(reservation.getProduct().getId());
         if (possibleItems == null || possibleItems.isEmpty()) {
-            possibleItems = initializeDefaultSeriesItems(reservation.getProduct());
+            if (reservation.getProduct() != null && reservation.getProduct().getSlug() != null && !reservation.getProduct().getSlug().isBlank()) {
+                possibleItems = initializeDefaultSeriesItems(reservation.getProduct());
+            }
+            if (possibleItems == null || possibleItems.isEmpty() || possibleItems.stream().anyMatch(java.util.Objects::isNull)) {
+                throw new BadRequestException("Chưa cấu hình danh sách mô hình (BlindBoxItem) cho series này!");
+            }
         }
 
         // Thuật toán Weighted Random chọn nhân vật theo xác suất
@@ -816,27 +821,52 @@ public class PopNowServiceImpl implements PopNowService {
     @Override
     @Transactional
     public HintCardActionResponse redeemHintCard(Long userId) {
+        return redeemHintCard(userId, 1);
+    }
+
+    @Override
+    @Transactional
+    public HintCardActionResponse redeemHintCard(Long userId, int packageType) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu đăng nhập để đổi Thẻ Gợi Ý!");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
 
-        int currentPts = user.getLuckyPoints() != null ? user.getLuckyPoints() : 50;
-        int currentCards = user.getHintCards() != null ? user.getHintCards() : 1;
+        int currentPts = user.getLuckyPoints() != null ? user.getLuckyPoints() : 0;
+        int currentCards = user.getHintCards() != null ? user.getHintCards() : 0;
 
-        if (currentPts < 10) {
-            throw new BadRequestException("Bạn không đủ Lucky Points! Cần 10 điểm để đổi 1 Hint Card (Hiện có: " + currentPts + " PTS).");
+        int cardsToAdd;
+        int costPoints;
+
+        switch (packageType) {
+            case 1 -> {
+                cardsToAdd = 1;
+                costPoints = 10;
+            }
+            case 3 -> {
+                cardsToAdd = 3;
+                costPoints = 25;
+            }
+            case 6 -> {
+                cardsToAdd = 6;
+                costPoints = 45;
+            }
+            default -> throw new BadRequestException("Gói đổi thẻ không hợp lệ! Vui lòng chọn gói 1, 3 hoặc 6 thẻ.");
         }
 
-        user.setLuckyPoints(currentPts - 10);
-        user.setHintCards(currentCards + 1);
+        if (currentPts < costPoints) {
+            throw new BadRequestException("Bạn không đủ Lucky Points! Cần " + costPoints + " điểm để đổi " + cardsToAdd + " Hint Card (Hiện có: " + currentPts + " PTS).");
+        }
+
+        user.setLuckyPoints(currentPts - costPoints);
+        user.setHintCards(currentCards + cardsToAdd);
         userRepository.save(user);
 
         return HintCardActionResponse.builder()
                 .luckyPoints(user.getLuckyPoints())
                 .hintCards(user.getHintCards())
-                .message("Đổi thành công 1 Thẻ Gợi Ý (Hint Card)!")
+                .message("Đổi thành công " + cardsToAdd + " Thẻ Gợi Ý (Hint Card)!")
                 .build();
     }
 

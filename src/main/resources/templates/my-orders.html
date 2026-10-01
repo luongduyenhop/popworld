@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='2.0')}">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}">
 </head>
 <body style="background-color: #F8F9FA;">
 
@@ -99,13 +101,15 @@
                             <div class="pop-metric-number" th:text="${couponsCount != null ? couponsCount : 0}">0</div>
                             <div class="pop-metric-label">COUPONS <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
-                        <div class="pop-metrics-cell pop-metrics-border-bottom">
-                            <div class="pop-metric-number" th:text="${user.luckyPoints != null ? user.luckyPoints : 50}">50</div>
-                            <div class="pop-metric-label">LUCKY POINTS</div>
+                        <div class="pop-metrics-cell pop-metrics-border-bottom" id="sidebarCellLuckyPoints"
+                             role="button" onclick="switchAccountPanel('LUCKY_POINTS')" title="Xem My Lucky Points" style="cursor: pointer;">
+                            <div class="pop-metric-number" id="sidebarLuckyPoints" th:text="${user.luckyPoints != null ? user.luckyPoints : 0}">0</div>
+                            <div class="pop-metric-label">LUCKY POINTS <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
-                        <div class="pop-metrics-cell pop-metrics-border-right pt-3">
-                            <div class="pop-metric-number" th:text="${user.hintCards != null ? user.hintCards : 1}">1</div>
-                            <div class="pop-metric-label">HINT CARD</div>
+                        <div class="pop-metrics-cell pop-metrics-border-right pt-3" id="sidebarCellHintCard"
+                             role="button" onclick="switchAccountPanel('HINT_CARD')" title="Xem Hint Cards" style="cursor: pointer;">
+                            <div class="pop-metric-number" id="sidebarHintCards" th:text="${user.hintCards != null ? user.hintCards : 0}">0</div>
+                            <div class="pop-metric-label">HINT CARD <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
                         <div class="pop-metrics-cell pt-3"></div>
                     </div>
@@ -727,6 +731,197 @@
                         <a th:href="@{/categories/blind-box}" class="btn btn-danger rounded-pill px-4 py-2 mt-3 fw-bold">
                             Explore Blind Boxes
                         </a>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- PANEL D: MY LUCKY POINTS (POP MART US SPEC)                           -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelLuckyPoints" class="pop-account-main-panel"
+                         th:style="${activeAccountTab == 'LUCKY_POINTS' ? 'display: block;' : 'display: none;'}">
+
+                    <!-- Yellow Ribbon Banner -->
+                    <div class="pop-lp-ribbon-banner">
+                        <div class="pop-lp-ribbon-bg">
+                            <svg viewBox="0 0 600 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                <path d="M30 115 C 110 -20, 220 160, 290 35 C 360 -70, 470 170, 560 45" stroke="#FFDE00" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/>
+                                <path d="M70 120 C 140 0, 230 145, 305 45 C 375 -45, 465 155, 535 55" stroke="#FACC15" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.45"/>
+                                <circle cx="210" cy="55" r="7" fill="#FFDE00"/>
+                                <circle cx="485" cy="85" r="10" fill="#FACC15" opacity="0.6"/>
+                            </svg>
+                        </div>
+
+                        <div class="pop-lp-banner-left">
+                            <div class="pop-lp-title">
+                                <span>My Lucky Points</span>
+                                <i class="bi bi-info-circle text-muted fs-6" role="button" title="Lucky Points Info"
+                                   onclick="alert('Lucky Points được sử dụng để đổi các gói Thẻ Gợi Ý (Hint Card). Điểm danh hàng ngày hoặc lắc hộp mù trong POP NOW để tích lũy thêm điểm!')"></i>
+                            </div>
+                            <div class="pop-lp-notice">
+                                * Lucky Points will be deducted daily (2 points/day) during system maintenance.
+                            </div>
+                            <a href="javascript:void(0)" class="pop-lp-link"
+                               onclick="alert('Chi tiết Lucky Points:\n- Điểm danh mỗi ngày: +10 PTS\n- Lắc hộp trong POP NOW: +5 PTS\n- Đổi 1 Thẻ Gợi Ý: 10 PTS\n- Đổi 3 Thẻ Gợi Ý: 25 PTS (Tiết kiệm 5 PTS)\n- Đổi 6 Thẻ Gợi Ý: 45 PTS (Tiết kiệm 15 PTS)')">View Details &gt;</a>
+                        </div>
+
+                        <div class="pop-lp-banner-right">
+                            <div class="pop-lp-score-wrap">
+                                <span class="pop-lp-score" id="panelLuckyPointsNum"
+                                      th:text="${user != null && user.luckyPoints != null ? user.luckyPoints : 0}">0</span>
+                                <span class="pop-lp-total">/100</span>
+                            </div>
+                            <button type="button" class="pop-lp-earn-btn" id="btnEarnLuckyPoints"
+                                    th:classappend="${!canCheckInToday ? 'disabled' : ''}"
+                                    th:disabled="${!canCheckInToday}"
+                                    onclick="handleEarnLuckyPoints()"
+                                    th:text="${canCheckInToday ? 'Earn Lucky Points' : 'Checked In Today'}">
+                                Earn Lucky Points
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- REDEEM CARD Section -->
+                    <h3 class="pop-redeem-card-section-title">REDEEM CARD</h3>
+                    <div class="pop-redeem-list">
+                        <!-- TIER 1: 1 Card = 10 PTS -->
+                        <div class="pop-redeem-row">
+                            <div class="pop-redeem-row-info">
+                                <div class="pop-redeem-item-name">HINT CARD * 1</div>
+                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
+                            </div>
+                            <div class="pop-redeem-row-cost">
+                                Costs Lucky Points &times; 10
+                            </div>
+                            <div class="pop-redeem-row-action">
+                                <button type="button" class="pop-redeem-btn" id="btnRedeemTier1"
+                                        th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 10}"
+                                        onclick="handleRedeemPackage(1, 10)">
+                                    Redeem
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TIER 2: 3 Cards = 25 PTS -->
+                        <div class="pop-redeem-row">
+                            <div class="pop-redeem-row-info">
+                                <div class="pop-redeem-item-name">HINT CARD * 3</div>
+                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
+                                <div class="pop-redeem-item-sub2">1 redemptions allowed per period, refreshed during maintenance</div>
+                            </div>
+                            <div class="pop-redeem-row-cost">
+                                Costs Lucky Points &times; 25
+                            </div>
+                            <div class="pop-redeem-row-action">
+                                <button type="button" class="pop-redeem-btn" id="btnRedeemTier3"
+                                        th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 25}"
+                                        onclick="handleRedeemPackage(3, 25)">
+                                    Redeem
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TIER 3: 6 Cards = 45 PTS -->
+                        <div class="pop-redeem-row">
+                            <div class="pop-redeem-row-info">
+                                <div class="pop-redeem-item-name">HINT CARD * 6</div>
+                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
+                                <div class="pop-redeem-item-sub2">1 redemptions allowed per period, refreshed during maintenance</div>
+                            </div>
+                            <div class="pop-redeem-row-cost">
+                                Costs Lucky Points &times; 45
+                            </div>
+                            <div class="pop-redeem-row-action">
+                                <button type="button" class="pop-redeem-btn" id="btnRedeemTier6"
+                                        th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 45}"
+                                        onclick="handleRedeemPackage(6, 45)">
+                                    Redeem
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================================================================== -->
+                <!-- PANEL E: HINT CARD (POP MART US SPEC)                                 -->
+                <!-- ===================================================================== -->
+                <section id="accountPanelHintCard" class="pop-account-main-panel"
+                         th:style="${activeAccountTab == 'HINT_CARD' ? 'display: block;' : 'display: none;'}">
+
+                    <!-- Yellow Ribbon Banner -->
+                    <div class="pop-lp-ribbon-banner">
+                        <div class="pop-lp-ribbon-bg">
+                            <svg viewBox="0 0 600 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                                <path d="M30 115 C 110 -20, 220 160, 290 35 C 360 -70, 470 170, 560 45" stroke="#FFDE00" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/>
+                                <path d="M70 120 C 140 0, 230 145, 305 45 C 375 -45, 465 155, 535 55" stroke="#FACC15" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.45"/>
+                                <circle cx="210" cy="55" r="7" fill="#FFDE00"/>
+                                <circle cx="485" cy="85" r="10" fill="#FACC15" opacity="0.6"/>
+                            </svg>
+                        </div>
+
+                        <div class="pop-lp-banner-left">
+                            <div class="pop-lp-title">
+                                <span>HINT CARD</span>
+                            </div>
+                            <a href="javascript:void(0)" class="pop-lp-link"
+                               onclick="alert('Lịch sử sử dụng Thẻ Gợi Ý: Thẻ được tự động kích hoạt khi bạn bấm [DÙNG THẺ GỢI Ý] tại màn hình bóc hộp POP NOW.')">Usage Records &gt;</a>
+                        </div>
+
+                        <div class="pop-lp-banner-right">
+                            <div class="pop-lp-score-wrap">
+                                <span class="pop-lp-score" id="panelHintCardsHeaderNum"
+                                      th:text="${user != null && user.hintCards != null ? user.hintCards : 0}">0</span>
+                                <span class="pop-lp-total">Thẻ</span>
+                            </div>
+                            <a th:href="@{/popnow}" class="pop-lp-earn-btn text-decoration-none d-inline-flex align-items-center gap-1">
+                                <span>POP NOW</span> <i class="bi bi-box-arrow-up-right" style="font-size: 11px;"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Content: Empty State or Active Cards List -->
+                    <div id="hintCardEmptyState"
+                         th:style="${(user != null && (user.hintCards == null || user.hintCards <= 0)) ? 'display: block;' : 'display: none;'}">
+                        <div class="pop-hint-empty-state">
+                            <div class="pop-hint-empty-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="pop-hint-empty-text">It's empty here ~</div>
+                            <a href="javascript:void(0)" class="pop-hint-expired-link"
+                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">View expired HINT CARDs &gt;</a>
+                        </div>
+                    </div>
+
+                    <!-- Active Cards Showcase -->
+                    <div id="hintCardActiveState" class="pop-hint-cards-showcase"
+                         th:style="${(user != null && user.hintCards != null && user.hintCards > 0) ? 'display: block;' : 'display: none;'}">
+                        <div class="pop-hint-card-item">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-dark rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 11px;">
+                                        <i class="bi bi-magic text-warning me-1"></i> POP NOW EXCLUSIVE
+                                    </span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1" style="font-size: 11px;">
+                                        Valid for 24h
+                                    </span>
+                                </div>
+                                <h5 class="fw-black text-dark mb-1">
+                                    Thẻ Gợi Ý Loại Trừ (<span id="panelHintCardsAvailableNum" th:text="${user.hintCards}">1</span> thẻ khả dụng)
+                                </h5>
+                                <p class="text-secondary small mb-0" style="max-width: 520px;">
+                                    Loại trừ thêm 1 nhân vật thứ 3 (NOT ME) chắc chắn không nằm trong hộp mù đang giữ khi mở trên POP NOW, giúp tăng tối đa xác suất trúng nhân vật bạn yêu thích!
+                                </p>
+                            </div>
+                            <div class="text-end ps-3">
+                                <a th:href="@{/popnow}" class="btn btn-dark rounded-pill px-4 py-2 fw-bold" style="font-size: 13px;">
+                                    <i class="bi bi-play-circle-fill text-warning me-1"></i> Bóc Hộp Ngay
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="text-center pt-3">
+                            <a href="javascript:void(0)" class="pop-hint-expired-link"
+                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">View expired HINT CARDs &gt;</a>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -1409,19 +1604,169 @@
             editModal.show();
         }
 
-        // Chuyển đổi tức thì giữa 3 giao diện: MEMBER REWARDS, MY POINTS & POINTS HISTORY, và MY ORDERS
+        // Chuyển đổi tức thì giữa các giao diện: MEMBER REWARDS, MY POINTS, MY ORDERS, LUCKY POINTS, HINT CARD
         function switchAccountPanel(panelName) {
             const rewardsPanel = document.getElementById('accountPanelRewards');
             const pointsPanel = document.getElementById('accountPanelPoints');
             const ordersPanel = document.getElementById('accountPanelOrders');
+            const lpPanel = document.getElementById('accountPanelLuckyPoints');
+            const hintPanel = document.getElementById('accountPanelHintCard');
 
             if (rewardsPanel) rewardsPanel.style.display = (panelName === 'REWARDS') ? 'block' : 'none';
             if (pointsPanel) pointsPanel.style.display = (panelName === 'POINTS') ? 'block' : 'none';
             if (ordersPanel) ordersPanel.style.display = (panelName === 'ORDERS') ? 'block' : 'none';
+            if (lpPanel) lpPanel.style.display = (panelName === 'LUCKY_POINTS') ? 'block' : 'none';
+            if (hintPanel) hintPanel.style.display = (panelName === 'HINT_CARD') ? 'block' : 'none';
+
+            // Active indicator on sidebar 2x2 grid
+            const cellLp = document.getElementById('sidebarCellLuckyPoints');
+            const cellHint = document.getElementById('sidebarCellHintCard');
+            if (cellLp) cellLp.classList.toggle('active-metric', panelName === 'LUCKY_POINTS');
+            if (cellHint) cellHint.classList.toggle('active-metric', panelName === 'HINT_CARD');
 
             if (window.history && window.history.replaceState) {
-                const tabQuery = panelName === 'POINTS' ? '?tab=points' : (panelName === 'ORDERS' ? '?tab=orders' : '?tab=rewards');
+                let tabQuery = '?tab=rewards';
+                if (panelName === 'POINTS') tabQuery = '?tab=points';
+                else if (panelName === 'ORDERS') tabQuery = '?tab=orders';
+                else if (panelName === 'LUCKY_POINTS') tabQuery = '?tab=lucky-points';
+                else if (panelName === 'HINT_CARD') tabQuery = '?tab=hint-card';
                 window.history.replaceState({}, '', '/account' + tabQuery);
+            }
+        }
+
+        // Lấy thông tin CSRF token
+        function getCsrfInfo() {
+            const tokenMeta = document.querySelector('meta[name="_csrf"]');
+            const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+            return {
+                token: tokenMeta ? tokenMeta.getAttribute('content') : '',
+                header: headerMeta ? headerMeta.getAttribute('content') : 'X-CSRF-TOKEN'
+            };
+        }
+
+        // 1. Điểm danh nhận Lucky Points (+10 PTS)
+        async function handleEarnLuckyPoints() {
+            const btn = document.getElementById('btnEarnLuckyPoints');
+            if (btn && btn.disabled) return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang nhận...';
+            }
+
+            try {
+                const csrf = getCsrfInfo();
+                const headers = { 'Content-Type': 'application/json' };
+                if (csrf.token) headers[csrf.header] = csrf.token;
+
+                const res = await fetch('/api/popnow/check-in', {
+                    method: 'POST',
+                    headers: headers
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const newPts = (data.data && data.data.luckyPoints !== undefined) ? data.data.luckyPoints : 10;
+                    updateLuckyPointsState(newPts);
+                    if (btn) {
+                        btn.classList.add('disabled');
+                        btn.disabled = true;
+                        btn.textContent = 'Checked In Today';
+                    }
+                    alert(data.message || 'Điểm danh thành công! Bạn nhận được +10 Lucky Points.');
+                } else {
+                    alert((data && data.message) ? data.message : 'Điểm danh thất bại hoặc hôm nay bạn đã điểm danh rồi!');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Earn Lucky Points';
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi khi điểm danh:', err);
+                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại!');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Earn Lucky Points';
+                }
+            }
+        }
+
+        // 2. Đổi gói Thẻ Gợi Ý (1 thẻ = 10 pts, 3 thẻ = 25 pts, 6 thẻ = 45 pts)
+        async function handleRedeemPackage(packageType, costPoints) {
+            const currentPtsEl = document.getElementById('sidebarLuckyPoints');
+            const currentPts = currentPtsEl ? parseInt(currentPtsEl.textContent.trim(), 10) || 0 : 0;
+
+            if (currentPts < costPoints) {
+                alert('Bạn không đủ Lucky Points!\nCần ' + costPoints + ' PTS nhưng bạn chỉ có ' + currentPts + ' PTS.');
+                return;
+            }
+
+            if (!confirm('Bạn có chắc chắn muốn đổi ' + costPoints + ' Lucky Points để lấy ' + packageType + ' Thẻ Gợi Ý?')) {
+                return;
+            }
+
+            try {
+                const csrf = getCsrfInfo();
+                const headers = {};
+                if (csrf.token) headers[csrf.header] = csrf.token;
+
+                const res = await fetch('/api/popnow/redeem-hint-card?packageType=' + packageType, {
+                    method: 'POST',
+                    headers: headers
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const newPts = data.data.luckyPoints;
+                    const newCards = data.data.hintCards;
+                    updateLuckyPointsState(newPts);
+                    updateHintCardsState(newCards);
+                    alert(data.message || ('Chúc mừng bạn đã đổi thành công ' + packageType + ' Thẻ Gợi Ý!'));
+                } else {
+                    alert((data && data.message) ? data.message : 'Đổi thẻ thất bại. Vui lòng thử lại!');
+                }
+            } catch (err) {
+                console.error('Lỗi khi đổi thẻ:', err);
+                alert('Không thể kết nối đến máy chủ khi đổi thẻ. Vui lòng kiểm tra lại!');
+            }
+        }
+
+        // Cập nhật số điểm Lucky Points đồng bộ ở sidebar, banner và trạng thái nút Redeem
+        function updateLuckyPointsState(pts) {
+            const sidebarLp = document.getElementById('sidebarLuckyPoints');
+            const panelLp = document.getElementById('panelLuckyPointsNum');
+            if (sidebarLp) sidebarLp.textContent = pts;
+            if (panelLp) panelLp.textContent = pts;
+
+            // Re-evaluate redeem buttons
+            const btn1 = document.getElementById('btnRedeemTier1');
+            const btn3 = document.getElementById('btnRedeemTier3');
+            const btn6 = document.getElementById('btnRedeemTier6');
+            if (btn1) btn1.disabled = (pts < 10);
+            if (btn3) btn3.disabled = (pts < 25);
+            if (btn6) btn6.disabled = (pts < 45);
+        }
+
+        // Cập nhật số Thẻ Gợi Ý đồng bộ ở sidebar, header banner và toggle empty state
+        function updateHintCardsState(cards) {
+            const sidebarHc = document.getElementById('sidebarHintCards');
+            const panelHcHeader = document.getElementById('panelHintCardsHeaderNum');
+            const panelHcAvail = document.getElementById('panelHintCardsAvailableNum');
+            const emptyState = document.getElementById('hintCardEmptyState');
+            const activeState = document.getElementById('hintCardActiveState');
+
+            if (sidebarHc) sidebarHc.textContent = cards;
+            if (panelHcHeader) panelHcHeader.textContent = cards;
+            if (panelHcAvail) panelHcAvail.textContent = cards;
+
+            if (emptyState && activeState) {
+                if (cards > 0) {
+                    emptyState.style.display = 'none';
+                    activeState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'block';
+                    activeState.style.display = 'none';
+                }
             }
         }
 
@@ -1446,6 +1791,15 @@
             if (initialTab) {
                 const status = initialTab.getAttribute('data-target-status') || 'TO_PAY';
                 filterOrders(status, initialTab);
+            }
+
+            // Đồng bộ trạng thái active-metric nếu tab ban đầu là LUCKY_POINTS hoặc HINT_CARD
+            const params = new URLSearchParams(window.location.search);
+            const tabParam = params.get('tab');
+            if (tabParam === 'lucky-points') {
+                switchAccountPanel('LUCKY_POINTS');
+            } else if (tabParam === 'hint-card') {
+                switchAccountPanel('HINT_CARD');
             }
         });
     </script>

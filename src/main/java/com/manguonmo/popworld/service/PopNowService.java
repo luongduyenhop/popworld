@@ -79,9 +79,14 @@ public interface PopNowService {
     com.manguonmo.popworld.dto.response.HintCardActionResponse shakeBox(Long userId, String reservationCode);
 
     /**
-     * Đổi 10 Lucky Points lấy 1 Hint Card.
+     * Đổi 10 Lucky Points lấy 1 Hint Card (mặc định gói 1 thẻ).
      */
     com.manguonmo.popworld.dto.response.HintCardActionResponse redeemHintCard(Long userId);
+
+    /**
+     * Đổi Lucky Points lấy Hint Card theo gói (gói 1 = 1 thẻ/10 pts, gói 3 = 3 thẻ/25 pts, gói 6 = 6 thẻ/45 pts).
+     */
+    com.manguonmo.popworld.dto.response.HintCardActionResponse redeemHintCard(Long userId, int packageType);
 
     /**
      * Sử dụng 1 Hint Card để loại trừ thêm 1 nhân vật thứ 3 (NOT ME) cho hộp đang giữ.
