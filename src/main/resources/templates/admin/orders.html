@@ -114,14 +114,18 @@
                                 <div class="fw-bold text-dark" th:text="${order.recipientName}">Nguyễn Văn A</div>
                                 <div class="small text-muted" th:text="${order.recipientPhone}">0912345678</div>
                             </td>
-                            <td style="max-width: 240px;">
-                                <div class="small text-truncate" th:title="${order.detailedAddress + ', ' + (order.ward != null ? order.ward + ', ' : '') + order.district + ', ' + order.provinceCity}">
-                                    <span th:text="${order.detailedAddress}"></span>, 
-                                    <span th:text="${order.district}"></span>, 
+                            <td style="max-width: 250px;">
+                                <div class="small text-truncate" 
+                                     th:title="${order.detailedAddress + (order.ward != null and !order.ward.trim().isEmpty() ? ', ' + order.ward : '') + (order.district != null and !order.district.trim().isEmpty() and !order.district.equalsIgnoreCase(order.provinceCity) ? ', ' + order.district : '') + ', ' + order.provinceCity}">
+                                    <span th:text="${order.detailedAddress}"></span><span th:if="${order.ward != null and !order.ward.trim().isEmpty()}" th:text="', ' + ${order.ward}"></span><span th:if="${order.district != null and !order.district.trim().isEmpty() and !order.district.equalsIgnoreCase(order.provinceCity)}" th:text="', ' + ${order.district}"></span>, 
                                     <strong th:text="${order.provinceCity}"></strong>
                                 </div>
-                                <div th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="mt-1">
-                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;" 
+                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
+                                    <span th:if="${order.deliveryMethod == 'POP_NOW_CABINET' or (order.detailedAddress != null and #strings.contains(order.detailedAddress, 'Virtual Cabinet'))}" 
+                                          class="badge bg-black text-danger border border-danger-subtle font-monospace" style="font-size: 0.68rem;">
+                                        <i class="bi bi-box2-heart-fill me-1"></i>POP NOW
+                                    </span>
+                                    <span th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;" 
                                           th:text="${(order.carrier != null ? order.carrier + ': ' : '') + order.trackingNumber}">GHN-12345</span>
                                 </div>
                             </td>

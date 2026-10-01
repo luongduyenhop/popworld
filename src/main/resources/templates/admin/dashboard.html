@@ -116,8 +116,14 @@
                                 </tr>
                                 <tr th:each="order : ${recentOrders}">
                                     <td>
-                                        <div class="fw-bold text-dark" th:text="${order.orderCode}">PW-123456</div>
-                                        <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;" th:text="${order.paymentMethod}">COD</span>
+                                        <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="fw-bold text-dark text-decoration-none" th:text="${order.orderCode}">PW-123456</a>
+                                        <div>
+                                            <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;" th:text="${order.paymentMethod}">COD</span>
+                                            <span th:if="${order.deliveryMethod == 'POP_NOW_CABINET' or (order.detailedAddress != null and #strings.contains(order.detailedAddress, 'Virtual Cabinet'))}" 
+                                                  class="badge bg-black text-danger border border-danger-subtle font-monospace ms-1" style="font-size: 0.62rem;">
+                                                POP NOW
+                                            </span>
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="fw-bold" th:text="${order.recipientName}">Nguyễn Văn A</div>

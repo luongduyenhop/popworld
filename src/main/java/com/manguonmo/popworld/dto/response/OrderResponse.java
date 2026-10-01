@@ -44,6 +44,8 @@ public class OrderResponse {
 
     private String provinceCity;
 
+    private String deliveryMethod;
+
     private LocalDateTime paidAt;
     private LocalDateTime packedAt;
     private LocalDateTime shippedAt;

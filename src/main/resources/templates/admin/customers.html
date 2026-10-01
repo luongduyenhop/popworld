@@ -14,6 +14,7 @@
                     <div>
                         <div class="admin-stat-label">Tổng Số Khách Hàng</div>
                         <div class="admin-stat-number fs-3" th:text="${totalCustomers}">0</div>
+                        <div class="small text-muted mt-1">Người dùng đăng ký hệ thống</div>
                     </div>
                     <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
                         <i class="bi bi-people-fill"></i>
@@ -25,6 +26,7 @@
                     <div>
                         <div class="admin-stat-label">Thành Viên VIP Collector</div>
                         <div class="admin-stat-number fs-3 text-warning" th:text="${vipCount}">0</div>
+                        <div class="small text-muted mt-1">Đặc quyền miễn phí vận chuyển</div>
                     </div>
                     <div class="admin-stat-icon icon-amber" style="width: 48px; height: 48px; font-size: 1.25rem;">
                         <i class="bi bi-star-fill"></i>
@@ -36,6 +38,7 @@
                     <div>
                         <div class="admin-stat-label">Thành Viên Thường (Member)</div>
                         <div class="admin-stat-number fs-3" th:text="${memberCount}">0</div>
+                        <div class="small text-muted mt-1">Tích điểm đổi quà & thẻ lắc hộp</div>
                     </div>
                     <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
                         <i class="bi bi-person-check-fill"></i>
@@ -48,24 +51,27 @@
         <!-- 2. CUSTOMERS DATA TABLE                                                   -->
         <!-- ========================================================================= -->
         <div class="admin-card">
-            <div class="admin-card-header">
+            <div class="admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <h6 class="mb-0 fw-bold">Danh Sách Tài Khoản Người Dùng</h6>
-                    <small class="text-muted">Quản lý thứ hạng VIP và điểm thưởng tích lũy khi mua Art Toy</small>
+                    <h6 class="mb-0 fw-bold">Danh Sách Tài Khoản Người Dùng & Collector</h6>
+                    <small class="text-muted">Đồng bộ đầy đủ Avatar, Member Code, Điểm May Mắn (Lucky Points) và Thẻ Gợi Ý</small>
                 </div>
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace" th:text="${customers.size()} + ' Tài khoản'">
+                    0 Tài khoản
+                </span>
             </div>
 
             <div class="table-responsive">
-                <table class="admin-table">
+                <table class="admin-table align-middle">
                     <thead>
                         <tr>
-                            <th>Khách Hàng</th>
-                            <th>Email</th>
-                            <th>Số Điện Thoại</th>
+                            <th style="min-width: 220px;">Khách Hàng</th>
+                            <th>Liên Hệ</th>
                             <th>Hạng Thành Viên</th>
-                            <th>Điểm Tích Lũy</th>
+                            <th>Tài Sản Điểm & Thẻ</th>
                             <th>Vai Trò</th>
                             <th>Trạng Thái</th>
+                            <th class="text-end" style="min-width: 140px;">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,36 +82,71 @@
                             </td>
                         </tr>
                         <tr th:each="cust : ${customers}">
+                            <!-- Khách Hàng: Avatar + Họ tên + Nickname + MemberCode -->
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-light border text-dark fw-bold d-flex align-items-center justify-content-center" 
-                                         style="width: 38px; height: 38px;">
-                                        <i class="bi bi-person"></i>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:if="${cust.avatarUrl != null and !cust.avatarUrl.isEmpty()}" 
+                                         th:src="${cust.avatarUrl}" 
+                                         class="rounded-circle border object-fit-cover shadow-sm flex-shrink-0" 
+                                         style="width: 44px; height: 44px;" alt="Avatar">
+                                    <div th:unless="${cust.avatarUrl != null and !cust.avatarUrl.isEmpty()}" 
+                                         class="rounded-circle bg-dark text-white fw-black d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
+                                         style="width: 44px; height: 44px; font-size: 1rem;">
+                                        <span th:text="${#strings.substring(cust.fullName != null and !cust.fullName.isEmpty() ? cust.fullName : 'U', 0, 1)}">U</span>
                                     </div>
-                                    <div class="fw-bold text-dark" th:text="${cust.fullName}">Nguyễn Văn A</div>
+                                    <div class="overflow-hidden">
+                                        <a th:href="@{'/admin/customers/' + ${cust.id}}" 
+                                           class="fw-bold text-dark text-decoration-none text-truncate d-block" 
+                                           th:text="${cust.fullName}">Nguyễn Văn A</a>
+                                        <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                            <span th:if="${cust.nickname != null and !cust.nickname.isEmpty()}" 
+                                                  class="text-secondary small" th:text="'@' + ${cust.nickname}">@nickname</span>
+                                            <span th:if="${cust.memberCode != null and !cust.memberCode.isEmpty()}" 
+                                                  class="badge bg-light text-dark border font-monospace px-2 py-0" 
+                                                  style="font-size: 0.7rem;" th:text="${cust.memberCode}">PM-123456789</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
+
+                            <!-- Liên hệ -->
                             <td>
-                                <span class="text-secondary" th:text="${cust.email}">user@popworld.com</span>
+                                <div class="text-secondary small" th:text="${cust.email}">user@popworld.com</div>
+                                <div class="fw-semibold text-dark font-monospace small mt-1" 
+                                     th:text="${cust.phone != null ? cust.phone : 'Chưa cập nhật SĐT'}">0912345678</div>
                             </td>
-                            <td>
-                                <span class="fw-semibold text-dark" th:text="${cust.phone != null ? cust.phone : 'Chưa cập nhật'}">0912345678</span>
-                            </td>
+
+                            <!-- Hạng Thành Viên -->
                             <td>
                                 <span th:if="${cust.membershipTier == 'VIP'}" 
                                       class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
-                                    <i class="bi bi-star-fill me-1"></i> VIP Member
+                                    <i class="bi bi-star-fill me-1"></i> VIP Collector
                                 </span>
                                 <span th:unless="${cust.membershipTier == 'VIP'}" 
                                       class="badge bg-light text-secondary border rounded-pill px-3 py-1">
                                     Member
                                 </span>
                             </td>
+
+                            <!-- Điểm Tích Lũy & Lucky Points, Hint Cards -->
                             <td>
-                                <span class="fw-black text-danger fs-6" th:text="${cust.rewardPoints != null ? cust.rewardPoints : 0} + ' pts'">
-                                    0 pts
-                                </span>
+                                <div class="d-flex flex-column gap-1">
+                                    <div>
+                                        <span class="fw-bold text-danger" th:text="${cust.rewardPoints != null ? cust.rewardPoints : 0} + ' pts'">0 pts</span>
+                                        <small class="text-muted" style="font-size: 0.72rem;">(Đổi quà)</small>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem;" title="Lucky Points lắc hộp PopNow">
+                                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i><span th:text="${cust.luckyPoints != null ? cust.luckyPoints : 0}">50</span> LP
+                                        </span>
+                                        <span class="badge bg-info-subtle text-dark border border-info-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem;" title="Thẻ bài gợi ý PopNow">
+                                            <i class="bi bi-card-heading text-info me-1"></i><span th:text="${cust.hintCards != null ? cust.hintCards : 0}">1</span> Thẻ
+                                        </span>
+                                    </div>
+                                </div>
                             </td>
+
+                            <!-- Vai Trò -->
                             <td>
                                 <span th:if="${cust.role == 'ROLE_ADMIN'}" class="badge bg-dark rounded-pill px-2 py-1" style="font-size: 0.7rem;">
                                     Admin
@@ -114,13 +155,36 @@
                                     User
                                 </span>
                             </td>
+
+                            <!-- Trạng Thái -->
                             <td>
                                 <span th:if="${cust.enabled}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
-                                    Hoạt động
+                                    <i class="bi bi-check-circle-fill me-1"></i>Hoạt động
                                 </span>
-                                <span th:unless="${cust.enabled}" class="badge bg-danger-subtle text-danger border rounded-pill px-3 py-1">
-                                    Bị khóa
+                                <span th:unless="${cust.enabled}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                                    <i class="bi bi-lock-fill me-1"></i>Bị khóa
                                 </span>
+                            </td>
+
+                            <!-- Hành Động -->
+                            <td class="text-end">
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    <a th:href="@{'/admin/customers/' + ${cust.id}}" 
+                                       class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold" 
+                                       title="Xem hồ sơ, sổ địa chỉ và lịch sử đơn hàng">
+                                        <i class="bi bi-person-lines-fill me-1"></i> Hồ Sơ
+                                    </a>
+                                    
+                                    <form th:action="@{'/admin/customers/' + ${cust.id} + '/toggle-status?redirect=list'}" method="post" 
+                                          class="d-inline"
+                                          th:onsubmit="'return confirm(\'Bạn có chắc chắn muốn ' + (${cust.enabled} ? 'khóa' : 'mở khóa') + ' tài khoản ' + ${cust.fullName} + '?\');'">
+                                        <button type="submit" 
+                                                th:class="${cust.enabled ? 'btn btn-sm btn-outline-danger rounded-circle p-2' : 'btn btn-sm btn-outline-success rounded-circle p-2'}" 
+                                                th:title="${cust.enabled ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}">
+                                            <i th:class="${cust.enabled ? 'bi bi-lock' : 'bi bi-unlock'}"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

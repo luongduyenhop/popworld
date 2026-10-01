@@ -18,4 +18,7 @@ public interface UserService {
     com.manguonmo.popworld.entity.RewardRedemption redeemReward(Long userId, String rewardTitle, int pointsCost);
     List<com.manguonmo.popworld.dto.response.PointTransactionResponse> getPointHistory(Long userId);
     List<com.manguonmo.popworld.entity.RewardRedemption> getRedeemedRewards(Long userId);
+    User getUserById(Long userId);
+    User toggleUserStatus(Long userId);
+    User adjustUserPoints(Long userId, Integer rewardPointsDelta, Integer luckyPointsDelta, Integer hintCardsDelta);
 }

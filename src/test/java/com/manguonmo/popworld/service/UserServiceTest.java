@@ -230,5 +230,49 @@ class UserServiceTest {
 
         assertThrows(BadRequestException.class, () -> userService.changePassword(1L, req));
     }
+
+    @Test
+    @DisplayName("getUserById: Tìm thấy người dùng hợp lệ")
+    void getUserById_Found_ReturnsUser() {
+        User user = User.builder().id(5L).fullName("Test User").email("test@popworld.com").build();
+        when(userRepository.findById(5L)).thenReturn(java.util.Optional.of(user));
+
+        User result = userService.getUserById(5L);
+        assertNotNull(result);
+        assertEquals("Test User", result.getFullName());
+    }
+
+    @Test
+    @DisplayName("toggleUserStatus: Đổi trạng thái từ hoạt động sang khóa và ngược lại")
+    void toggleUserStatus_TogglesEnabledState() {
+        User user = User.builder().id(5L).enabled(true).build();
+        when(userRepository.findById(5L)).thenReturn(java.util.Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User updated = userService.toggleUserStatus(5L);
+        assertFalse(updated.getEnabled());
+
+        User toggledBack = userService.toggleUserStatus(5L);
+        assertTrue(toggledBack.getEnabled());
+    }
+
+    @Test
+    @DisplayName("adjustUserPoints: Điều chỉnh điểm thưởng, lucky points và thẻ gợi ý không âm")
+    void adjustUserPoints_AdjustsPointsProperly() {
+        User user = User.builder().id(5L).rewardPoints(100).luckyPoints(50).hintCards(2).build();
+        when(userRepository.findById(5L)).thenReturn(java.util.Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userService.adjustUserPoints(5L, 50, -20, 1);
+        assertEquals(150, result.getRewardPoints());
+        assertEquals(30, result.getLuckyPoints());
+        assertEquals(3, result.getHintCards());
+
+        // Test không để điểm âm
+        User clamped = userService.adjustUserPoints(5L, -500, -100, -10);
+        assertEquals(0, clamped.getRewardPoints());
+        assertEquals(0, clamped.getLuckyPoints());
+        assertEquals(0, clamped.getHintCards());
+    }
 }
 

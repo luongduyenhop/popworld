@@ -28,6 +28,15 @@ class AuthWebControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.service.CategoryService categoryService;
+
+    @MockitoBean
+    private com.manguonmo.popworld.service.CharacterIpService characterIpService;
+
+    @MockitoBean
+    private com.manguonmo.popworld.service.CartService cartService;
+
     @Test
     @DisplayName("GET /register: Hiển thị form đăng ký thành công")
     void showRegisterForm_ShouldReturnRegisterView() throws Exception {

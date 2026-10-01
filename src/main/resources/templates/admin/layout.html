@@ -12,6 +12,7 @@
     <!-- Bootstrap 5.3 CDN & Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom POP MART Admin Theme CSS -->
     <link rel="stylesheet" th:href="@{/css/admin-theme.css(v='1.0')}">
@@ -134,15 +135,16 @@
             <div th:replace="${content}"></div>
         </div>
     </main>
+
+    <!-- Bootstrap 5 JS Bundle & Admin Global Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleAdminSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            if (sidebar) sidebar.classList.toggle('show');
+        }
+    </script>
 </div>
 
-<!-- Bootstrap 5 JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleAdminSidebar() {
-        const sidebar = document.getElementById('adminSidebar');
-        if (sidebar) sidebar.classList.toggle('show');
-    }
-</script>
 </body>
 </html>

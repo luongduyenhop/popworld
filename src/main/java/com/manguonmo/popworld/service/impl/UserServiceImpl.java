@@ -267,4 +267,41 @@ public class UserServiceImpl implements UserService {
         if (userId == null) return List.of();
         return rewardRedemptionRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
+
+    @Override
+    public User getUserById(Long userId) {
+        if (userId == null) {
+            throw new BadRequestException("ID người dùng không hợp lệ.");
+        }
+        return userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
+        );
+    }
+
+    @Override
+    @Transactional
+    public User toggleUserStatus(Long userId) {
+        User user = getUserById(userId);
+        user.setEnabled(user.getEnabled() == null || !user.getEnabled());
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public User adjustUserPoints(Long userId, Integer rewardPointsDelta, Integer luckyPointsDelta, Integer hintCardsDelta) {
+        User user = getUserById(userId);
+        if (rewardPointsDelta != null && rewardPointsDelta != 0) {
+            int current = user.getRewardPoints() != null ? user.getRewardPoints() : 0;
+            user.setRewardPoints(Math.max(0, current + rewardPointsDelta));
+        }
+        if (luckyPointsDelta != null && luckyPointsDelta != 0) {
+            int current = user.getLuckyPoints() != null ? user.getLuckyPoints() : 0;
+            user.setLuckyPoints(Math.max(0, current + luckyPointsDelta));
+        }
+        if (hintCardsDelta != null && hintCardsDelta != 0) {
+            int current = user.getHintCards() != null ? user.getHintCards() : 0;
+            user.setHintCards(Math.max(0, current + hintCardsDelta));
+        }
+        return userRepository.save(user);
+    }
 }

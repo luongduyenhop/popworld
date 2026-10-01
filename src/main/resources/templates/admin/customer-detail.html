@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Hồ Sơ Khách Hàng - ' + ${customer.fullName})}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#customerDetailContent}, 'Hồ Sơ Khách Hàng #' + ${customer.id}, 'customers')}">
+    <div id="customerDetailContent">
+        <!-- Breadcrumb & Top Action -->
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item"><a th:href="@{/admin/customers}" class="text-decoration-none text-muted">Khách Hàng & VIP</a></li>
+                        <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${customer.fullName}">Chi Tiết</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h4 class="fw-black text-dark mb-0" th:text="${customer.fullName}">Nguyễn Văn A</h4>
+                    <span th:if="${customer.membershipTier == 'VIP'}" class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
+                        <i class="bi bi-star-fill me-1"></i> VIP Collector
+                    </span>
+                    <span th:unless="${customer.membershipTier == 'VIP'}" class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                        Member
+                    </span>
+                    <span th:if="${customer.enabled}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                        <i class="bi bi-check-circle-fill me-1"></i> Hoạt động
+                    </span>
+                    <span th:unless="${customer.enabled}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                        <i class="bi bi-lock-fill me-1"></i> Bị khóa
+                    </span>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <a th:href="@{/admin/customers}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Danh Sách
+                </a>
+                <form th:action="@{'/admin/customers/' + ${customer.id} + '/toggle-status'}" method="post" class="d-inline"
+                      th:onsubmit="'return confirm(\'Bạn có chắc muốn ' + (${customer.enabled} ? 'khóa' : 'mở khóa') + ' tài khoản này?\');'">
+                    <button type="submit" 
+                            th:class="${customer.enabled ? 'btn btn-outline-danger rounded-pill px-3 fw-bold' : 'btn btn-success rounded-pill px-3 fw-bold'}">
+                        <i th:class="${customer.enabled ? 'bi bi-lock me-1' : 'bi bi-unlock me-1'}"></i>
+                        <span th:text="${customer.enabled ? 'Khóa Tài Khoản' : 'Mở Khóa Tài Khoản'}">Khóa</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- ========================================================================= -->
+            <!-- CỘT TRÁI: THÔNG TIN HỒ SƠ & TÀI SẢN ĐIỂM                                  -->
+            <!-- ========================================================================= -->
+            <div class="col-lg-4">
+                <!-- 1. Thẻ hồ sơ cá nhân -->
+                <div class="admin-card p-4 mb-4 text-center">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img th:if="${customer.avatarUrl != null and !customer.avatarUrl.isEmpty()}" 
+                             th:src="${customer.avatarUrl}" 
+                             class="rounded-circle border border-2 shadow-sm object-fit-cover" 
+                             style="width: 96px; height: 96px;" alt="Avatar">
+                        <div th:unless="${customer.avatarUrl != null and !customer.avatarUrl.isEmpty()}" 
+                             class="rounded-circle bg-dark text-white fw-black d-flex align-items-center justify-content-center shadow-sm mx-auto" 
+                             style="width: 96px; height: 96px; font-size: 2rem;">
+                            <span th:text="${#strings.substring(customer.fullName != null and !customer.fullName.isEmpty() ? customer.fullName : 'U', 0, 1)}">U</span>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-black text-dark mb-1" th:text="${customer.fullName}">Nguyễn Văn A</h5>
+                    <div class="text-secondary small mb-2" th:if="${customer.nickname != null and !customer.nickname.isEmpty()}" 
+                         th:text="'@' + ${customer.nickname}">@nickname</div>
+                    
+                    <div class="badge bg-light text-dark border font-monospace px-3 py-2 rounded-3 mb-3 d-inline-block">
+                        <i class="bi bi-upc me-1 text-danger"></i> <span th:text="${customer.memberCode != null ? customer.memberCode : 'CHƯA CÓ MÃ'}">PM-928174019</span>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="text-start small">
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Email:</span>
+                            <span class="fw-semibold text-dark text-truncate ms-2" th:text="${customer.email}">user@popworld.com</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Số điện thoại:</span>
+                            <span class="fw-semibold text-dark font-monospace" th:text="${customer.phone != null ? customer.phone : 'Chưa cập nhật'}">0912345678</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Giới tính:</span>
+                            <span class="fw-semibold text-dark" th:text="${customer.gender != null ? customer.gender : 'Chưa thiết lập'}">Nam</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Ngày sinh (Cố định):</span>
+                            <span class="fw-semibold text-dark font-monospace" 
+                                  th:text="${customer.birthday != null ? #temporals.format(customer.birthday, 'dd/MM/yyyy') : 'Chưa cập nhật'}">01/01/2000</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Vai trò tài khoản:</span>
+                            <span class="badge bg-dark rounded-pill px-2" th:text="${customer.role}">ROLE_USER</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-muted">Ngày tham gia:</span>
+                            <span class="fw-semibold text-dark font-monospace" 
+                                  th:text="${customer.createdAt != null ? #temporals.format(customer.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">01/01/2026</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Thẻ tài sản điểm thưởng & POP NOW Mini-Game -->
+                <div class="admin-card p-4 mb-4">
+                    <h6 class="fw-bold mb-3 border-bottom pb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-gem text-danger"></i> Tài Sản Điểm & Thẻ May Mắn
+                    </h6>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Điểm Thưởng</small>
+                                <strong class="fs-6 text-danger" th:text="${customer.rewardPoints != null ? customer.rewardPoints : 0}">0</strong>
+                                <small class="d-block text-secondary" style="font-size: 0.65rem;">pts</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Lucky Points</small>
+                                <strong class="fs-6 text-warning" th:text="${customer.luckyPoints != null ? customer.luckyPoints : 0}">50</strong>
+                                <small class="d-block text-secondary" style="font-size: 0.65rem;">lắc hộp</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Thẻ Gợi Ý</small>
+                                <strong class="fs-6 text-info" th:text="${customer.hintCards != null ? customer.hintCards : 0}">1</strong>
+                                <small class="d-block text-secondary" style="font-size: 0.65rem;">thẻ bài</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form hỗ trợ CSKH điều chỉnh điểm -->
+                    <div class="bg-light p-3 rounded-3 border">
+                        <h6 class="fw-bold small mb-2 text-dark"><i class="bi bi-sliders me-1"></i> Điều Chỉnh Điểm CSKH</h6>
+                        <form th:action="@{'/admin/customers/' + ${customer.id} + '/adjust-points'}" method="post">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted mb-0">Cộng/Trừ Điểm Thưởng (pts):</label>
+                                <input type="number" name="rewardPointsDelta" class="form-control form-control-sm font-monospace" placeholder="VD: 50 hoặc -20" value="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted mb-0">Cộng/Trừ Lucky Points (LP):</label>
+                                <input type="number" name="luckyPointsDelta" class="form-control form-control-sm font-monospace" placeholder="VD: 10 hoặc -10" value="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-0">Cấp thêm Thẻ Gợi Ý (Hint Cards):</label>
+                                <input type="number" name="hintCardsDelta" class="form-control form-control-sm font-monospace" placeholder="VD: 1 hoặc -1" value="0">
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold">
+                                <i class="bi bi-check2-circle me-1"></i> Cập Nhật Tài Sản
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- CỘT PHẢI: SỔ ĐỊA CHỈ (2 CẤP) & LỊCH SỬ ĐƠN HÀNG                           -->
+            <!-- ========================================================================= -->
+            <div class="col-lg-8">
+                <!-- 3. Sổ địa chỉ giao hàng (Chuẩn hành chính 2 cấp) -->
+                <div class="admin-card p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-geo-alt-fill text-danger"></i> Sổ Địa Chỉ Giao Hàng (Mô Hình 2 Cấp Mới)
+                        </h6>
+                        <span class="badge bg-light text-dark border rounded-pill" th:text="${addresses != null ? addresses.size() : 0} + ' Địa chỉ'">0</span>
+                    </div>
+
+                    <div th:if="${addresses == null or addresses.isEmpty()}" class="py-4 text-center text-muted small">
+                        <i class="bi bi-geo-alt fs-2 d-block mb-2 text-secondary"></i>
+                        Khách hàng chưa lưu địa chỉ nhận hàng nào trong sổ địa chỉ.
+                    </div>
+
+                    <div th:if="${addresses != null and !addresses.isEmpty()}" class="row g-3">
+                        <div class="col-md-6" th:each="addr : ${addresses}">
+                            <div class="p-3 rounded-3 border h-100" th:classappend="${addr.isDefault ? 'border-danger bg-danger-subtle bg-opacity-10' : 'bg-light'}">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="fw-bold text-dark" th:text="${addr.recipientName}">Nguyễn Văn A</span>
+                                    <span th:if="${addr.isDefault}" class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.65rem;">
+                                        Mặc định
+                                    </span>
+                                </div>
+                                <div class="small text-muted font-monospace mb-2" th:text="${addr.recipientPhone}">0912345678</div>
+                                <div class="small text-dark leading-snug">
+                                    <span th:text="${addr.detailedAddress}">Số 123</span><span th:if="${addr.ward != null and !addr.ward.trim().isEmpty()}" th:text="', ' + ${addr.ward}"></span><span th:if="${addr.district != null and !addr.district.trim().isEmpty() and !addr.district.equalsIgnoreCase(addr.provinceCity)}" th:text="', ' + ${addr.district}"></span>, 
+                                    <strong th:text="${addr.provinceCity}">Hà Nội</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Lịch sử đơn hàng của khách -->
+                <div class="admin-card p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-box-seam-fill text-primary"></i> Lịch Sử Đơn Hàng Đã Đặt
+                        </h6>
+                        <span class="badge bg-light text-dark border rounded-pill" th:text="${orders != null ? orders.size() : 0} + ' Đơn hàng'">0</span>
+                    </div>
+
+                    <div th:if="${orders == null or orders.isEmpty()}" class="py-4 text-center text-muted small">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                        Khách hàng chưa có đơn hàng nào trong hệ thống PopWorld.
+                    </div>
+
+                    <div th:if="${orders != null and !orders.isEmpty()}" class="table-responsive">
+                        <table class="table admin-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã Đơn</th>
+                                    <th>Ngày Đặt</th>
+                                    <th>Tổng Tiền</th>
+                                    <th>Trạng Thái</th>
+                                    <th class="text-end">Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ord : ${orders}">
+                                    <td>
+                                        <a th:href="@{'/admin/orders/' + ${ord.orderCode}}" class="fw-bold text-dark text-decoration-none" th:text="${ord.orderCode}">PW-123</a>
+                                        <div th:if="${ord.deliveryMethod == 'POP_NOW_CABINET' or (ord.detailedAddress != null and #strings.contains(ord.detailedAddress, 'Virtual Cabinet'))}" class="mt-1">
+                                            <span class="badge bg-black text-danger border border-danger-subtle" style="font-size: 0.65rem;">
+                                                <i class="bi bi-box2-heart-fill me-1"></i>POP NOW
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold text-dark" th:text="${#temporals.format(ord.createdAt, 'HH:mm')}">14:00</div>
+                                        <small class="text-muted" th:text="${#temporals.format(ord.createdAt, 'dd/MM/yyyy')}">20/09/2026</small>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(ord.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${ord.status == 'DELIVERED' or ord.status == 'COMPLETED'}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                            Hoàn tất
+                                        </span>
+                                        <span th:if="${ord.status == 'SHIPPING'}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1">
+                                            Đang giao
+                                        </span>
+                                        <span th:if="${ord.status == 'PACKED'}" class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1">
+                                            Đã đóng gói
+                                        </span>
+                                        <span th:if="${ord.status == 'PROCESSING'}" class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1">
+                                            Đang xử lý
+                                        </span>
+                                        <span th:if="${ord.status == 'TO_PAY'}" class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1">
+                                            Chờ TT
+                                        </span>
+                                        <span th:if="${ord.status == 'CANCELLED'}" class="badge bg-danger-subtle text-danger border rounded-pill px-2 py-1">
+                                            Đã hủy
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a th:href="@{'/admin/orders/' + ${ord.orderCode}}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                                            Chi Tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

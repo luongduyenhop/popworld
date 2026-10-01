@@ -395,7 +395,7 @@
                     <div class="mb-2">
                         <div class="small text-muted">Địa chỉ giao hàng:</div>
                         <div class="fw-medium text-dark leading-snug">
-                            <span th:text="${order.detailedAddress}"></span><span th:if="${order.ward != null and !order.ward.trim().isEmpty()}" th:text="', ' + ${order.ward}"></span><span th:if="${order.district != null and !order.district.trim().isEmpty()}" th:text="', ' + ${order.district}"></span><strong th:if="${order.provinceCity != null and !order.provinceCity.trim().isEmpty()}" th:text="', ' + ${order.provinceCity}"></strong>
+                            <span th:text="${order.detailedAddress}"></span><span th:if="${order.ward != null and !order.ward.trim().isEmpty()}" th:text="', ' + ${order.ward}"></span><span th:if="${order.district != null and !order.district.trim().isEmpty() and !order.district.equalsIgnoreCase(order.provinceCity)}" th:text="', ' + ${order.district}"></span><strong th:if="${order.provinceCity != null and !order.provinceCity.trim().isEmpty()}" th:text="', ' + ${order.provinceCity}"></strong>
                         </div>
                     </div>
                     <div th:if="${order.note != null and !order.note.isEmpty()}" class="mt-3 p-2 bg-light rounded small border">
