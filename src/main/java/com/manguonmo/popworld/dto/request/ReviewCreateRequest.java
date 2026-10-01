@@ -19,10 +19,10 @@ public class ReviewCreateRequest {
     @NotNull(message = "ID sản phẩm không được để trống!")
     private Long productId;
 
-    @NotNull(message = "Vui lòng chọn số sao đánh giá (1-5 sao)!")
+    @Builder.Default
     @Min(value = 1, message = "Số sao tối thiểu là 1 sao!")
     @Max(value = 5, message = "Số sao tối đa là 5 sao!")
-    private Integer rating;
+    private Integer rating = 5;
 
     @Size(max = 1000, message = "Nội dung nhận xét tối đa 1000 ký tự!")
     private String comment;

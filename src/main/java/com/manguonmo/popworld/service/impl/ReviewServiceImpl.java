@@ -150,9 +150,10 @@ public class ReviewServiceImpl implements ReviewService {
         if (request.getProductId() == null) {
             throw new BadRequestException("ID sản phẩm không được để trống!");
         }
-        if (request.getRating() == null || request.getRating() < 1 || request.getRating() > 5) {
+        if (request.getRating() != null && (request.getRating() < 1 || request.getRating() > 5)) {
             throw new BadRequestException("Số sao đánh giá phải từ 1 đến 5 sao!");
         }
+        int rating = request.getRating() != null ? request.getRating() : 5;
 
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId)
@@ -181,7 +182,7 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = Review.builder()
                 .user(user)
                 .product(product)
-                .rating(request.getRating())
+                .rating(rating)
                 .comment(cleanComment)
                 .reviewImageUrl(cleanImageUrl)
                 .approved(false)
@@ -249,12 +250,16 @@ public class ReviewServiceImpl implements ReviewService {
 
         String userName = "Khách hàng ẩn danh";
         String userEmail = "";
+        String userAvatarUrl = "https://cdn-global.popmart.com/images/default-avatar.png";
         Long userId = null;
         if (user != null) {
             userId = user.getId();
             userName = user.getFullName() != null && !user.getFullName().isBlank()
                     ? user.getFullName() : (user.getEmail() != null ? user.getEmail() : "Khách hàng");
             userEmail = user.getEmail() != null ? user.getEmail() : "";
+            if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
+                userAvatarUrl = user.getAvatarUrl();
+            }
         }
 
         return ReviewResponse.builder()
@@ -266,6 +271,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .userId(userId)
                 .userName(userName)
                 .userEmail(userEmail)
+                .userAvatarUrl(userAvatarUrl)
                 .rating(review.getRating() != null ? review.getRating() : 5)
                 .comment(review.getComment())
                 .reviewImageUrl(review.getReviewImageUrl())

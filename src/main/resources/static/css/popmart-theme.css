@@ -3564,3 +3564,300 @@ header.sticky-top,
     color: #666666;
     line-height: 1.5;
 }
+
+/* ==========================================================================
+   13. PDP COLLECTOR REVIEWS & UNBOXING SHOWCASE (CHỨC NĂNG REVIEW POP MART US - NO STARS)
+   ========================================================================== */
+.pdp-reviews-container {
+    margin-top: 48px;
+    margin-bottom: 64px;
+}
+
+.pdp-reviews-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #000000;
+}
+
+.pdp-reviews-title {
+    font-family: var(--pop-font);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+    color: #000000;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pdp-reviews-count-badge {
+    font-family: var(--pop-font);
+    font-size: 14px;
+    font-weight: 700;
+    color: #666666;
+    letter-spacing: 0;
+}
+
+.pdp-reviews-subtext {
+    font-size: 13.5px;
+    color: #666666;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+/* Unboxing Photo Strip (Horizontal scroll on top) */
+.pdp-unboxing-strip-wrap {
+    margin-bottom: 28px;
+}
+
+.pdp-unboxing-strip-title {
+    font-family: var(--pop-font);
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #000000;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pdp-unboxing-strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #CCCCCC transparent;
+}
+
+.pdp-unboxing-strip::-webkit-scrollbar {
+    height: 4px;
+}
+
+.pdp-unboxing-strip::-webkit-scrollbar-thumb {
+    background: #CCCCCC;
+    border-radius: 2px;
+}
+
+.pdp-unboxing-thumb {
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #EBEBEB;
+    background: #F8F8F8;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pdp-unboxing-thumb:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-color: #000000;
+}
+
+.pdp-unboxing-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Reviews List & Cards */
+.pdp-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pdp-review-card {
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    padding: 22px;
+    transition: border-color 0.2s ease;
+}
+
+.pdp-review-card:hover {
+    border-color: #CCCCCC;
+}
+
+.pdp-review-user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.pdp-review-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pdp-review-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #F0F0F0;
+    border: 1px solid #E0E0E0;
+    flex-shrink: 0;
+}
+
+.pdp-review-author-name {
+    font-family: var(--pop-font);
+    font-size: 14px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pdp-collector-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #000000;
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    line-height: 1.2;
+}
+
+.pdp-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #10B981;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pdp-review-date {
+    font-family: var(--pop-font);
+    font-size: 12px;
+    color: #999999;
+}
+
+.pdp-review-text {
+    font-family: var(--pop-font);
+    font-size: 14px;
+    line-height: 1.6;
+    color: #222222;
+    margin-bottom: 12px;
+    white-space: pre-line;
+}
+
+.pdp-review-image-wrap {
+    margin-top: 10px;
+}
+
+.pdp-review-image {
+    max-width: 130px;
+    max-height: 130px;
+    border-radius: 8px;
+    border: 1px solid #EBEBEB;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pdp-review-image:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+
+/* Submission Form & States */
+.pdp-review-form-card {
+    background: #FAF9F8;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+
+.pdp-review-form-title {
+    font-family: var(--pop-font);
+    font-size: 15px;
+    font-weight: 800;
+    color: #000000;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pdp-review-form-desc {
+    font-size: 13px;
+    color: #666666;
+    margin-bottom: 16px;
+}
+
+.pdp-review-submit-btn {
+    background: #000000;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 24px;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.pdp-review-submit-btn:hover {
+    background: var(--pop-red);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+.pdp-review-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    background: #FAFAFA;
+    border-radius: 12px;
+    border: 1px dashed #D5D5D5;
+}
+
+.pdp-review-empty-icon {
+    font-size: 38px;
+    color: #BBBBBB;
+    margin-bottom: 10px;
+}
+
+.pdp-review-empty-title {
+    font-family: var(--pop-font);
+    font-size: 15px;
+    font-weight: 800;
+    color: #333333;
+    margin-bottom: 6px;
+}
+
+.pdp-review-empty-desc {
+    font-size: 13px;
+    color: #777777;
+    max-width: 420px;
+    margin: 0 auto;
+}

@@ -25,6 +25,7 @@ public class ReviewResponse {
     private Long userId;
     private String userName;
     private String userEmail;
+    private String userAvatarUrl;
 
     // Review content
     private Integer rating;

@@ -357,9 +357,27 @@ class ReviewServiceTest {
 
         ReviewCreateRequest badHigh = ReviewCreateRequest.builder().productId(10L).rating(6).build();
         assertThrows(BadRequestException.class, () -> reviewService.createReview(1L, badHigh));
+    }
 
-        ReviewCreateRequest nullRating = ReviewCreateRequest.builder().productId(10L).rating(null).build();
-        assertThrows(BadRequestException.class, () -> reviewService.createReview(1L, nullRating));
+    @Test
+    @DisplayName("createReview: Rating null sẽ mặc định là 5 sao theo UX Collector của POP MART")
+    void createReview_NullRating_DefaultsToFive() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(productRepository.findById(10L)).thenReturn(Optional.of(sampleProduct));
+        when(reviewRepository.existsByUserIdAndProductId(1L, 10L)).thenReturn(false);
+        when(orderItemRepository.hasUserPurchasedProductDelivered(1L, 10L)).thenReturn(true);
+        when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> {
+            Review r = invocation.getArgument(0);
+            r.setId(999L);
+            return r;
+        });
+
+        ReviewCreateRequest nullRating = ReviewCreateRequest.builder().productId(10L).rating(null).comment("Đẹp xuất sắc").build();
+        ReviewResponse res = reviewService.createReview(1L, nullRating);
+
+        assertNotNull(res);
+        assertEquals(5, res.getRating());
+        assertEquals("Đẹp xuất sắc", res.getComment());
     }
 
     @Test

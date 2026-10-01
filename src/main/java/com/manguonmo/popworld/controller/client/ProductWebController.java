@@ -119,9 +119,15 @@ public class ProductWebController {
         Map<Integer, Long> starCounts = approvedReviews.stream()
                 .collect(Collectors.groupingBy(ReviewResponse::getRating, Collectors.counting()));
 
+        // Danh sách hình ảnh unboxing từ collectors thực tế
+        List<ReviewResponse> unboxingPhotos = approvedReviews.stream()
+                .filter(r -> r.getReviewImageUrl() != null && !r.getReviewImageUrl().isBlank())
+                .toList();
+
         model.addAttribute("reviewsCount", totalReviews);
         model.addAttribute("averageRating", avgRating);
         model.addAttribute("starCounts", starCounts);
+        model.addAttribute("unboxingPhotos", unboxingPhotos);
 
         boolean canReview = false;
         ReviewResponse userReview = null;
