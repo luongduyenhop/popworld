@@ -65,7 +65,7 @@
                                         th:data-ward="${addr.ward}"
                                         th:data-address="${addr.detailedAddress}"
                                         th:selected="${defaultAddress != null && defaultAddress.id == addr.id}"
-                                        th:text="${addr.recipientName + ' - ' + addr.recipientPhone + ' (' + addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity + ')' + (addr.isDefault ? ' [Mặc định]' : '')}">
+                                        th:text="${addr.recipientName + ' - ' + addr.recipientPhone + ' (' + addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() && !addr.district.equals(addr.provinceCity) ? addr.district + ', ' : '') + addr.provinceCity + ')' + (addr.isDefault ? ' [Mặc định]' : '')}">
                                 </option>
                             </select>
                         </div>

@@ -958,7 +958,7 @@
 
                                 <div class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">
                                     <div class="fw-semibold text-dark mb-1" th:text="${addr.detailedAddress}">Số 10 Phạm Văn Bạch</div>
-                                    <div th:text="${(addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity}">
+                                    <div th:text="${(addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() && !addr.district.equals(addr.provinceCity) ? addr.district + ', ' : '') + addr.provinceCity}">
                                         Dịch Vọng, Cầu Giấy, Hà Nội
                                     </div>
                                 </div>
@@ -1044,7 +1044,7 @@
                                     </form>
                                 </div>
                             </div>
-                            <div class="small text-secondary mb-2" th:text="${addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity}">
+                            <div class="small text-secondary mb-2" th:text="${addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() && !addr.district.equals(addr.provinceCity) ? addr.district + ', ' : '') + addr.provinceCity}">
                                 Địa chỉ chi tiết
                             </div>
                             <div class="d-flex gap-2">

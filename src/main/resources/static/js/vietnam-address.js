@@ -1,31 +1,59 @@
 /**
- * PopWorld - Bộ chọn Hành chính Việt Nam 3 Cấp (Tỉnh / Thành -> Quận / Huyện -> Phường / Xã)
- * Hỗ trợ nạp API tự động, lưu cache LocalStorage và fallback dự phòng mượt mà.
+ * PopWorld - Bộ chọn Hành chính Việt Nam 2 Cấp Chuẩn Quốc Gia
+ * Nguồn dữ liệu: Bản đồ tra cứu Đơn vị Hành chính Việt Nam (sapnhap.bando.com.vn)
+ * Căn cứ: Nghị quyết số 202/2025/QH15 & Nghị quyết số 60-NQ/TW
+ * Cơ cấu: 34 Đơn vị hành chính cấp Tỉnh (09 TP trực thuộc TW, 25 Tỉnh) và 3.321 ĐVHC cấp Xã.
  */
 (function() {
     'use strict';
 
-    const CACHE_KEY = 'popworld_vn_provinces_cache_v3';
-    const API_URL = 'https://provinces.open-api.vn/api/?depth=3';
+    const CACHE_KEY = 'popworld_vn_provinces_cache_34_v1';
+    const DATA_URL = '/data/vietnam_administrative_34.json';
 
-    // Danh sách 63 tỉnh/thành phố chuẩn Việt Nam (Dự phòng offline tức thì)
-    const FALLBACK_PROVINCES = [
-        "Thành phố Hà Nội", "Thành phố Hồ Chí Minh", "Thành phố Hải Phòng", "Thành phố Đà Nẵng", "Thành phố Cần Thơ",
-        "Tỉnh An Giang", "Tỉnh Bà Rịa - Vũng Tàu", "Tỉnh Bắc Giang", "Tỉnh Bắc Kạn", "Tỉnh Bạc Liêu", "Tỉnh Bắc Ninh",
-        "Tỉnh Bến Tre", "Tỉnh Bình Định", "Tỉnh Bình Dương", "Tỉnh Bình Phước", "Tỉnh Bình Thuận", "Tỉnh Cà Mau",
-        "Tỉnh Cao Bằng", "Tỉnh Đắk Lắk", "Tỉnh Đắk Nông", "Tỉnh Điện Biên", "Tỉnh Đồng Nai", "Tỉnh Đồng Tháp",
-        "Tỉnh Gia Lai", "Tỉnh Hà Giang", "Tỉnh Hà Nam", "Tỉnh Hà Tĩnh", "Tỉnh Hải Dương", "Tỉnh Hậu Giang",
-        "Tỉnh Hòa Bình", "Tỉnh Hưng Yên", "Tỉnh Khánh Hòa", "Tỉnh Kiên Giang", "Tỉnh Kon Tum", "Tỉnh Lai Châu",
-        "Tỉnh Lâm Đồng", "Tỉnh Lạng Sơn", "Tỉnh Lào Cai", "Tỉnh Long An", "Tỉnh Nam Định", "Tỉnh Nghệ An",
-        "Tỉnh Ninh Bình", "Tỉnh Ninh Thuận", "Tỉnh Phú Thọ", "Tỉnh Phú Yên", "Tỉnh Quảng Bình", "Tỉnh Quảng Nam",
-        "Tỉnh Quảng Ngãi", "Tỉnh Quảng Ninh", "Tỉnh Quảng Trị", "Tỉnh Sóc Trăng", "Tỉnh Sơn La", "Tỉnh Tây Ninh",
-        "Tỉnh Thái Bình", "Tỉnh Thái Nguyên", "Tỉnh Thanh Hóa", "Tỉnh Thừa Thiên Huế", "Tỉnh Tiền Giang",
-        "Tỉnh Trà Vinh", "Tỉnh Tuyên Quang", "Tỉnh Vĩnh Long", "Tỉnh Vĩnh Phúc", "Tỉnh Yên Bái"
+    // Danh sách 34 Tỉnh/Thành phố chuẩn quốc gia sau sắp xếp (Dự phòng offline tức thì)
+    const FALLBACK_34_PROVINCES = [
+        { code: "01", name: "Thủ Đô Hà Nội", mergedFrom: "giữ nguyên" },
+        { code: "04", name: "Tỉnh Cao Bằng", mergedFrom: "giữ nguyên" },
+        { code: "08", name: "Tỉnh Tuyên Quang", mergedFrom: "tỉnh Hà Giang và tỉnh Tuyên Quang" },
+        { code: "11", name: "Tỉnh Điện Biên", mergedFrom: "giữ nguyên" },
+        { code: "12", name: "Tỉnh Lai Châu", mergedFrom: "giữ nguyên" },
+        { code: "14", name: "Tỉnh Sơn La", mergedFrom: "giữ nguyên" },
+        { code: "15", name: "Tỉnh Lào Cai", mergedFrom: "tỉnh Yên Bái và tỉnh Lào Cai" },
+        { code: "19", name: "Tỉnh Thái Nguyên", mergedFrom: "tỉnh Bắc Kạn và tỉnh Thái Nguyên" },
+        { code: "20", name: "Tỉnh Lạng Sơn", mergedFrom: "giữ nguyên" },
+        { code: "22", name: "Thành phố Quảng Ninh", mergedFrom: "giữ nguyên" },
+        { code: "24", name: "Thành phố Bắc Ninh", mergedFrom: "tỉnh Bắc Giang và tỉnh Bắc Ninh" },
+        { code: "25", name: "Tỉnh Phú Thọ", mergedFrom: "tỉnh Vĩnh Phúc, tỉnh Hòa Bình và tỉnh Phú Thọ" },
+        { code: "31", name: "Thành Phố Hải Phòng", mergedFrom: "thành phố Hải Phòng và tỉnh Hải Dương" },
+        { code: "33", name: "Tỉnh Hưng Yên", mergedFrom: "tỉnh Thái Bình và tỉnh Hưng Yên" },
+        { code: "37", name: "Tỉnh Ninh Bình", mergedFrom: "tỉnh Hà Nam, tỉnh Nam Định và tỉnh Ninh Bình" },
+        { code: "38", name: "Tỉnh Thanh Hóa", mergedFrom: "giữ nguyên" },
+        { code: "40", name: "Tỉnh Nghệ An", mergedFrom: "giữ nguyên" },
+        { code: "42", name: "Tỉnh Hà Tĩnh", mergedFrom: "giữ nguyên" },
+        { code: "44", name: "Tỉnh Quảng Trị", mergedFrom: "tỉnh Quảng Bình và tỉnh Quảng Trị" },
+        { code: "46", name: "Thành Phố Huế", mergedFrom: "giữ nguyên" },
+        { code: "48", name: "Thành Phố Đà Nẵng", mergedFrom: "thành phố Đà Nẵng và tỉnh Quảng Nam" },
+        { code: "51", name: "Tỉnh Quảng Ngãi", mergedFrom: "tỉnh Kon Tum và tỉnh Quảng Ngãi" },
+        { code: "52", name: "Tỉnh Gia Lai", mergedFrom: "tỉnh Bình Định và tỉnh Gia Lai" },
+        { code: "56", name: "Tỉnh Khánh Hòa", mergedFrom: "tỉnh Ninh Thuận và tỉnh Khánh Hòa" },
+        { code: "66", name: "Tỉnh Đắk Lắk", mergedFrom: "tỉnh Phú Yên và tỉnh Đắk Lắk" },
+        { code: "68", name: "Tỉnh Lâm Đồng", mergedFrom: "tỉnh Đắk Nông, tỉnh Bình Thuận và tỉnh Lâm Đồng" },
+        { code: "75", name: "Thành phố Đồng Nai", mergedFrom: "tỉnh Bình Phước và tỉnh Đồng Nai" },
+        { code: "79", name: "Thành Phố Hồ Chí Minh", mergedFrom: "TPHCM, tỉnh Bà Rịa - Vũng Tàu và tỉnh Bình Dương" },
+        { code: "80", name: "Tỉnh Tây Ninh", mergedFrom: "tỉnh Long An và tỉnh Tây Ninh" },
+        { code: "82", name: "Tỉnh Đồng Tháp", mergedFrom: "tỉnh Tiền Giang và tỉnh Đồng Tháp" },
+        { code: "86", name: "Tỉnh Vĩnh Long", mergedFrom: "tỉnh Bến Tre, tỉnh Trà Vinh và tỉnh Vĩnh Long" },
+        { code: "91", name: "Tỉnh An Giang", mergedFrom: "tỉnh Kiên Giang và tỉnh An Giang" },
+        { code: "92", name: "Thành Phố Cần Thơ", mergedFrom: "thành phố Cần Thơ, tỉnh Sóc Trăng và tỉnh Hậu Giang" },
+        { code: "96", name: "Tỉnh Cà Mau", mergedFrom: "tỉnh Bạc Liêu và tỉnh Cà Mau" }
     ];
 
     let cachedData = null;
     let loadingPromise = null;
 
+    /**
+     * Tải dữ liệu 34 Tỉnh/Thành phố và 3.321 Xã/Phường
+     */
     async function loadAddressData() {
         if (cachedData && cachedData.length > 0) {
             return cachedData;
@@ -36,7 +64,7 @@
             const local = localStorage.getItem(CACHE_KEY);
             if (local) {
                 const parsed = JSON.parse(local);
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                if (Array.isArray(parsed) && parsed.length === 34) {
                     cachedData = parsed;
                     return cachedData;
                 }
@@ -45,9 +73,9 @@
             console.warn('Lỗi đọc cache địa chỉ từ localStorage:', e);
         }
 
-        // 2. Fetch API trực tuyến
+        // 2. Fetch file JSON dữ liệu nội bộ
         if (!loadingPromise) {
-            loadingPromise = fetch(API_URL)
+            loadingPromise = fetch(DATA_URL)
                 .then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     return res.json();
@@ -58,18 +86,19 @@
                         try {
                             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
                         } catch (e) {
-                            // LocalStorage full, bỏ qua
+                            // Bỏ qua nếu localStorage đầy
                         }
                         return data;
                     }
                     throw new Error('Dữ liệu rỗng');
                 })
                 .catch(err => {
-                    console.warn('Không thể tải API hành chính trực tuyến, sử dụng danh sách dự phòng:', err);
-                    cachedData = FALLBACK_PROVINCES.map((name, idx) => ({
-                        code: idx + 1,
-                        name: name,
-                        districts: []
+                    console.warn('Không thể tải file dữ liệu 34 tỉnh thành nội bộ, kích hoạt fallback:', err);
+                    cachedData = FALLBACK_34_PROVINCES.map(p => ({
+                        code: p.code,
+                        name: p.name,
+                        mergedFrom: p.mergedFrom,
+                        wards: []
                     }));
                     return cachedData;
                 })
@@ -82,14 +111,71 @@
     }
 
     /**
-     * Khởi tạo Bộ chọn Hành chính Việt Nam
-     * Chuẩn mô hình 2 cấp: Tỉnh / Thành phố -> Phường / Xã / Thị trấn
+     * Khớp thông minh Tỉnh/Thành phố (hỗ trợ cả tên mới, tên cũ trước sáp nhập)
+     */
+    function findProvinceMatch(data, query) {
+        if (!query) return null;
+        const q = query.trim().toLowerCase();
+        const qClean = q.replace(/^(tỉnh|thành phố|thủ đô)\s+/i, '').trim();
+
+        // 1. Khớp chính xác tên mới
+        let match = data.find(p => p.name.toLowerCase() === q);
+        if (match) return match;
+
+        // 2. Khớp tên cốt lõi (bỏ tiền tố)
+        match = data.find(p => {
+            const pClean = p.name.toLowerCase().replace(/^(tỉnh|thành phố|thủ đô)\s+/i, '').trim();
+            return pClean === qClean || p.name.toLowerCase().includes(qClean) || q.includes(pClean);
+        });
+        if (match) return match;
+
+        // 3. Khớp thông qua nguồn gốc sáp nhập (mergedFrom)
+        // Ví dụ: người dùng chọn "Hải Dương" -> khớp "Thành Phố Hải Phòng"
+        // "Bắc Giang" -> khớp "Thành phố Bắc Ninh"
+        // "Bình Dương" -> khớp "Thành Phố Hồ Chí Minh"
+        match = data.find(p => {
+            if (!p.mergedFrom) return false;
+            const mf = p.mergedFrom.toLowerCase();
+            return mf.includes(q) || mf.includes(qClean);
+        });
+        return match || null;
+    }
+
+    /**
+     * Khớp thông minh Phường/Xã
+     */
+    function findWardMatch(wards, query) {
+        if (!query || !wards || wards.length === 0) return null;
+        const q = query.trim().toLowerCase();
+        const qClean = q.replace(/^(phường|xã|thị trấn|đặc khu)\s+/i, '').trim();
+
+        // 1. Khớp chính xác tên
+        let match = wards.find(w => w.name.toLowerCase() === q);
+        if (match) return match;
+
+        // 2. Khớp tên cốt lõi
+        match = wards.find(w => {
+            const wClean = w.name.toLowerCase().replace(/^(phường|xã|thị trấn|đặc khu)\s+/i, '').trim();
+            return wClean === qClean || w.name.toLowerCase().includes(qClean) || q.includes(wClean);
+        });
+        if (match) return match;
+
+        // 3. Khớp từ lịch sử sáp nhập của phường/xã
+        match = wards.find(w => {
+            if (!w.mergedFrom) return false;
+            return w.mergedFrom.toLowerCase().includes(q) || w.mergedFrom.toLowerCase().includes(qClean);
+        });
+        return match || null;
+    }
+
+    /**
+     * Khởi tạo Bộ chọn Hành chính Việt Nam 2 Cấp
      */
     async function initSelector(options) {
         const {
             provinceElId,
             wardElId,
-            districtElId, // Tùy chọn (input ẩn hoặc select cũ để tương thích ngược)
+            districtElId, // Thẻ input hidden tương thích ngược
             initialProvince = '',
             initialDistrict = '',
             initialWard = ''
@@ -105,181 +191,87 @@
 
         const data = await loadAddressData();
 
-        // 1. Nạp danh sách Tỉnh / Thành phố
+        // 1. Nạp danh sách 34 Tỉnh / Thành phố mới
         provinceEl.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
         data.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p.name;
             opt.textContent = p.name;
             opt.dataset.code = p.code;
+            if (p.mergedFrom && !p.mergedFrom.includes('giữ nguyên')) {
+                opt.title = `Sáp nhập từ: ${p.mergedFrom}`;
+            }
             provinceEl.appendChild(opt);
         });
 
-        // Kiểm tra xem districtEl có phải là thẻ SELECT 3 cấp truyền thống không
-        const isLegacy3Tier = districtEl && districtEl.tagName === 'SELECT';
+        // Hàm nạp danh sách Phường / Xã trực thuộc
+        function populateWards(selectedProvinceName, preselectedWard = '') {
+            wardEl.innerHTML = '<option value="">-- Chọn Phường / Xã / Thị trấn --</option>';
 
-        if (isLegacy3Tier) {
-            // === CHẾ ĐỘ 3 CẤP DỰ PHÒNG ===
-            function populateDistrictsLegacy(selectedProvinceName, preselectedDistrict = '') {
-                districtEl.innerHTML = '<option value="">-- Chọn Quận / Huyện --</option>';
-                wardEl.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+            if (!selectedProvinceName) {
                 wardEl.disabled = true;
-
-                if (!selectedProvinceName) {
-                    districtEl.disabled = true;
-                    return;
-                }
-                districtEl.disabled = false;
-
-                const provinceObj = data.find(p => p.name === selectedProvinceName);
-                if (provinceObj && provinceObj.districts && provinceObj.districts.length > 0) {
-                    provinceObj.districts.forEach(d => {
-                        const opt = document.createElement('option');
-                        opt.value = d.name;
-                        opt.textContent = d.name;
-                        opt.dataset.code = d.code;
-                        if (preselectedDistrict && (d.name === preselectedDistrict || d.name.includes(preselectedDistrict) || preselectedDistrict.includes(d.name))) {
-                            opt.selected = true;
-                        }
-                        districtEl.appendChild(opt);
-                    });
-
-                    const activeDistrict = districtEl.value || preselectedDistrict;
-                    if (activeDistrict) {
-                        populateWardsLegacy(selectedProvinceName, activeDistrict, initialWard);
-                    }
-                }
+                if (districtEl) districtEl.value = '';
+                return;
             }
 
-            function populateWardsLegacy(selectedProvinceName, selectedDistrictName, preselectedWard = '') {
-                wardEl.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
-                if (!selectedProvinceName || !selectedDistrictName) {
-                    wardEl.disabled = true;
-                    return;
-                }
-                wardEl.disabled = false;
-
-                const provinceObj = data.find(p => p.name === selectedProvinceName);
-                if (provinceObj && provinceObj.districts) {
-                    const districtObj = provinceObj.districts.find(d => d.name === selectedDistrictName);
-                    if (districtObj && districtObj.wards) {
-                        districtObj.wards.forEach(w => {
-                            const opt = document.createElement('option');
-                            opt.value = w.name;
-                            opt.textContent = w.name;
-                            opt.dataset.code = w.code;
-                            if (preselectedWard && (w.name === preselectedWard || w.name.includes(preselectedWard) || preselectedWard.includes(w.name))) {
-                                opt.selected = true;
-                            }
-                            wardEl.appendChild(opt);
-                        });
-                    }
-                }
+            const provinceObj = data.find(p => p.name === selectedProvinceName);
+            if (!provinceObj || !provinceObj.wards || provinceObj.wards.length === 0) {
+                wardEl.disabled = true;
+                return;
             }
 
-            provinceEl.onchange = function() {
-                populateDistrictsLegacy(this.value);
-            };
-
-            districtEl.onchange = function() {
-                populateWardsLegacy(provinceEl.value, this.value);
-            };
-
-            if (initialProvince) {
-                const matchedP = data.find(p => p.name === initialProvince || p.name.includes(initialProvince) || initialProvince.includes(p.name));
-                if (matchedP) {
-                    provinceEl.value = matchedP.name;
-                    populateDistrictsLegacy(matchedP.name, initialDistrict);
+            wardEl.disabled = false;
+            provinceObj.wards.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.name;
+                opt.textContent = w.name;
+                opt.dataset.code = w.code;
+                if (w.mergedFrom && !w.mergedFrom.includes('giữ nguyên')) {
+                    opt.title = `Sáp nhập từ: ${w.mergedFrom}`;
                 }
-            }
-        } else {
-            // === CHUẨN MÔ HÌNH 2 CẤP: TỈNH -> PHƯỜNG / XÃ ===
-            function populateWards2Tier(selectedProvinceName, preselectedWard = '') {
-                wardEl.innerHTML = '<option value="">-- Chọn Phường / Xã / Thị trấn --</option>';
+                wardEl.appendChild(opt);
+            });
 
-                if (!selectedProvinceName) {
-                    wardEl.disabled = true;
-                    if (districtEl) districtEl.value = '';
-                    return;
-                }
-                wardEl.disabled = false;
-
-                const provinceObj = data.find(p => p.name === selectedProvinceName);
-                const allWards = [];
-
-                if (provinceObj && provinceObj.districts) {
-                    provinceObj.districts.forEach(d => {
-                        if (d.wards && d.wards.length > 0) {
-                            d.wards.forEach(w => {
-                                allWards.push({
-                                    name: w.name,
-                                    district: d.name,
-                                    code: w.code
-                                });
-                            });
-                        }
-                    });
-                }
-
-                // Sắp xếp Xã/Phường theo thứ tự bảng chữ cái tiếng Việt
-                allWards.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-
-                allWards.forEach(w => {
-                    const opt = document.createElement('option');
-                    opt.value = w.name;
-                    opt.textContent = `${w.name} (${w.district})`;
-                    opt.dataset.district = w.district;
-                    if (preselectedWard && (w.name === preselectedWard || w.name.includes(preselectedWard) || preselectedWard.includes(w.name))) {
-                        opt.selected = true;
-                        if (districtEl) districtEl.value = w.district;
-                    }
-                    wardEl.appendChild(opt);
-                });
-
-                // Nếu preselectedWard khớp, tự động gán district ngầm nếu có input
-                if (wardEl.selectedIndex > 0) {
-                    const selectedOpt = wardEl.options[wardEl.selectedIndex];
-                    if (districtEl && selectedOpt) {
-                        districtEl.value = selectedOpt.dataset.district || '';
-                    }
-                }
+            // Giữ district là chuỗi rỗng trong mô hình 2 cấp (Backend lưu "" tương thích MySQL NOT NULL)
+            if (districtEl) {
+                districtEl.value = '';
             }
 
-            wardEl.onchange = function() {
-                const selectedOpt = this.options[this.selectedIndex];
-                if (districtEl && selectedOpt) {
-                    districtEl.value = selectedOpt.dataset.district || '';
+            // Điền trước Phường/Xã nếu có
+            if (preselectedWard) {
+                const matchedWard = findWardMatch(provinceObj.wards, preselectedWard);
+                if (matchedWard) {
+                    wardEl.value = matchedWard.name;
                 }
-            };
+            }
+        }
 
-            provinceEl.onchange = function() {
-                populateWards2Tier(this.value);
-            };
+        // Lắng nghe sự kiện đổi Tỉnh / Thành phố
+        provinceEl.onchange = function() {
+            populateWards(this.value);
+        };
 
-            // Khởi tạo giá trị ban đầu nếu có
-            if (initialProvince) {
-                const matchedP = data.find(p => p.name === initialProvince || p.name.includes(initialProvince) || initialProvince.includes(p.name));
-                if (matchedP) {
-                    provinceEl.value = matchedP.name;
-                    populateWards2Tier(matchedP.name, initialWard);
-                } else {
-                    provinceEl.value = initialProvince;
-                    populateWards2Tier(initialProvince, initialWard);
-                }
+        // Lắng nghe sự kiện đổi Phường / Xã
+        wardEl.onchange = function() {
+            if (districtEl) {
+                districtEl.value = '';
+            }
+        };
+
+        // 2. Điền trước dữ liệu ban đầu (nếu có)
+        if (initialProvince) {
+            const matchedP = findProvinceMatch(data, initialProvince);
+            if (matchedP) {
+                provinceEl.value = matchedP.name;
+                populateWards(matchedP.name, initialWard);
             }
         }
     }
 
-    // Xuất ra global window
+    // Xuất ra phạm vi toàn cục
     window.VietnamAddressSelector = {
-        loadData: loadAddressData,
-        init: initSelector
+        init: initSelector,
+        loadData: loadAddressData
     };
 
-    // Tự động tải trước dữ liệu trong nền khi trang load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadAddressData);
-    } else {
-        loadAddressData();
-    }
 })();
