@@ -19,10 +19,10 @@
         <!-- 1. STATS OVERVIEW CARDS                                                   -->
         <!-- ========================================================================= -->
         <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-md-4">
                 <div class="admin-stat-card py-3">
                     <div>
-                        <div class="admin-stat-label">Tổng Đánh Giá</div>
+                        <div class="admin-stat-label">Tổng Đánh Giá Mở Hộp</div>
                         <div class="admin-stat-number fs-3" th:text="${stats.totalReviews}">0</div>
                     </div>
                     <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
@@ -30,18 +30,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="admin-stat-card py-3">
-                    <div>
-                        <div class="admin-stat-label">Đang Bị Ẩn (Vi Phạm)</div>
-                        <div class="admin-stat-number fs-3 text-warning" th:text="${stats.pendingReviews}">0</div>
-                    </div>
-                    <div class="admin-stat-icon icon-yellow" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="bi bi-eye-slash-fill"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-md-4">
                 <div class="admin-stat-card py-3">
                     <div>
                         <div class="admin-stat-label">Đang Hiển Thị Công Khai</div>
@@ -52,17 +41,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-md-4">
                 <div class="admin-stat-card py-3">
                     <div>
-                        <div class="admin-stat-label">Điểm Trung Bình</div>
-                        <div class="admin-stat-number fs-3 text-danger d-flex align-items-center gap-1">
-                            <span th:text="${stats.averageRating}">0.0</span>
-                            <i class="bi bi-star-fill text-warning fs-5"></i>
-                        </div>
+                        <div class="admin-stat-label">Đang Bị Ẩn (Vi Phạm)</div>
+                        <div class="admin-stat-number fs-3 text-warning" th:text="${stats.pendingReviews}">0</div>
                     </div>
-                    <div class="admin-stat-icon icon-purple" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                        <i class="bi bi-stars"></i>
+                    <div class="admin-stat-icon icon-yellow" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-eye-slash-fill"></i>
                     </div>
                 </div>
             </div>
@@ -123,15 +109,14 @@
                         <th style="width: 70px;">#ID</th>
                         <th style="width: 220px;">Sản Phẩm</th>
                         <th style="width: 180px;">Khách Hàng</th>
-                        <th style="width: 130px;">Số Sao</th>
-                        <th>Nội Dung Nhận Xét</th>
+                        <th>Nội Dung Nhận Xét Mở Hộp</th>
                         <th style="width: 140px;" class="text-center">Trạng Thái</th>
                         <th style="width: 180px;" class="text-center">Hành Động</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(reviews)}">
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <div class="py-4">
                                 <i class="bi bi-chat-square-dots text-secondary fs-1 d-block mb-2"></i>
                                 <h6 class="text-secondary fw-semibold">Không tìm thấy đánh giá nào</h6>
@@ -159,7 +144,7 @@
                                 <div th:unless="${r.productImageUrl != null and !r.productImageUrl.isEmpty()}"
                                      class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-muted flex-shrink-0"
                                      style="width: 44px; height: 44px;">
-                                    <i class="bi bi-box"></i>
+                                     <i class="bi bi-box"></i>
                                 </div>
                                 <div class="overflow-hidden">
                                     <a th:if="${r.productSlug != null}"
@@ -185,17 +170,6 @@
                             <div class="fw-semibold text-dark small" th:text="${r.userName}">Nguyễn Văn A</div>
                             <div class="text-secondary text-truncate" style="font-size: 0.75rem; max-width: 170px;"
                                  th:text="${r.userEmail}">user@example.com</div>
-                        </td>
-
-                        <!-- Đánh Giá Sao -->
-                        <td>
-                            <div class="d-flex align-items-center gap-1 text-warning" style="font-size: 0.85rem;">
-                                <i th:each="star : ${#numbers.sequence(1, 5)}"
-                                   class="bi"
-                                   th:classappend="${star <= r.rating ? 'bi-star-fill' : 'bi-star'}"></i>
-                            </div>
-                            <span class="badge bg-light text-dark border rounded-pill mt-1" style="font-size: 0.7rem;"
-                                  th:text="${r.rating + ' / 5 sao'}">5 / 5 sao</span>
                         </td>
 
                         <!-- Nhận Xét & Ảnh -->
