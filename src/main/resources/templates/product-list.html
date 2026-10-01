@@ -3,171 +3,442 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle} + ' - PopWorld Art Toy'">Danh Sách Sản Phẩm - PopWorld</title>
+    <title th:text="${pageTitle} + ' | PopWorld Official'">Bộ Sưu Tập Sản Phẩm - PopWorld</title>
     
+    <!-- Google Fonts & Bootstrap 5.3 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.0')}">
+    
+    <!-- Custom POP MART Theme CSS -->
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.3')}">
 </head>
 <body>
 
     <!-- Header Fragment -->
     <header th:replace="~{fragments/header :: header}"></header>
 
-    <main class="container my-4">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb" style="font-size: 0.86rem;">
-                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary fw-semibold">Trang Chủ</a></li>
-                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${pageTitle}">Danh Mục</li>
-            </ol>
-        </nav>
-
-        <!-- POP MART US Pastel Collection Banner -->
-        <div class="pop-collection-banner-us mb-4">
-            <div class="doodle-accent-left d-none d-md-block">✦ ★</div>
-            <div class="doodle-accent-right d-none d-md-block">★ ✦</div>
-            <div class="banner-inner-card">
-                <div th:if="${currentCharacter != null}" class="mb-3 text-center">
-                    <img th:src="${currentCharacter.avatarUrl}" th:alt="${currentCharacter.name}" class="rounded-circle border border-3 border-white shadow" 
-                         width="84" height="84" style="object-fit: cover;">
+    <main>
+        <!-- ========================================================================== -->
+        <!-- 1. PANORAMIC THEMED COLLECTION BANNER (POP MART US SPEC)                  -->
+        <!-- ========================================================================== -->
+        <section class="pop-collection-panoramic" th:classappend="${bannerTheme}">
+            <div class="pop-banner-sticker-left d-none d-md-block">✦ ★ ✦</div>
+            <div class="pop-banner-sticker-right d-none d-md-block">★ ✦ ★</div>
+            
+            <div class="container text-center position-relative" style="z-index: 2;">
+                <div th:if="${currentCharacter != null}" class="mb-2">
+                    <img th:src="${currentCharacter.avatarUrl}" th:alt="${currentCharacter.name}" 
+                         class="rounded-circle border border-2 border-white shadow-sm" width="64" height="64" style="object-fit: cover;">
                 </div>
-                <h1 class="fw-black text-uppercase mb-2 tracking-tight" style="font-size: 1.9rem; letter-spacing: -0.5px;" th:text="${pageTitle}">ALL PRODUCTS</h1>
-                <p class="text-secondary small mb-0" th:text="${pageDescription}">Khám phá toàn bộ vũ trụ Art Toy & Blind Box chính hãng</p>
+                <h1 class="pop-collection-title" th:text="${pageTitle}">PLUSH PENDANTS</h1>
+                <p class="pop-collection-desc" th:text="${pageDescription}">Plush pendants that turn your favorite characters into soft, stylish companions you can carry everywhere.</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Thanh Tabbar Danh Mục Ngang Chuẩn POP MART -->
-        <div class="pop-order-tabs-dock mb-3">
-            <a th:href="@{/products}" 
-               class="pop-tab-item"
-               th:classappend="${currentCategory == null && currentCharacter == null} ? 'active' : ''">
-                <i class="bi bi-grid-fill me-1"></i> Tất Cả Sản Phẩm
-            </a>
-            <a th:each="cat : ${categories}" 
-               th:href="@{'/categories/' + ${cat.slug}}" 
-               class="pop-tab-item"
-               th:classappend="${currentCategory != null && currentCategory.id == cat.id} ? 'active' : ''">
-                <span th:text="${cat.name}">Hộp Mù Blind Box</span>
-            </a>
-        </div>
+        <!-- ========================================================================== -->
+        <!-- 2. MAIN CATALOG LAYOUT (SIDEBAR + 5-COLUMN GRID)                          -->
+        <!-- ========================================================================== -->
+        <div class="container-fluid px-lg-5 px-3 py-2">
+            <!-- Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb" style="font-size: 0.84rem;">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary">Trang Chủ</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/products}" class="text-decoration-none text-secondary">Bộ Sưu Tập</a></li>
+                    <li class="breadcrumb-item active fw-bold text-dark" aria-current="page" th:text="${pageTitle}">Danh Mục</li>
+                </ol>
+            </nav>
 
-        <!-- Dải Lọc Nhân Vật IP Nhanh (Pill Chips) -->
-        <div class="d-flex align-items-center gap-2 overflow-x-auto pb-3 mb-4" style="scrollbar-width: none;">
-            <span class="small fw-bold text-secondary text-uppercase me-2 flex-shrink-0">
-                <i class="bi bi-stars text-danger me-1"></i> Theo Nhân Vật:
-            </span>
-            <a th:each="ip : ${characterIps}" 
-               th:href="@{'/characters/' + ${ip.id}}"
-               class="pop-tab-item py-1 px-3"
-               style="font-size: 0.82rem;"
-               th:classappend="${currentCharacter != null && currentCharacter.id == ip.id} ? 'active' : ''">
-                <img th:src="${ip.avatarUrl}" th:alt="${ip.name}" class="rounded-circle me-1 border" width="20" height="20" style="object-fit: cover;">
-                <span th:text="${ip.name}">Labubu</span>
-            </a>
-        </div>
-
-        <!-- Thanh Thống Kê & Lưới Sản Phẩm Cân Đối Toàn Trang -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-secondary fw-bold small">
-                Hiển thị <strong class="text-dark" th:text="${products.size()}">0</strong> chiến lợi phẩm Art Toy
-            </span>
-        </div>
-
-        <!-- Empty State -->
-        <div th:if="${products.isEmpty()}" class="p-5 text-center border-0 shadow-sm my-4"
-             style="background: #FFFFFF; border-radius: var(--pop-radius-xl); box-shadow: var(--pop-shadow-card);">
-            <div class="display-1 text-muted mb-3"><i class="bi bi-box2"></i></div>
-            <h4 class="fw-bold">Chưa tìm thấy sản phẩm phù hợp</h4>
-            <p class="text-secondary" th:if="${keyword != null and !keyword.isEmpty()}">
-                Không tìm thấy sản phẩm nào khớp với từ khóa "<strong class="text-danger" th:text="${keyword}"></strong>". Hãy thử tìm các bộ sưu tập nổi tiếng như Labubu, Molly, Skullpanda!
-            </p>
-            <p class="text-secondary" th:unless="${keyword != null and !keyword.isEmpty()}">
-                Rất tiếc, hiện tại danh mục này chưa có sản phẩm.
-            </p>
-            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-                <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/products}" class="btn btn-outline-dark">
-                    <i class="bi bi-grid me-1"></i> Xem Tất Cả Sản Phẩm
-                </a>
-                <a th:href="@{/}" class="btn btn-pop-red">Quay Lại Trang Chủ</a>
-            </div>
-        </div>
-
-        <!-- Skeleton Product Grid (Vệt sáng nghiêng 15 độ chuẩn POP MART) -->
-        <div id="productsSkeletonGrid" class="row g-4 mb-4" style="display: none;">
-            <div class="col-6 col-md-4 col-lg-3" th:each="i : ${#numbers.sequence(1, 4)}">
-                <div class="pop-skeleton-card p-0 rounded-4 overflow-hidden border shadow-sm h-100">
-                    <div class="pop-skeleton-box" style="width: 100%; padding-top: 100%; border-radius: 0;"></div>
-                    <div class="p-3">
-                        <div class="pop-skeleton-pill mb-2" style="width: 45%; height: 12px;"></div>
-                        <div class="pop-skeleton-pill mb-2" style="width: 85%; height: 18px;"></div>
-                        <div class="pop-skeleton-pill mb-3" style="width: 60%; height: 18px;"></div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="pop-skeleton-pill" style="width: 50%; height: 20px;"></div>
-                            <div class="pop-skeleton-pill" style="width: 35%; height: 16px;"></div>
-                        </div>
-                        <div class="pop-skeleton-pill w-100" style="height: 38px; border-radius: 50px;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Grid Cards 4 Cột Cân Đối Hoàn Hảo (col-6 col-md-4 col-lg-3) -->
-        <div class="row g-4" id="mainProductGrid" th:if="${!products.isEmpty()}">
-            <div class="col-6 col-md-4 col-lg-3" th:each="p : ${products}">
-                <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
-                    <div class="pop-product-img-box">
-                        <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
-                        <span class="badge-pop-secret" th:if="${p.secretRatio != null}">
-                            <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
-                        </span>
-                        <span class="badge-pop-new" th:if="${p.isNewRelease}">NEW</span>
-                        <span class="badge-pop-hot" th:if="${p.isFeatured && !p.isNewRelease}">HOT</span>
+            <div class="pop-catalog-layout">
+                <!-- ================================================================== -->
+                <!-- 2.1. LEFT SIDEBAR FILTER (DESKTOP)                                -->
+                <!-- ================================================================== -->
+                <aside class="pop-filter-sidebar d-none d-md-block">
+                    <!-- Khối 1: Tính Năng Mua Hàng -->
+                    <div class="pop-filter-block">
+                        <div class="pop-filter-title">TÍNH NĂNG</div>
+                        <label class="pop-filter-check-item">
+                            <input type="checkbox" id="chkPopNow" th:checked="${selectedPopNow != null && selectedPopNow}" 
+                                   onchange="applyFilterParam('popNow', this.checked ? 'true' : '')">
+                            <span>Bóc Online POP NOW</span>
+                        </label>
+                        <label class="pop-filter-check-item">
+                            <input type="checkbox" id="chkInStock" th:checked="${selectedInStock != null && selectedInStock}" 
+                                   onchange="applyFilterParam('inStock', this.checked ? 'true' : '')">
+                            <span>Có Sẵn Giao Nhanh</span>
+                        </label>
                     </div>
 
-                    <div class="pop-card-body">
-                        <span class="badge-series-tag" 
-                              th:text="${p.series?.name ?: (p.category?.name ?: 'PopWorld Exclusive')}">Series</span>
-                        <h3 class="pop-product-title" th:text="${p.name}">Tên sản phẩm</h3>
+                    <!-- Khối 2: Danh Mục Sản Phẩm -->
+                    <div class="pop-filter-block">
+                        <div class="pop-filter-title">DANH MỤC</div>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="categoryFilter" value="" th:checked="${selectedCategorySlug == null || selectedCategorySlug.isEmpty()}"
+                                   onchange="applyFilterParam('category', '')">
+                            <span>Tất Cả Danh Mục</span>
+                        </label>
+                        <label class="pop-filter-check-item" th:each="cat : ${categories}">
+                            <input type="radio" name="categoryFilter" th:value="${cat.slug}" 
+                                   th:checked="${selectedCategorySlug != null && selectedCategorySlug.equalsIgnoreCase(cat.slug)}"
+                                   onchange="applyFilterParam('category', this.value)">
+                            <span th:text="${cat.name}">Hộp Mù Blind Box</span>
+                        </label>
+                    </div>
 
-                        <div class="pop-pricing-box">
-                            <div>
-                                <span class="single-box-price"
-                                      th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</span>
+                    <!-- Khối 3: Nhân Vật Biểu Tượng (Character IP Avatar Grid) -->
+                    <div class="pop-filter-block">
+                        <div class="pop-filter-title">NHÂN VẬT IP</div>
+                        <div class="pop-char-avatar-grid">
+                            <div th:each="ip : ${characterIps}" 
+                                 class="pop-char-avatar-card" 
+                                 th:classappend="${selectedCharacterId != null && selectedCharacterId == ip.id} ? 'active' : ''"
+                                 th:onclick="'toggleCharacterFilter(' + ${ip.id} + ')'"
+                                 style="cursor: pointer;">
+                                <img th:src="${ip.avatarUrl}" class="pop-char-avatar-img" th:alt="${ip.name}">
+                                <span class="pop-char-avatar-name" th:text="${ip.name}">Labubu</span>
                             </div>
-                            <div th:if="${p.wholeSetPrice != null}">
-                                <span class="whole-set-pill"
-                                      th:text="'Set: ' + ${#numbers.formatDecimal(p.wholeSetPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Set: 2.100.000 ₫</span>
+                        </div>
+                    </div>
+
+                    <!-- Khối 4: Khoảng Giá -->
+                    <div class="pop-filter-block">
+                        <div class="pop-filter-title">KHOẢNG GIÁ</div>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="priceRangeFilter" value="" th:checked="${selectedPriceRange == null || selectedPriceRange.isEmpty()}"
+                                   onchange="applyFilterParam('priceRange', '')">
+                            <span>Tất Cả Mức Giá</span>
+                        </label>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="priceRangeFilter" value="under_500k" th:checked="${selectedPriceRange == 'under_500k'}"
+                                   onchange="applyFilterParam('priceRange', 'under_500k')">
+                            <span>Dưới 500.000 ₫</span>
+                        </label>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="priceRangeFilter" value="500k_1m" th:checked="${selectedPriceRange == '500k_1m'}"
+                                   onchange="applyFilterParam('priceRange', '500k_1m')">
+                            <span>500.000 ₫ - 1.000.000 ₫</span>
+                        </label>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="priceRangeFilter" value="1m_3m" th:checked="${selectedPriceRange == '1m_3m'}"
+                                   onchange="applyFilterParam('priceRange', '1m_3m')">
+                            <span>1.000.000 ₫ - 3.000.000 ₫</span>
+                        </label>
+                        <label class="pop-filter-check-item">
+                            <input type="radio" name="priceRangeFilter" value="above_3m" th:checked="${selectedPriceRange == 'above_3m'}"
+                                   onchange="applyFilterParam('priceRange', 'above_3m')">
+                            <span>Trên 3.000.000 ₫</span>
+                        </label>
+                    </div>
+
+                    <!-- Reset Bộ Lọc -->
+                    <div class="pt-2" th:if="${(selectedCategorySlug != null && !selectedCategorySlug.isEmpty()) || selectedCharacterId != null || (selectedPopNow != null && selectedPopNow) || (selectedInStock != null && selectedInStock) || (selectedPriceRange != null && !selectedPriceRange.isEmpty()) || (keyword != null && !keyword.isEmpty())}">
+                        <a th:href="@{/products}" class="btn btn-outline-dark btn-sm w-100 fw-bold text-uppercase py-2" style="border-radius: 2px; font-size: 11.5px;">
+                            <i class="bi bi-x-circle me-1"></i> XÓA BỘ LỌC
+                        </a>
+                    </div>
+                </aside>
+
+                <!-- ================================================================== -->
+                <!-- 2.2. MAIN CATALOG CONTENT AREA                                    -->
+                <!-- ================================================================== -->
+                <div class="pop-catalog-content">
+                    <!-- Top Toolbar -->
+                    <div class="pop-catalog-toolbar">
+                        <!-- Left: Counter & Filter Chips -->
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="pop-count-badge me-2">
+                                <strong class="text-dark" th:text="${totalProducts}">0</strong> Sản phẩm
+                            </span>
+
+                            <!-- Active Filter Chips -->
+                            <div class="pop-active-chips">
+                                <a th:if="${selectedCategorySlug != null && !selectedCategorySlug.isEmpty()}" 
+                                   th:href="'javascript:applyFilterParam(\'category\', \'\')'" class="pop-chip">
+                                    <span th:text="${currentCategory != null ? currentCategory.name : selectedCategorySlug}">Danh mục</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
+                                <a th:if="${selectedCharacterId != null}" 
+                                   th:href="'javascript:applyFilterParam(\'character\', \'\')'" class="pop-chip">
+                                    <span th:text="${currentCharacter != null ? currentCharacter.name : 'Nhân vật'}">Nhân vật</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
+                                <a th:if="${selectedPopNow != null && selectedPopNow}" 
+                                   th:href="'javascript:applyFilterParam(\'popNow\', \'\')'" class="pop-chip">
+                                    <span>POP NOW</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
+                                <a th:if="${selectedInStock != null && selectedInStock}" 
+                                   th:href="'javascript:applyFilterParam(\'inStock\', \'\')'" class="pop-chip">
+                                    <span>Có Sẵn</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
+                                <a th:if="${selectedPriceRange != null && !selectedPriceRange.isEmpty()}" 
+                                   th:href="'javascript:applyFilterParam(\'priceRange\', \'\')'" class="pop-chip">
+                                    <span th:text="${selectedPriceRange == 'under_500k' ? '< 500k' : (selectedPriceRange == '500k_1m' ? '500k - 1tr' : (selectedPriceRange == '1m_3m' ? '1tr - 3tr' : '> 3tr'))}">Giá</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
+                                <a th:if="${keyword != null && !keyword.isEmpty()}" 
+                                   th:href="'javascript:applyFilterParam(\'keyword\', \'\')'" class="pop-chip">
+                                    <span th:text="'Từ khóa: ' + ${keyword}">Từ khóa</span>
+                                    <i class="bi bi-x"></i>
+                                </a>
                             </div>
                         </div>
 
-                        <div class="pop-quick-action">
-                            <i class="bi bi-box-seam me-1"></i> Khám Phá Hộp Mù
+                        <!-- Right: Mobile Filter Button & Sort Dropdown -->
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Mobile Filter Button -->
+                            <button type="button" class="btn btn-outline-dark btn-sm d-md-none fw-bold" 
+                                    data-bs-toggle="offcanvas" data-bs-target="#mobileFilterDrawer" 
+                                    style="border-radius: 2px; font-size: 12px;">
+                                <i class="bi bi-funnel me-1"></i> BỘ LỌC
+                            </button>
+
+                            <!-- Sort Dropdown (POP MART US Style) -->
+                            <div class="pop-sort-wrap dropdown">
+                                <button class="pop-sort-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Sort By - <span th:text="${selectedSort == 'price_asc' ? 'Price: low-high' : (selectedSort == 'price_desc' ? 'Price: high-low' : (selectedSort == 'latest' ? 'Latest arrival' : (selectedSort == 'best_selling' ? 'Best selling' : 'Recommend')))}">Recommend</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end pop-sort-menu">
+                                    <li>
+                                        <a class="pop-sort-item" th:classappend="${selectedSort == 'recommend'} ? 'active' : ''" 
+                                           href="javascript:applyFilterParam('sort', 'recommend')">
+                                            <input type="radio" name="sortRadio" th:checked="${selectedSort == 'recommend'}" readonly>
+                                            Recommend
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="pop-sort-item" th:classappend="${selectedSort == 'latest'} ? 'active' : ''" 
+                                           href="javascript:applyFilterParam('sort', 'latest')">
+                                            <input type="radio" name="sortRadio" th:checked="${selectedSort == 'latest'}" readonly>
+                                            Latest arrival
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="pop-sort-item" th:classappend="${selectedSort == 'best_selling'} ? 'active' : ''" 
+                                           href="javascript:applyFilterParam('sort', 'best_selling')">
+                                            <input type="radio" name="sortRadio" th:checked="${selectedSort == 'best_selling'}" readonly>
+                                            Best selling
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="pop-sort-item" th:classappend="${selectedSort == 'price_asc'} ? 'active' : ''" 
+                                           href="javascript:applyFilterParam('sort', 'price_asc')">
+                                            <input type="radio" name="sortRadio" th:checked="${selectedSort == 'price_asc'}" readonly>
+                                            Price: low-high
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="pop-sort-item" th:classappend="${selectedSort == 'price_desc'} ? 'active' : ''" 
+                                           href="javascript:applyFilterParam('sort', 'price_desc')">
+                                            <input type="radio" name="sortRadio" th:checked="${selectedSort == 'price_desc'}" readonly>
+                                            Price: high-low
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${products.isEmpty()}" class="p-5 text-center my-4 bg-white border">
+                        <div class="display-3 text-secondary mb-3"><i class="bi bi-box2"></i></div>
+                        <h4 class="fw-black text-uppercase">Không tìm thấy sản phẩm phù hợp</h4>
+                        <p class="text-secondary small mb-4">Hãy thử thay đổi điều kiện bộ lọc hoặc từ khóa tìm kiếm để khám phá thêm các bộ sưu tập khác.</p>
+                        <a th:href="@{/products}" class="btn btn-dark text-uppercase fw-bold px-4 py-2" style="border-radius: 2px; font-size: 12px;">
+                            Xem Tất Cả Sản Phẩm
+                        </a>
+                    </div>
+
+                    <!-- 5-Column Minimalist Product Grid (POP MART US SPEC) -->
+                    <div class="pop-catalog-grid-5" th:if="${!products.isEmpty()}">
+                        <div class="pop-catalog-card" th:each="p : ${products}" 
+                             th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.dataset.url">
+                            <!-- 1:1 Square Photographic Stage -->
+                            <div class="pop-catalog-img-box">
+                                <img th:src="${p.mainImageUrl}" th:alt="${p.name}" class="pop-catalog-img">
+                                <!-- Compact NEW Badge -->
+                                <span class="pop-tag-new" th:if="${p.isNewRelease}">NEW</span>
+                                <span class="pop-tag-new bg-danger" th:if="${p.isFeatured && !p.isNewRelease}">HOT</span>
+                                <!-- Subtle Secret Badge -->
+                                <span class="badge-pop-secret" style="position: absolute; top: 6px; right: 6px;" th:if="${p.secretRatio != null}">
+                                    <i class="bi bi-stars"></i> <span th:text="${p.secretRatio}">1/144</span>
+                                </span>
+                            </div>
+
+                            <!-- Minimalist Body -->
+                            <div class="pop-catalog-card-body">
+                                <div class="pop-catalog-product-title" th:text="${p.name}">Tên sản phẩm</div>
+                                <div class="pop-catalog-product-price" 
+                                     th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">350.000 ₫</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Numeric Pagination -->
+                    <div class="pop-numeric-pagination" th:if="${totalPages > 1}">
+                        <a th:href="'javascript:applyFilterParam(\'page\', \'' + ${currentPage - 1} + '\')'" 
+                           class="pop-page-btn" th:classappend="${currentPage <= 1} ? 'disabled' : ''">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+
+                        <a th:each="pageNum : ${#numbers.sequence(1, totalPages)}" 
+                           th:href="'javascript:applyFilterParam(\'page\', \'' + ${pageNum} + '\')'" 
+                           class="pop-page-btn" 
+                           th:classappend="${currentPage == pageNum} ? 'active' : ''"
+                           th:text="${pageNum}">1</a>
+
+                        <a th:href="'javascript:applyFilterParam(\'page\', \'' + ${currentPage + 1} + '\')'" 
+                           class="pop-page-btn" th:classappend="${currentPage >= totalPages} ? 'disabled' : ''">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- ========================================================================== -->
+    <!-- 3. MOBILE OFFCANVAS FILTER DRAWER                                          -->
+    <!-- ========================================================================== -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileFilterDrawer" aria-labelledby="mobileFilterDrawerLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-black text-uppercase" id="mobileFilterDrawerLabel">BỘ LỌC TÌM KIẾM</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-4">
+            <!-- Tính năng -->
+            <div class="pop-filter-block">
+                <div class="pop-filter-title">TÍNH NĂNG</div>
+                <label class="pop-filter-check-item">
+                    <input type="checkbox" th:checked="${selectedPopNow != null && selectedPopNow}" 
+                           onchange="applyFilterParam('popNow', this.checked ? 'true' : '')">
+                    <span>Bóc Online POP NOW</span>
+                </label>
+                <label class="pop-filter-check-item">
+                    <input type="checkbox" th:checked="${selectedInStock != null && selectedInStock}" 
+                           onchange="applyFilterParam('inStock', this.checked ? 'true' : '')">
+                    <span>Có Sẵn Giao Nhanh</span>
+                </label>
+            </div>
+
+            <!-- Danh mục -->
+            <div class="pop-filter-block">
+                <div class="pop-filter-title">DANH MỤC</div>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobileCategoryFilter" value="" th:checked="${selectedCategorySlug == null || selectedCategorySlug.isEmpty()}"
+                           onchange="applyFilterParam('category', '')">
+                    <span>Tất Cả Danh Mục</span>
+                </label>
+                <label class="pop-filter-check-item" th:each="cat : ${categories}">
+                    <input type="radio" name="mobileCategoryFilter" th:value="${cat.slug}" 
+                           th:checked="${selectedCategorySlug != null && selectedCategorySlug.equalsIgnoreCase(cat.slug)}"
+                           onchange="applyFilterParam('category', this.value)">
+                    <span th:text="${cat.name}">Hộp Mù Blind Box</span>
+                </label>
+            </div>
+
+            <!-- Nhân vật IP -->
+            <div class="pop-filter-block">
+                <div class="pop-filter-title">NHÂN VẬT IP</div>
+                <div class="pop-char-avatar-grid">
+                    <div th:each="ip : ${characterIps}" 
+                         class="pop-char-avatar-card" 
+                         th:classappend="${selectedCharacterId != null && selectedCharacterId == ip.id} ? 'active' : ''"
+                         th:onclick="'toggleCharacterFilter(' + ${ip.id} + ')'"
+                         style="cursor: pointer;">
+                        <img th:src="${ip.avatarUrl}" class="pop-char-avatar-img" th:alt="${ip.name}">
+                        <span class="pop-char-avatar-name" th:text="${ip.name}">Labubu</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khoảng giá -->
+            <div class="pop-filter-block">
+                <div class="pop-filter-title">KHOẢNG GIÁ</div>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobilePriceRangeFilter" value="" th:checked="${selectedPriceRange == null || selectedPriceRange.isEmpty()}"
+                           onchange="applyFilterParam('priceRange', '')">
+                    <span>Tất Cả Mức Giá</span>
+                </label>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobilePriceRangeFilter" value="under_500k" th:checked="${selectedPriceRange == 'under_500k'}"
+                           onchange="applyFilterParam('priceRange', 'under_500k')">
+                    <span>Dưới 500.000 ₫</span>
+                </label>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobilePriceRangeFilter" value="500k_1m" th:checked="${selectedPriceRange == '500k_1m'}"
+                           onchange="applyFilterParam('priceRange', '500k_1m')">
+                    <span>500.000 ₫ - 1.000.000 ₫</span>
+                </label>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobilePriceRangeFilter" value="1m_3m" th:checked="${selectedPriceRange == '1m_3m'}"
+                           onchange="applyFilterParam('priceRange', '1m_3m')">
+                    <span>1.000.000 ₫ - 3.000.000 ₫</span>
+                </label>
+                <label class="pop-filter-check-item">
+                    <input type="radio" name="mobilePriceRangeFilter" value="above_3m" th:checked="${selectedPriceRange == 'above_3m'}"
+                           onchange="applyFilterParam('priceRange', 'above_3m')">
+                    <span>Trên 3.000.000 ₫</span>
+                </label>
+            </div>
+
+            <div class="pt-3">
+                <a th:href="@{/products}" class="btn btn-outline-dark w-100 fw-bold text-uppercase py-2 mb-2" style="border-radius: 2px;">
+                    Đặt Lại Bộ Lọc
+                </a>
+                <button type="button" class="btn btn-dark w-100 fw-bold text-uppercase py-2" data-bs-dismiss="offcanvas" style="border-radius: 2px;">
+                    Áp Dụng
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Fragment -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
+    <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Interactive URL Filter Helper Script -->
     <script>
-        // Hiệu ứng chuyển cảnh Skeleton khi bấm chuyển Tab danh mục hoặc IP nhân vật
-        document.querySelectorAll('.pop-tab-item').forEach(link => {
-            link.addEventListener('click', function(e) {
-                if (this.getAttribute('href') && !this.classList.contains('active')) {
-                    const grid = document.getElementById('mainProductGrid');
-                    const skel = document.getElementById('productsSkeletonGrid');
-                    if (grid && skel) {
-                        grid.style.display = 'none';
-                        skel.style.display = 'flex';
-                    }
-                }
-            });
-        });
+        function applyFilterParam(paramName, paramValue) {
+            const currentUrl = new URL(window.location.href);
+            
+            if (paramValue && paramValue.toString().trim() !== '') {
+                currentUrl.searchParams.set(paramName, paramValue);
+            } else {
+                currentUrl.searchParams.delete(paramName);
+            }
+            
+            // Nếu đổi bộ lọc (không phải đổi page), reset về trang 1
+            if (paramName !== 'page') {
+                currentUrl.searchParams.delete('page');
+            }
+
+            // Nếu đang đổi category trên đường dẫn path dạng /categories/xxx hoặc /characters/xxx,
+            // chuyển hướng chuẩn về /products để giữ toàn vẹn các tham số lọc query
+            if (paramName === 'category' || paramName === 'character') {
+                currentUrl.pathname = '/products';
+            }
+
+            window.location.href = currentUrl.toString();
+        }
+
+        function toggleCharacterFilter(characterId) {
+            const currentUrl = new URL(window.location.href);
+            const currentSelected = currentUrl.searchParams.get('character');
+
+            if (currentSelected && currentSelected.toString() === characterId.toString()) {
+                // Bỏ chọn nhân vật này
+                currentUrl.searchParams.delete('character');
+            } else {
+                currentUrl.searchParams.set('character', characterId);
+            }
+
+            currentUrl.pathname = '/products';
+            currentUrl.searchParams.delete('page');
+            window.location.href = currentUrl.toString();
+        }
     </script>
 </body>
 </html>

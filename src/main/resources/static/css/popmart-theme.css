@@ -4707,3 +4707,442 @@ header.sticky-top,
     background: #000000;
     color: #FFFFFF;
 }
+
+/* ==========================================================================
+   POP MART US COLLECTION & CATALOG SPEC (Deep Shopping & 5-Column Grid)
+   ========================================================================== */
+
+/* 1. Panoramic Themed Collection Banner */
+.pop-collection-panoramic {
+    position: relative;
+    width: 100%;
+    min-height: 200px;
+    padding: 44px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.banner-theme-plush {
+    background: linear-gradient(135deg, #E3F5F7 0%, #D2EFF3 100%);
+}
+
+.banner-theme-blindbox {
+    background: linear-gradient(135deg, #F3EEFA 0%, #E6DCF5 100%);
+}
+
+.banner-theme-mega {
+    background: linear-gradient(135deg, #F4F4F6 0%, #E6E6EA 100%);
+}
+
+.banner-theme-character {
+    background: linear-gradient(135deg, #FFF1E6 0%, #FFE2CC 100%);
+}
+
+.banner-theme-default {
+    background: linear-gradient(135deg, #F7F5F0 0%, #EDE9DF 100%);
+}
+
+.pop-banner-sticker-left {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 26px;
+    color: rgba(0, 0, 0, 0.15);
+    user-select: none;
+    pointer-events: none;
+}
+
+.pop-banner-sticker-right {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 26px;
+    color: rgba(0, 0, 0, 0.15);
+    user-select: none;
+    pointer-events: none;
+}
+
+.pop-collection-title {
+    font-family: var(--pop-font);
+    font-size: 28px;
+    font-weight: 900;
+    color: #111111;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.pop-collection-desc {
+    font-size: 13.5px;
+    color: #555555;
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* 2. Catalog Layout (Sidebar + Grid) */
+.pop-catalog-layout {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+.pop-filter-sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 90px;
+    background: #FFFFFF;
+}
+
+.pop-filter-block {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #EEEEEE;
+}
+
+.pop-filter-title {
+    font-family: var(--pop-font);
+    font-size: 12.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #111111;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pop-filter-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333333;
+    user-select: none;
+}
+
+.pop-filter-check-item input[type="checkbox"],
+.pop-filter-check-item input[type="radio"] {
+    accent-color: #000000;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.pop-filter-check-item:hover {
+    color: #000000;
+}
+
+/* Character Avatar Grid Filter in Sidebar */
+.pop-char-avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.pop-char-avatar-card {
+    border: 1px solid #E5E5E5;
+    border-radius: 4px;
+    padding: 8px 4px;
+    text-align: center;
+    text-decoration: none;
+    background: #FFFFFF;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pop-char-avatar-card:hover {
+    border-color: #111111;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.pop-char-avatar-card.active {
+    border: 2px solid #000000;
+    background: #F9FAFB;
+}
+
+.pop-char-avatar-img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-bottom: 6px;
+}
+
+.pop-char-avatar-name {
+    font-family: var(--pop-font);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #222222;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+
+/* 3. Catalog Top Toolbar */
+.pop-catalog-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.pop-catalog-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #EEEEEE;
+}
+
+.pop-count-badge {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #666666;
+}
+
+.pop-active-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.pop-chip {
+    background: #F2F2F2;
+    color: #111111;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.pop-chip:hover {
+    background: #E5E5E5;
+}
+
+/* Sort Dropdown Popup */
+.pop-sort-wrap {
+    position: relative;
+}
+
+.pop-sort-btn {
+    border: 1px solid #D0D0D0;
+    background: #FFFFFF;
+    color: #111111;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.pop-sort-btn:hover {
+    border-color: #000000;
+}
+
+.pop-sort-menu {
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid #ECECEC;
+    padding: 8px 0;
+    min-width: 200px;
+}
+
+.pop-sort-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #333333;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pop-sort-item:hover {
+    background: #F8F8F8;
+    color: #000000;
+}
+
+.pop-sort-item.active {
+    font-weight: 700;
+    color: #000000;
+}
+
+.pop-sort-item input[type="radio"] {
+    accent-color: #000000;
+}
+
+/* 4. 5-Column Minimalist Product Grid */
+.pop-catalog-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px 16px;
+}
+
+@media (max-width: 1400px) {
+    .pop-catalog-grid-5 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .pop-catalog-grid-5 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .pop-catalog-grid-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 10px;
+    }
+}
+
+/* Minimalist Card Design (POP MART US Style) */
+.pop-catalog-card {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    position: relative;
+}
+
+.pop-catalog-img-box {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #F5F5F5;
+    overflow: hidden;
+    border-radius: 2px;
+}
+
+.pop-catalog-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pop-catalog-card:hover .pop-catalog-img {
+    transform: scale(1.04);
+}
+
+.pop-tag-new {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: #000000;
+    color: #FFFFFF;
+    font-family: var(--pop-font);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+
+.pop-catalog-card-body {
+    padding: 10px 0 4px;
+}
+
+.pop-catalog-product-title {
+    font-family: var(--pop-font);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #111111;
+    line-height: 1.35;
+    height: 36px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-bottom: 6px;
+    transition: color 0.15s ease;
+}
+
+.pop-catalog-card:hover .pop-catalog-product-title {
+    color: var(--pop-red);
+}
+
+.pop-catalog-product-price {
+    font-family: var(--pop-font);
+    font-size: 14.5px;
+    font-weight: 800;
+    color: #111111;
+}
+
+/* 5. Numeric Pagination */
+.pop-numeric-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #EEEEEE;
+}
+
+.pop-page-btn {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #E0E0E0;
+    background: #FFFFFF;
+    color: #222222;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.pop-page-btn:hover {
+    border-color: #000000;
+    color: #000000;
+}
+
+.pop-page-btn.active {
+    background: #000000;
+    color: #FFFFFF;
+    border-color: #000000;
+}
+
+.pop-page-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    border-color: #E5E5E5;
+}

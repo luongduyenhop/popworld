@@ -26,6 +26,7 @@ import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
 import com.manguonmo.popworld.service.PopNowService;
 import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,16 +76,6 @@ public class ProductWebController {
         model.addAttribute("cartCount", cartCount);
     }
 
-    @GetMapping("/products")
-    public String allProducts(Model model) {
-        addCommonAttributes(model);
-        List<Product> products = productService.getAllActiveProducts();
-        model.addAttribute("products", products);
-        model.addAttribute("currentCategory", null);
-        model.addAttribute("pageTitle", "Tất Cả Sản Phẩm POP MART");
-        model.addAttribute("pageDescription", "Khám phá toàn bộ bộ sưu tập Art Toys & Blind Box chính hãng");
-        return "product-list";
-    }
 
     @GetMapping("/products/{slug}")
     public String productDetail(@PathVariable String slug, Model model) {
@@ -171,43 +162,231 @@ public class ProductWebController {
         return "product-detail";
     }
 
+    @GetMapping({"/products", "/collection/{slug}", "/collections/{slug}"})
+    public String products(
+            @PathVariable(required = false) String slug,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long character,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "recommend") String sort,
+            @RequestParam(required = false) Boolean popNow,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
+        String catSlug = (slug != null && !slug.isBlank()) ? slug : category;
+        return buildCatalogModel(catSlug, character, keyword, sort, popNow, inStock, priceRange, page, model);
+    }
+
     @GetMapping("/categories/{slug}")
-    public String productsByCategory(@PathVariable String slug, Model model) {
-        addCommonAttributes(model);
-        Optional<Category> categoryOpt = categoryService.getCategoryBySlug(slug);
-        List<Product> products = productService.getProductsByCategorySlug(slug);
-
-        model.addAttribute("products", products);
-        model.addAttribute("currentCategory", categoryOpt.orElse(null));
-        model.addAttribute("pageTitle", categoryOpt.map(Category::getName).orElse("Danh Mục"));
-        model.addAttribute("pageDescription", categoryOpt.map(Category::getDescription).orElse("Khám phá các sản phẩm"));
-
-        return "product-list";
+    public String productsByCategory(
+            @PathVariable String slug,
+            @RequestParam(required = false) Long character,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "recommend") String sort,
+            @RequestParam(required = false) Boolean popNow,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
+        return buildCatalogModel(slug, character, keyword, sort, popNow, inStock, priceRange, page, model);
     }
 
     @GetMapping("/characters/{id}")
-    public String productsByCharacter(@PathVariable Long id, Model model) {
-        addCommonAttributes(model);
-        Optional<CharacterIp> charOpt = characterIpService.getCharacterIpById(id);
-        List<Product> products = productService.getProductsByCharacterIp(id);
-
-        model.addAttribute("products", products);
-        model.addAttribute("currentCharacter", charOpt.orElse(null));
-        model.addAttribute("pageTitle", charOpt.map(c -> "Nhân Vật IP: " + c.getName()).orElse("Nhân Vật IP"));
-        model.addAttribute("pageDescription", charOpt.map(CharacterIp::getDescription).orElse(""));
-
-        return "product-list";
+    public String productsByCharacter(
+            @PathVariable Long id,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "recommend") String sort,
+            @RequestParam(required = false) Boolean popNow,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
+        return buildCatalogModel(category, id, keyword, sort, popNow, inStock, priceRange, page, model);
     }
 
     @GetMapping("/search")
-    public String searchProducts(@RequestParam(required = false) String keyword, Model model) {
-        addCommonAttributes(model);
-        List<Product> products = productService.searchProducts(keyword);
+    public String searchProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long character,
+            @RequestParam(defaultValue = "recommend") String sort,
+            @RequestParam(required = false) Boolean popNow,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "1") int page,
+            Model model) {
+        return buildCatalogModel(category, character, keyword, sort, popNow, inStock, priceRange, page, model);
+    }
 
-        model.addAttribute("products", products);
+    private String buildCatalogModel(
+            String categorySlug,
+            Long characterId,
+            String keyword,
+            String sort,
+            Boolean popNow,
+            Boolean inStock,
+            String priceRange,
+            int page,
+            Model model) {
+        addCommonAttributes(model);
+
+        List<Product> allProducts = productService.getAllActiveProducts();
+
+        // 1. Lọc theo Category
+        Category selectedCategory = null;
+        if (categorySlug != null && !categorySlug.isBlank()) {
+            Optional<Category> catOpt = categoryService.getCategoryBySlug(categorySlug);
+            if (catOpt.isPresent()) {
+                selectedCategory = catOpt.get();
+                allProducts = allProducts.stream()
+                        .filter(p -> p.getCategory() != null && categorySlug.equalsIgnoreCase(p.getCategory().getSlug()))
+                        .toList();
+            }
+        }
+
+        // 2. Lọc theo Character IP
+        CharacterIp selectedCharacter = null;
+        if (characterId != null) {
+            Optional<CharacterIp> charOpt = characterIpService.getCharacterIpById(characterId);
+            if (charOpt.isPresent()) {
+                selectedCharacter = charOpt.get();
+                allProducts = allProducts.stream()
+                        .filter(p -> p.getSeries() != null && p.getSeries().getCharacterIp() != null
+                                && characterId.equals(p.getSeries().getCharacterIp().getId()))
+                        .toList();
+            }
+        }
+
+        // 3. Lọc theo Từ khóa tìm kiếm
+        if (keyword != null && !keyword.isBlank()) {
+            String kw = keyword.toLowerCase().trim();
+            allProducts = allProducts.stream()
+                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(kw))
+                            || (p.getSeries() != null && p.getSeries().getName() != null && p.getSeries().getName().toLowerCase().contains(kw))
+                            || (p.getCategory() != null && p.getCategory().getName() != null && p.getCategory().getName().toLowerCase().contains(kw)))
+                    .toList();
+        }
+
+        // 4. Lọc POP NOW (bóc hộp online / blind box)
+        if (Boolean.TRUE.equals(popNow)) {
+            allProducts = allProducts.stream()
+                    .filter(p -> (p.getCategory() != null && "blind-box".equalsIgnoreCase(p.getCategory().getSlug()))
+                            || Boolean.TRUE.equals(p.getIsFeatured()))
+                    .toList();
+        }
+
+        // 5. Lọc Có Sẵn Giao Nhanh (Local Shipping / in-stock)
+        if (Boolean.TRUE.equals(inStock)) {
+            allProducts = allProducts.stream()
+                    .filter(p -> p.getStockQuantity() != null && p.getStockQuantity() > 0)
+                    .toList();
+        }
+
+        // 6. Lọc theo Khoảng Giá
+        if (priceRange != null && !priceRange.isBlank()) {
+            switch (priceRange) {
+                case "under_500k" -> allProducts = allProducts.stream()
+                        .filter(p -> p.getSinglePrice() != null && p.getSinglePrice().compareTo(new BigDecimal("500000")) < 0)
+                        .toList();
+                case "500k_1m" -> allProducts = allProducts.stream()
+                        .filter(p -> p.getSinglePrice() != null && p.getSinglePrice().compareTo(new BigDecimal("500000")) >= 0
+                                && p.getSinglePrice().compareTo(new BigDecimal("1000000")) <= 0)
+                        .toList();
+                case "1m_3m" -> allProducts = allProducts.stream()
+                        .filter(p -> p.getSinglePrice() != null && p.getSinglePrice().compareTo(new BigDecimal("1000000")) > 0
+                                && p.getSinglePrice().compareTo(new BigDecimal("3000000")) <= 0)
+                        .toList();
+                case "above_3m" -> allProducts = allProducts.stream()
+                        .filter(p -> p.getSinglePrice() != null && p.getSinglePrice().compareTo(new BigDecimal("3000000")) > 0)
+                        .toList();
+            }
+        }
+
+        // 7. Sắp xếp (Sorting)
+        List<Product> sortedList = new java.util.ArrayList<>(allProducts);
+        String activeSort = (sort != null && !sort.isBlank()) ? sort.toLowerCase() : "recommend";
+        switch (activeSort) {
+            case "latest" -> sortedList.sort((a, b) -> {
+                if (Boolean.TRUE.equals(b.getIsNewRelease()) && !Boolean.TRUE.equals(a.getIsNewRelease())) return 1;
+                if (Boolean.TRUE.equals(a.getIsNewRelease()) && !Boolean.TRUE.equals(b.getIsNewRelease())) return -1;
+                return b.getId().compareTo(a.getId());
+            });
+            case "best_selling" -> sortedList.sort((a, b) -> {
+                if (Boolean.TRUE.equals(b.getIsFeatured()) && !Boolean.TRUE.equals(a.getIsFeatured())) return 1;
+                if (Boolean.TRUE.equals(a.getIsFeatured()) && !Boolean.TRUE.equals(b.getIsFeatured())) return -1;
+                return b.getId().compareTo(a.getId());
+            });
+            case "price_asc" -> sortedList.sort(Comparator.comparing(Product::getSinglePrice, Comparator.nullsLast(BigDecimal::compareTo)));
+            case "price_desc" -> sortedList.sort((a, b) -> {
+                if (a.getSinglePrice() == null) return 1;
+                if (b.getSinglePrice() == null) return -1;
+                return b.getSinglePrice().compareTo(a.getSinglePrice());
+            });
+            default -> sortedList.sort((a, b) -> {
+                if (Boolean.TRUE.equals(b.getIsFeatured()) && !Boolean.TRUE.equals(a.getIsFeatured())) return 1;
+                if (Boolean.TRUE.equals(a.getIsFeatured()) && !Boolean.TRUE.equals(b.getIsFeatured())) return -1;
+                return b.getId().compareTo(a.getId());
+            });
+        }
+
+        // 8. Phân trang (15 sản phẩm / trang = 3 hàng x 5 cột)
+        int pageSize = 15;
+        int totalItems = sortedList.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalItems / pageSize));
+        int currentPage = Math.max(1, Math.min(page, totalPages));
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<Product> pagedProducts = (fromIndex < totalItems) ? sortedList.subList(fromIndex, toIndex) : Collections.emptyList();
+
+        // 9. Xác định Tiêu đề, Mô tả và Theme Màu Pastel cho Panoramic Banner
+        String pageTitle = "ALL PRODUCTS";
+        String pageDescription = "Explore the complete designer art toy universe and official blind boxes.";
+        String bannerTheme = "banner-theme-default";
+
+        if (selectedCategory != null) {
+            pageTitle = selectedCategory.getName().toUpperCase();
+            pageDescription = (selectedCategory.getDescription() != null && !selectedCategory.getDescription().isBlank())
+                    ? selectedCategory.getDescription()
+                    : "Discover exclusive art pieces and blind boxes in this category.";
+            if (categorySlug.contains("plush")) {
+                bannerTheme = "banner-theme-plush";
+            } else if (categorySlug.contains("blind")) {
+                bannerTheme = "banner-theme-blindbox";
+            } else if (categorySlug.contains("mega")) {
+                bannerTheme = "banner-theme-mega";
+            }
+        } else if (selectedCharacter != null) {
+            pageTitle = selectedCharacter.getName().toUpperCase() + " COLLECTION";
+            pageDescription = (selectedCharacter.getDescription() != null && !selectedCharacter.getDescription().isBlank())
+                    ? selectedCharacter.getDescription()
+                    : "Iconic art toy collections featuring " + selectedCharacter.getName() + ".";
+            bannerTheme = "banner-theme-character";
+        } else if (keyword != null && !keyword.isBlank()) {
+            pageTitle = "SEARCH: \"" + keyword.toUpperCase() + "\"";
+            pageDescription = "Found " + totalItems + " art toy items matching your query.";
+        }
+
+        model.addAttribute("products", pagedProducts);
+        model.addAttribute("totalProducts", totalItems);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("pageSize", pageSize);
+
+        model.addAttribute("currentCategory", selectedCategory);
+        model.addAttribute("currentCharacter", selectedCharacter);
+        model.addAttribute("selectedCategorySlug", categorySlug);
+        model.addAttribute("selectedCharacterId", characterId);
+        model.addAttribute("selectedSort", activeSort);
+        model.addAttribute("selectedPopNow", popNow);
+        model.addAttribute("selectedInStock", inStock);
+        model.addAttribute("selectedPriceRange", priceRange);
         model.addAttribute("keyword", keyword);
-        model.addAttribute("pageTitle", "Kết quả tìm kiếm cho: \"" + (keyword != null ? keyword : "") + "\"");
-        model.addAttribute("pageDescription", "Tìm thấy " + products.size() + " sản phẩm phù hợp");
+
+        model.addAttribute("pageTitle", pageTitle);
+        model.addAttribute("pageDescription", pageDescription);
+        model.addAttribute("bannerTheme", bannerTheme);
 
         return "product-list";
     }
