@@ -85,14 +85,50 @@ public class AccountWebController {
             activeAccountTab = "ORDERS";
         }
 
+        List<com.manguonmo.popworld.entity.Coupon> activeCoupons = couponRepository.findByActiveTrue();
+        List<com.manguonmo.popworld.dto.response.PointTransactionResponse> pointHistory = userService.getPointHistory(user.getId());
+        List<com.manguonmo.popworld.entity.RewardRedemption> redeemedRewards = userService.getRedeemedRewards(user.getId());
+        boolean isBirthdayMonth = user.getBirthday() != null && user.getBirthday().getMonth() == java.time.LocalDate.now().getMonth();
+
         model.addAttribute("user", user);
         model.addAttribute("orders", orders);
         model.addAttribute("orderItemsMap", orderItemsMap);
         model.addAttribute("addresses", addresses);
         model.addAttribute("couponsCount", couponRepository.countByActiveTrue());
+        model.addAttribute("activeCoupons", activeCoupons);
+        model.addAttribute("pointHistory", pointHistory);
+        model.addAttribute("redeemedRewards", redeemedRewards);
+        model.addAttribute("isBirthdayMonth", isBirthdayMonth);
         model.addAttribute("activeAccountTab", activeAccountTab);
 
         return "my-orders";
+    }
+
+    /**
+     * Quy đổi quà tặng hội viên POP POINTS
+     */
+    @PostMapping("/account/redeem-reward")
+    public String redeemReward(@RequestParam("rewardTitle") String rewardTitle,
+                               @RequestParam("pointsCost") int pointsCost,
+                               RedirectAttributes redirectAttributes,
+                               Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.getUserByEmail(principal.getName());
+        if (user == null || !Boolean.TRUE.equals(user.getEnabled())) {
+            return "redirect:/login";
+        }
+        try {
+            userService.redeemReward(user.getId(), rewardTitle, pointsCost);
+            redirectAttributes.addFlashAttribute("successMessage", "Chúc mừng! Bạn đã đổi thành công phần quà '" + rewardTitle + "' (-" + pointsCost + " POP Points).");
+        } catch (BadRequestException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            log.error("Lỗi khi đổi quà: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể hoàn tất đổi quà. Vui lòng thử lại!");
+        }
+        return "redirect:/account?tab=REWARDS";
     }
 
     /**

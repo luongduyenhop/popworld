@@ -15,4 +15,7 @@ public interface UserService {
     User getUserByEmail(String email);
     User updateProfile(Long userId, ProfileUpdateRequest request);
     void changePassword(Long userId, ChangePasswordRequest request);
+    com.manguonmo.popworld.entity.RewardRedemption redeemReward(Long userId, String rewardTitle, int pointsCost);
+    List<com.manguonmo.popworld.dto.response.PointTransactionResponse> getPointHistory(Long userId);
+    List<com.manguonmo.popworld.entity.RewardRedemption> getRedeemedRewards(Long userId);
 }

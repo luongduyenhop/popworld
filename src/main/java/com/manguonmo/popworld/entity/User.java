@@ -43,6 +43,21 @@ public class User extends BaseEntity {
     @Column(name = "last_check_in_date")
     private java.time.LocalDate lastCheckInDate;
 
+    @Column(name = "nickname", length = 50)
+    private String nickname;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    @Column(name = "gender", length = 20)
+    private String gender; // MALE, FEMALE, OTHER
+
+    @Column(name = "birthday")
+    private java.time.LocalDate birthday;
+
+    @Column(name = "member_code", unique = true, length = 30)
+    private String memberCode;
+
     @Builder.Default
     @Column(name = "membership_tier", length = 30)
     private String membershipTier = "MEMBER";

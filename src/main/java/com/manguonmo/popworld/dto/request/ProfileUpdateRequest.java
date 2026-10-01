@@ -19,4 +19,18 @@ public class ProfileUpdateRequest {
     @NotBlank(message = "Số điện thoại không được để trống")
     @Pattern(regexp = "^(0|\\+84)[0-9]{9,10}$", message = "Số điện thoại không đúng định dạng (10-11 số)")
     private String phone;
+
+    @Size(max = 50, message = "Biệt danh tối đa 50 ký tự")
+    private String nickname;
+
+    private String avatarUrl;
+
+    private String gender; // MALE, FEMALE, OTHER
+
+    private java.time.LocalDate birthday;
+
+    public ProfileUpdateRequest(String fullName, String phone) {
+        this.fullName = fullName;
+        this.phone = phone;
+    }
 }
