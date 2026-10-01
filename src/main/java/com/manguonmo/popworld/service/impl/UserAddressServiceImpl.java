@@ -64,7 +64,7 @@ public class UserAddressServiceImpl implements UserAddressService {
                 .recipientName(request.getRecipientName().trim())
                 .recipientPhone(request.getRecipientPhone().trim())
                 .provinceCity(request.getProvinceCity().trim())
-                .district(request.getDistrict().trim())
+                .district(request.getDistrict() != null ? request.getDistrict().trim() : "")
                 .ward(request.getWard() != null ? request.getWard().trim() : "")
                 .detailedAddress(request.getDetailedAddress().trim())
                 .isDefault(isDefault)
@@ -90,7 +90,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         address.setRecipientName(request.getRecipientName().trim());
         address.setRecipientPhone(request.getRecipientPhone().trim());
         address.setProvinceCity(request.getProvinceCity().trim());
-        address.setDistrict(request.getDistrict().trim());
+        address.setDistrict(request.getDistrict() != null ? request.getDistrict().trim() : "");
         address.setWard(request.getWard() != null ? request.getWard().trim() : "");
         address.setDetailedAddress(request.getDetailedAddress().trim());
 

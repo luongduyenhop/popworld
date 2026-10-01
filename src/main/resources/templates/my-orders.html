@@ -958,7 +958,7 @@
 
                                 <div class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">
                                     <div class="fw-semibold text-dark mb-1" th:text="${addr.detailedAddress}">Số 10 Phạm Văn Bạch</div>
-                                    <div th:text="${(addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + addr.district + ', ' + addr.provinceCity}">
+                                    <div th:text="${(addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity}">
                                         Dịch Vọng, Cầu Giấy, Hà Nội
                                     </div>
                                 </div>
@@ -1044,7 +1044,7 @@
                                     </form>
                                 </div>
                             </div>
-                            <div class="small text-secondary mb-2" th:text="${addr.detailedAddress} + ', ' + ${addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : ''} + ${addr.district} + ', ' + ${addr.provinceCity}">
+                            <div class="small text-secondary mb-2" th:text="${addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity}">
                                 Địa chỉ chi tiết
                             </div>
                             <div class="d-flex gap-2">
@@ -1105,6 +1105,7 @@
                             <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="tel" name="recipientPhone" class="form-control rounded-3" placeholder="Ví dụ: 0912345678" required>
                         </div>
+                        <input type="hidden" id="addDistrictInput" name="district" value="">
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
@@ -1113,17 +1114,11 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
-                                <select id="addDistrictSelect" name="district" class="form-select rounded-3" required disabled>
-                                    <option value="">-- Chọn Quận / Huyện --</option>
+                                <label class="form-label fw-bold small">Phường / Xã / Thị trấn <span class="text-danger">*</span></label>
+                                <select id="addWardSelect" name="ward" class="form-select rounded-3" required disabled>
+                                    <option value="">-- Chọn Phường / Xã / Thị trấn --</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Phường / Xã</label>
-                            <select id="addWardSelect" name="ward" class="form-select rounded-3" disabled>
-                                <option value="">-- Chọn Phường / Xã --</option>
-                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
@@ -1165,6 +1160,7 @@
                             <label class="form-label fw-bold small">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="tel" id="editRecipientPhone" name="recipientPhone" class="form-control rounded-3" required>
                         </div>
+                        <input type="hidden" id="editDistrictInput" name="district" value="">
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
@@ -1173,17 +1169,11 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small">Quận / Huyện <span class="text-danger">*</span></label>
-                                <select id="editDistrictSelect" name="district" class="form-select rounded-3" required disabled>
-                                    <option value="">-- Chọn Quận / Huyện --</option>
+                                <label class="form-label fw-bold small">Phường / Xã / Thị trấn <span class="text-danger">*</span></label>
+                                <select id="editWardSelect" name="ward" class="form-select rounded-3" required disabled>
+                                    <option value="">-- Chọn Phường / Xã / Thị trấn --</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Phường / Xã</label>
-                            <select id="editWardSelect" name="ward" class="form-select rounded-3" disabled>
-                                <option value="">-- Chọn Phường / Xã --</option>
-                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Số nhà, tên đường chi tiết <span class="text-danger">*</span></label>
@@ -1746,7 +1736,7 @@
             if (window.VietnamAddressSelector) {
                 window.VietnamAddressSelector.init({
                     provinceElId: 'editProvinceSelect',
-                    districtElId: 'editDistrictSelect',
+                    districtElId: 'editDistrictInput',
                     wardElId: 'editWardSelect',
                     initialProvince: province,
                     initialDistrict: district,
@@ -1975,7 +1965,7 @@
                     if (window.VietnamAddressSelector) {
                         window.VietnamAddressSelector.init({
                             provinceElId: 'addProvinceSelect',
-                            districtElId: 'addDistrictSelect',
+                            districtElId: 'addDistrictInput',
                             wardElId: 'addWardSelect'
                         });
                     }

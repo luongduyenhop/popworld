@@ -189,4 +189,63 @@ class UserAddressServiceTest {
         assertTrue(a2.getIsDefault());
         verify(userAddressRepository).saveAll(List.of(a1, a2));
     }
+
+    @Test
+    @DisplayName("createAddress: Mô hình hành chính 2 cấp - district null/trống được lưu thành chuỗi rỗng an toàn")
+    void createAddress_TwoLevelAdministrativeDivision_DistrictDefaultsToEmptyString() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(userAddressRepository.countByUserId(1L)).thenReturn(0L);
+        when(userAddressRepository.save(any(UserAddress.class))).thenAnswer(i -> i.getArgument(0));
+
+        AddressRequest request = AddressRequest.builder()
+                .recipientName("Hồ Quang")
+                .recipientPhone("0988888888")
+                .provinceCity("Thành phố Hà Nội")
+                .district(null) // Cấp huyện được bỏ trong mô hình 2 cấp
+                .ward("Phường Dịch Vọng")
+                .detailedAddress("Tòa FPT Cầu Giấy")
+                .isDefault(true)
+                .build();
+
+        UserAddress created = userAddressService.createAddress(1L, request);
+        assertNotNull(created);
+        assertEquals("", created.getDistrict(), "District phải là chuỗi rỗng khi không cung cấp để tương thích MySQL NOT NULL");
+        assertEquals("Phường Dịch Vọng", created.getWard());
+        assertEquals("Thành phố Hà Nội", created.getProvinceCity());
+        assertTrue(created.getIsDefault());
+    }
+
+    @Test
+    @DisplayName("updateAddress: Mô hình hành chính 2 cấp - update với district null không ném lỗi NPE")
+    void updateAddress_TwoLevelAdministrativeDivision_DistrictNullSafe() {
+        UserAddress existing = UserAddress.builder()
+                .id(20L)
+                .user(sampleUser)
+                .recipientName("Cũ")
+                .recipientPhone("0900000000")
+                .provinceCity("Thành phố Hà Nội")
+                .district("Quận Cầu Giấy")
+                .ward("Phường Dịch Vọng")
+                .detailedAddress("10 Phạm Văn Bạch")
+                .isDefault(true)
+                .build();
+
+        when(userAddressRepository.findByIdAndUserId(20L, 1L)).thenReturn(Optional.of(existing));
+        when(userAddressRepository.save(any(UserAddress.class))).thenAnswer(i -> i.getArgument(0));
+
+        AddressRequest request = AddressRequest.builder()
+                .recipientName("Mới")
+                .recipientPhone("0911111111")
+                .provinceCity("Thành phố Hà Nội")
+                .district(null) // 2 cấp mới không truyền district
+                .ward("Phường Nghĩa Đô")
+                .detailedAddress("20 Hoàng Quốc Việt")
+                .isDefault(true)
+                .build();
+
+        UserAddress updated = userAddressService.updateAddress(1L, 20L, request);
+        assertNotNull(updated);
+        assertEquals("", updated.getDistrict());
+        assertEquals("Phường Nghĩa Đô", updated.getWard());
+    }
 }

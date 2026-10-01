@@ -65,7 +65,7 @@
                                         th:data-ward="${addr.ward}"
                                         th:data-address="${addr.detailedAddress}"
                                         th:selected="${defaultAddress != null && defaultAddress.id == addr.id}"
-                                        th:text="${addr.recipientName} + ' - ' + ${addr.recipientPhone} + ' (' + ${addr.detailedAddress} + ', ' + ${addr.district} + ', ' + ${addr.provinceCity} + ')' + (addr.isDefault ? ' [Mặc định]' : '')">
+                                        th:text="${addr.recipientName + ' - ' + addr.recipientPhone + ' (' + addr.detailedAddress + ', ' + (addr.ward != null && !addr.ward.isEmpty() ? addr.ward + ', ' : '') + (addr.district != null && !addr.district.isEmpty() ? addr.district + ', ' : '') + addr.provinceCity + ')' + (addr.isDefault ? ' [Mặc định]' : '')}">
                                 </option>
                             </select>
                         </div>
@@ -82,22 +82,17 @@
                                        th:value="${defaultAddress != null ? defaultAddress.recipientPhone : (user != null ? user.phone : '')}" placeholder="Ví dụ: 0987654321" required>
                             </div>
 
-                            <div class="col-md-4">
+                            <input type="hidden" name="district" id="district" value="">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold small" for="provinceCity">Tỉnh / Thành phố <span class="text-danger">*</span></label>
                                 <select class="form-select rounded-3" name="provinceCity" id="provinceCity" required>
                                     <option value="">-- Chọn Tỉnh / Thành phố --</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold small" for="district">Quận / Huyện <span class="text-danger">*</span></label>
-                                <select class="form-select rounded-3" name="district" id="district" required disabled>
-                                    <option value="">-- Chọn Quận / Huyện --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold small" for="ward">Phường / Xã</label>
-                                <select class="form-select rounded-3" name="ward" id="ward" disabled>
-                                    <option value="">-- Chọn Phường / Xã --</option>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small" for="ward">Phường / Xã / Thị trấn <span class="text-danger">*</span></label>
+                                <select class="form-select rounded-3" name="ward" id="ward" required disabled>
+                                    <option value="">-- Chọn Phường / Xã / Thị trấn --</option>
                                 </select>
                             </div>
 

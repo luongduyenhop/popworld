@@ -165,7 +165,7 @@ public class CheckoutWebController {
     public String placeOrder(@RequestParam String recipientName,
                              @RequestParam String recipientPhone,
                              @RequestParam String provinceCity,
-                             @RequestParam String district,
+                             @RequestParam(required = false, defaultValue = "") String district,
                              @RequestParam(required = false, defaultValue = "") String ward,
                              @RequestParam String detailedAddress,
                              @RequestParam(defaultValue = "COD") String paymentMethod,
@@ -187,8 +187,8 @@ public class CheckoutWebController {
             if (recipientName == null || recipientName.isBlank() ||
                 recipientPhone == null || recipientPhone.isBlank() ||
                 provinceCity == null || provinceCity.isBlank() ||
-                district == null || district.isBlank() ||
-                detailedAddress == null || detailedAddress.isBlank()) {
+                detailedAddress == null || detailedAddress.isBlank() ||
+                ((ward == null || ward.isBlank()) && (district == null || district.isBlank()))) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng điền đầy đủ thông tin giao nhận hàng.");
                 return "redirect:/checkout";
             }
