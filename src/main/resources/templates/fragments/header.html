@@ -7,6 +7,10 @@
 <body>
 
 <header th:fragment="header" class="sticky-top pop-header-sticky">
+    <!-- CSRF Meta Tags for Ajax Calls across any page using header fragment -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
+
     <!-- POP MART Signature Branded Splash Preloader (Red-fill animation) -->
     <div id="popworld-page-preloader" class="pop-page-preloader" aria-hidden="true">
         <div class="pop-preloader-box">
@@ -35,6 +39,10 @@
                 <span><i class="bi bi-truck text-danger me-1"></i> FREE SHIPPING FROM 500K — CODE: <strong class="text-white">FREESHIP</strong></span>
                 <span class="d-none d-lg-inline text-white-50">•</span>
                 <span class="d-none d-lg-inline"><i class="bi bi-gift text-warning me-1"></i> 10% OFF FIRST ORDER: <strong class="text-white">POPWELCOME</strong></span>
+                <span class="d-none d-md-inline text-white-50">•</span>
+                <a th:href="@{/order-tracking}" class="badge bg-danger text-white text-decoration-none px-2 py-1 ms-1 fw-bold shadow-sm" style="font-size: 0.72rem; letter-spacing: 0.5px;" title="Tra cứu tiến trình vận đơn">
+                    <i class="bi bi-truck me-1"></i>TRA CỨU ĐƠN HÀNG
+                </a>
             </div>
         </div>
     </div>
@@ -291,31 +299,55 @@
 
                 <!-- Right Utility Cluster: Search Capsule + Headset + Heart + Cart + User Account -->
                 <div class="d-flex align-items-center gap-3 my-2 my-lg-0">
-                    <!-- Search Capsule Pill with Black Pill Button -->
-                    <form class="m-0" th:action="@{/search}" method="get" role="search">
-                        <div class="pop-search-capsule">
-                            <input class="pop-search-input-clean" type="search" name="keyword"
-                                   placeholder="Labubu, Molly..." th:value="${keyword}" aria-label="Search Art Toys">
-                            <button type="submit" class="pop-search-submit-btn" title="Search" aria-label="Search">
-                                <i class="bi bi-search"></i>
-                            </button>
+                    <!-- Search Capsule Pill with Live Autocomplete -->
+                    <div class="position-relative" id="popHeaderSearchWrapper">
+                        <form class="m-0" th:action="@{/search}" method="get" role="search" id="popHeaderSearchForm">
+                            <div class="pop-search-capsule">
+                                <input class="pop-search-input-clean" type="search" name="keyword" id="popHeaderSearchInput"
+                                       placeholder="Labubu, Molly..." th:value="${keyword}" aria-label="Search Art Toys" autocomplete="off">
+                                <button type="submit" class="pop-search-submit-btn" title="Search" aria-label="Search">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <!-- Live Autocomplete Dropdown -->
+                        <div class="pop-search-autocomplete-dropdown" id="popSearchAutocompleteDropdown" aria-label="Gợi ý tìm kiếm">
+                            <div class="pop-search-autocomplete-header">
+                                <span>GỢI Ý SẢN PHẨM</span>
+                                <span class="text-muted small" id="popSearchCountLabel">0 kết quả</span>
+                            </div>
+                            <ul class="pop-search-autocomplete-list" id="popSearchAutocompleteList">
+                                <!-- Dynamic items rendered via JS -->
+                            </ul>
+                            <a href="#" class="pop-search-autocomplete-footer" id="popSearchViewAllLink">
+                                Xem tất cả kết quả &rarr;
+                            </a>
                         </div>
-                    </form>
+                    </div>
 
-                    <!-- Support / Order Tracking Headset Icon -->
-                    <a th:href="@{/orders}" class="pop-util-icon-link" title="Support &amp; Order Tracking">
+                    <!-- Support / Feedback Headset Modal Button -->
+                    <button type="button" class="pop-util-icon-link bg-transparent border-0 p-0" 
+                            data-bs-toggle="modal" data-bs-target="#customerSupportModal" 
+                            title="Hỗ trợ &amp; Phản hồi khách hàng" aria-label="Customer Support">
                         <i class="bi bi-headset"></i>
+                    </button>
+
+                    <!-- Order Tracking Link (Super visible for Guest & Member) -->
+                    <a th:href="@{/order-tracking}" class="pop-util-icon-link d-inline-flex align-items-center gap-1 text-decoration-none px-2 py-1 rounded-pill bg-light border" title="Tra cứu tiến trình đơn hàng" aria-label="Tra cứu đơn hàng">
+                        <i class="bi bi-truck fs-6 text-danger"></i>
+                        <span class="d-none d-xl-inline fw-bold text-dark text-nowrap" style="font-size: 0.72rem; letter-spacing: 0.5px;">TRA CỨU ĐƠN</span>
                     </a>
 
-                    <!-- Wishlist / Cabinet Heart Icon -->
-                    <a th:href="@{/popnow/cabinet}" class="pop-util-icon-link" title="My POP Cabinet &amp; Wishlist">
+                    <!-- Wishlist Heart Icon + Inline Count (Matches POP MART US Style) -->
+                    <a th:href="@{/wishlist}" class="pop-util-icon-link d-inline-flex align-items-center" title="My Wishlist">
                         <i class="bi bi-heart"></i>
+                        <span class="pop-cart-inline-count header-wishlist-count" id="headerWishlistCount" th:text="${wishlistCount != null ? wishlistCount : 0}">0</span>
                     </a>
 
                     <!-- Shopping Cart Icon + Inline Count (Matches POP MART US `🛒 1`) -->
-                    <a th:href="@{/cart}" class="pop-util-icon-link d-inline-flex align-items-center" title="Shopping Bag">
-                        <i class="bi bi-cart2"></i>
-                        <span class="pop-cart-inline-count" th:text="${cartCount != null ? cartCount : 0}">0</span>
+                    <a th:href="@{/cart}" class="pop-util-icon-link d-inline-flex align-items-center" id="headerCartLink" title="Shopping Bag">
+                        <i class="bi bi-cart2" id="headerCartIcon"></i>
+                        <span class="pop-cart-inline-count header-cart-count" id="headerCartCount" th:text="${cartCount != null ? cartCount : 0}">0</span>
                     </a>
 
                     <!-- Anonymous State: Person Icon + Underlined Sign In / Register -->
@@ -357,8 +389,11 @@
                             <a th:href="@{/orders}" class="pop-user-menu-item">
                                 <i class="bi bi-box-seam me-2 text-dark"></i> MY ORDERS
                             </a>
+                            <a th:href="@{/wishlist}" class="pop-user-menu-item">
+                                <i class="bi bi-heart me-2 text-danger"></i> MY WISHLIST (<span class="header-wishlist-count" th:text="${wishlistCount != null ? wishlistCount : 0}">0</span>)
+                            </a>
                             <a th:href="@{/popnow/cabinet}" class="pop-user-menu-item">
-                                <i class="bi bi-grid-3x3-gap me-2 text-danger"></i> MY POP CABINET
+                                <i class="bi bi-grid-3x3-gap me-2 text-dark"></i> MY POP CABINET
                             </a>
                             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="pop-user-menu-item text-danger fw-bold">
                                 <i class="bi bi-speedometer2 me-2"></i> ADMIN PORTAL
@@ -407,6 +442,387 @@
             }
 
             setTimeout(dismissPreloader, 4000);
+        })();
+    </script>
+    <!-- Customer Support Flash Message Alert (if any) -->
+    <div th:if="${supportSuccess != null}" class="alert alert-success alert-dismissible fade show m-0 rounded-0 border-0 text-center fw-bold py-2" role="alert" style="background: #10B981; color: white;">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${supportSuccess}">Yêu cầu hỗ trợ đã gửi thành công!</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${supportError != null}" class="alert alert-danger alert-dismissible fade show m-0 rounded-0 border-0 text-center fw-bold py-2" role="alert" style="background: #D2001E; color: white;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${supportError}">Lỗi khi gửi yêu cầu hỗ trợ!</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Customer Support & Inquiry Modal -->
+    <div class="modal fade" id="customerSupportModal" tabindex="-1" aria-labelledby="customerSupportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; overflow: hidden; background: #ffffff;">
+                <div class="modal-header bg-black text-white px-4 py-3 border-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: #D2001E;">
+                            <i class="bi bi-headset text-white fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" id="customerSupportModalLabel" style="letter-spacing: 0.5px;">TRUNG TÂM HỖ TRỢ &amp; PHẢN HỒI</h5>
+                            <small class="text-white-50 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">POP WORLD CARE • GIẢI ĐÁP &amp; TIẾP NHẬN 24/7</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/support/submit}" method="post" id="customerSupportForm" class="p-4">
+                    <input type="hidden" name="redirectUrl" id="supportModalRedirectUrl" value="/">
+
+                    <!-- Lối tắt Tra Cứu Vận Đơn Nhanh Cho Khách Vãng Lai & Người Dùng -->
+                    <div class="alert alert-light border border-danger-subtle d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm bg-danger-subtle bg-opacity-10">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                <i class="bi bi-truck fs-5"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark small">Bạn cần kiểm tra vị trí &amp; tiến độ đơn hàng?</strong>
+                                <span class="text-secondary" style="font-size: 0.78rem;">Tra cứu ngay tiến trình vận chuyển mà không cần gửi ticket hay đăng nhập.</span>
+                            </div>
+                        </div>
+                        <a th:href="@{/order-tracking}" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold text-nowrap ms-2">
+                            Tra cứu ngay <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Category Selector -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Phân Loại Yêu Cầu <span class="text-danger">*</span></label>
+                            <select name="category" class="form-select border-2" style="border-radius: 2px;" required>
+                                <option value="DON_HANG" selected>📦 Đơn Hàng &amp; Thanh Toán</option>
+                                <option value="POP_NOW">🎲 Trải Nghiệm Khui Hộp POP NOW</option>
+                                <option value="VAN_CHUYEN">🚚 Vận Chuyển &amp; Giao Nhận</option>
+                                <option value="SAN_PHAM">✨ Đổi Trả &amp; Chất Lượng Sản Phẩm</option>
+                                <option value="GOP_Y">💬 Góp Ý &amp; Đề Xuất Dịch Vụ</option>
+                                <option value="KHAC">❓ Câu Hỏi Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Tiêu Đề <span class="text-danger">*</span></label>
+                            <input type="text" name="subject" class="form-control border-2" style="border-radius: 2px;" 
+                                   placeholder="Vd: Cần hỗ trợ thay đổi địa chỉ đơn hàng..." required maxlength="150">
+                        </div>
+
+                        <!-- Customer Info -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Họ Và Tên <span class="text-danger">*</span></label>
+                            <input type="text" name="senderName" class="form-control border-2" style="border-radius: 2px;" 
+                                   th:value="${currentUser != null ? currentUser.fullName : ''}"
+                                   placeholder="Nguyễn Văn A" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Email Liên Hệ <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control border-2" style="border-radius: 2px;" 
+                                   th:value="${currentUser != null ? currentUser.email : ''}"
+                                   placeholder="email@example.com" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Số Điện Thoại</label>
+                            <input type="tel" name="phone" class="form-control border-2" style="border-radius: 2px;" 
+                                   th:value="${currentUser != null ? currentUser.phone : ''}"
+                                   placeholder="0987654321">
+                        </div>
+
+                        <!-- Detailed Message -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Nội Dung Chi Tiết <span class="text-danger">*</span></label>
+                            <textarea name="message" class="form-control border-2" rows="4" style="border-radius: 2px;" 
+                                      placeholder="Hãy mô tả rõ vấn đề của bạn kèm mã đơn hàng hoặc thông tin liên quan để chuyên viên hỗ trợ giải quyết nhanh nhất..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <span class="small text-muted">
+                            <i class="bi bi-shield-lock-fill text-success me-1"></i> Thông tin được bảo mật và phục vụ duy nhất mục đích hỗ trợ.
+                        </span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary px-4 fw-bold" style="border-radius: 2px;" data-bs-dismiss="modal">ĐÓNG</button>
+                            <button type="submit" class="btn btn-danger px-4 fw-bold" style="border-radius: 2px; background: #D2001E; border-color: #D2001E;">
+                                <i class="bi bi-send-fill me-1"></i> GỬI YÊU CẦU
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global POP MART Toast Container -->
+    <div class="pop-toast-container" id="popGlobalToastContainer" aria-live="polite"></div>
+
+    <script>
+        (function() {
+            var urlInput = document.getElementById('supportModalRedirectUrl');
+            if (urlInput) {
+                urlInput.value = window.location.pathname + window.location.search;
+            }
+
+            // Di chuyển modal ra thẳng thẻ body để tránh CSS Stacking Context của header sticky-top (z-index: 500)
+            var supportModal = document.getElementById('customerSupportModal');
+            if (supportModal) {
+                if (supportModal.parentElement !== document.body) {
+                    document.body.appendChild(supportModal);
+                }
+                supportModal.addEventListener('show.bs.modal', function() {
+                    if (supportModal.parentElement !== document.body) {
+                        document.body.appendChild(supportModal);
+                    }
+                });
+            }
+
+            // =========================================================================
+            // 1. GLOBAL POP TOAST NOTIFICATION HELPER
+            // =========================================================================
+            window.showPopToast = function(options) {
+                var container = document.getElementById('popGlobalToastContainer');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'popGlobalToastContainer';
+                    container.className = 'pop-toast-container';
+                    document.body.appendChild(container);
+                }
+
+                var title = options.title || 'THÔNG BÁO';
+                var name = options.name || '';
+                var price = options.price || '';
+                var imageUrl = options.imageUrl || '';
+                var ctaText = options.ctaText || 'XEM GIỎ HÀNG';
+                var ctaUrl = options.ctaUrl || '/cart';
+                var isSuccess = options.isSuccess !== false;
+
+                var toast = document.createElement('div');
+                toast.className = 'pop-toast';
+
+                var imgHtml = imageUrl ? '<img src="' + imageUrl + '" alt="' + name + '" class="pop-toast-img">' : '';
+                var priceHtml = price ? '<div class="pop-toast-prod-meta">' + price + '</div>' : '';
+
+                toast.innerHTML = 
+                    '<div class="pop-toast-header">' +
+                        '<div class="pop-toast-title" style="color: ' + (isSuccess ? '#10B981' : '#D2001E') + ';">' +
+                            '<i class="bi ' + (isSuccess ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill') + '"></i>' +
+                            '<span>' + title + '</span>' +
+                        '</div>' +
+                        '<button type="button" class="pop-toast-close" aria-label="Đóng">&times;</button>' +
+                    '</div>' +
+                    '<div class="pop-toast-body">' +
+                        imgHtml +
+                        '<div class="pop-toast-content">' +
+                            '<div class="pop-toast-prod-name" title="' + name + '">' + name + '</div>' +
+                            priceHtml +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="pop-toast-actions">' +
+                        '<a href="' + ctaUrl + '" class="pop-toast-btn-primary">' + ctaText + '</a>' +
+                        '<button type="button" class="pop-toast-btn-secondary pop-toast-dismiss-btn">TIẾP TỤC</button>' +
+                    '</div>';
+
+                container.appendChild(toast);
+
+                function dismiss() {
+                    toast.classList.add('pop-toast-hiding');
+                    setTimeout(function() {
+                        if (toast.parentElement) toast.parentElement.removeChild(toast);
+                    }, 250);
+                }
+
+                toast.querySelector('.pop-toast-close').addEventListener('click', dismiss);
+                toast.querySelector('.pop-toast-dismiss-btn').addEventListener('click', dismiss);
+
+                setTimeout(dismiss, 4500);
+            };
+
+            // Helper cập nhật badge giỏ hàng trên Header với hiệu ứng nhún (bounce)
+            window.updateHeaderCartCount = function(newCount) {
+                var badges = document.querySelectorAll('.header-cart-count, #headerCartCount');
+                badges.forEach(function(b) {
+                    b.textContent = newCount;
+                    b.classList.remove('pop-cart-bounce');
+                    void b.offsetWidth; // Trigger reflow
+                    b.classList.add('pop-cart-bounce');
+                });
+            };
+
+            // =========================================================================
+            // 2. LIVE SEARCH AUTOCOMPLETE DROPDOWN
+            // =========================================================================
+            var searchInput = document.getElementById('popHeaderSearchInput');
+            var searchDropdown = document.getElementById('popSearchAutocompleteDropdown');
+            var searchList = document.getElementById('popSearchAutocompleteList');
+            var searchCountLabel = document.getElementById('popSearchCountLabel');
+            var searchViewAllLink = document.getElementById('popSearchViewAllLink');
+            var searchDebounceTimer = null;
+
+            if (searchInput && searchDropdown && searchList) {
+                function formatVndPrice(price) {
+                    if (!price) return '0 ₫';
+                    return new Intl.NumberFormat('vi-VN').format(Math.round(price)) + ' ₫';
+                }
+
+                function performLiveSearch(keyword) {
+                    keyword = keyword.trim();
+                    if (keyword.length < 2) {
+                        searchDropdown.classList.remove('active');
+                        return;
+                    }
+
+                    fetch('/api/products/search?keyword=' + encodeURIComponent(keyword))
+                        .then(function(res) { return res.json(); })
+                        .then(function(response) {
+                            if (!response || !response.success || !response.data) {
+                                searchDropdown.classList.remove('active');
+                                return;
+                            }
+
+                            var products = response.data;
+                            searchList.innerHTML = '';
+
+                            if (products.length === 0) {
+                                searchCountLabel.textContent = '0 kết quả';
+                                searchList.innerHTML = '<li class="pop-search-empty-state"><i class="bi bi-search me-1"></i> Không tìm thấy Art Toy phù hợp cho "' + keyword + '"</li>';
+                                searchViewAllLink.style.display = 'none';
+                            } else {
+                                searchCountLabel.textContent = products.length + ' kết quả';
+                                searchViewAllLink.style.display = 'block';
+                                searchViewAllLink.href = '/search?keyword=' + encodeURIComponent(keyword);
+                                searchViewAllLink.textContent = 'Xem tất cả ' + products.length + ' kết quả →';
+
+                                var topItems = products.slice(0, 5);
+                                topItems.forEach(function(item) {
+                                    var li = document.createElement('li');
+                                    var a = document.createElement('a');
+                                    a.className = 'pop-search-autocomplete-item';
+                                    a.href = '/products/' + item.slug;
+
+                                    var thumbUrl = item.mainImageUrl || 'https://placehold.co/100x100?text=PopWorld';
+                                    var priceText = formatVndPrice(item.singlePrice);
+
+                                    a.innerHTML = 
+                                        '<img src="' + thumbUrl + '" alt="' + item.name + '" class="pop-search-item-thumb">' +
+                                        '<div class="pop-search-item-info">' +
+                                            '<div class="pop-search-item-name">' + item.name + '</div>' +
+                                            '<div class="pop-search-item-price">' + priceText + '</div>' +
+                                        '</div>';
+
+                                    li.appendChild(a);
+                                    searchList.appendChild(li);
+                                });
+                            }
+
+                            searchDropdown.classList.add('active');
+                        })
+                        .catch(function(err) {
+                            console.error('Lỗi tìm kiếm trực tiếp:', err);
+                        });
+                }
+
+                searchInput.addEventListener('input', function(e) {
+                    clearTimeout(searchDebounceTimer);
+                    var val = e.target.value;
+                    searchDebounceTimer = setTimeout(function() {
+                        performLiveSearch(val);
+                    }, 250);
+                });
+
+                searchInput.addEventListener('focus', function(e) {
+                    if (e.target.value.trim().length >= 2) {
+                        performLiveSearch(e.target.value);
+                    }
+                });
+
+                // Ẩn gợi ý khi click ra ngoài hoặc bấm Escape
+                document.addEventListener('click', function(e) {
+                    var wrapper = document.getElementById('popHeaderSearchWrapper');
+                    if (wrapper && !wrapper.contains(e.target)) {
+                        searchDropdown.classList.remove('active');
+                    }
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && searchDropdown) {
+                        searchDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            // =========================================================================
+            // 3. GLOBAL QUICK ADD TO CART HELPER (1-Click Single Box Add)
+            // =========================================================================
+            window.quickAddToCart = async function(btn) {
+                var productId = btn.getAttribute('data-product-id');
+                var productName = btn.getAttribute('data-product-name') || 'Sản phẩm';
+                var productPrice = btn.getAttribute('data-product-price') || '';
+                var productImg = btn.getAttribute('data-product-img') || '';
+                if (!productId) return;
+
+                var csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+                var originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width: 12px; height: 12px;" role="status"></span>';
+
+                try {
+                    var params = new URLSearchParams();
+                    params.append('productId', productId);
+                    params.append('purchaseType', 'SINGLE_BOX');
+                    params.append('quantity', '1');
+
+                    var headers = {};
+                    if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                    var res = await fetch('/api/cart/items?' + params.toString(), {
+                        method: 'POST',
+                        headers: headers
+                    });
+
+                    if (res.status === 401 || res.redirected) {
+                        window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        return;
+                    }
+
+                    var data = await res.json();
+                    if (data.success) {
+                        fetch('/api/cart/summary')
+                            .then(function(r) { return r.json(); })
+                            .then(function(sumData) {
+                                if (sumData.success && sumData.data && window.updateHeaderCartCount) {
+                                    window.updateHeaderCartCount(sumData.data.cartCount);
+                                }
+                            })
+                            .catch(function() {});
+
+                        if (window.showPopToast) {
+                            window.showPopToast({
+                                title: 'ĐÃ THÊM VÀO GIỎ HÀNG',
+                                name: productName + ' (Single Box x1)',
+                                price: productPrice,
+                                imageUrl: productImg,
+                                ctaText: 'XEM GIỎ HÀNG',
+                                ctaUrl: '/cart'
+                            });
+                        }
+                    } else {
+                        alert(data.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
+                    }
+                } catch (err) {
+                    console.error('Lỗi thêm nhanh giỏ hàng:', err);
+                    alert('Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            };
         })();
     </script>
 </header>

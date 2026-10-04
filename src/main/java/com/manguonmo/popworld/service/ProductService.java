@@ -18,6 +18,7 @@ public interface ProductService {
     List<Product> getProductsByCharacterIp(Long characterIpId);
     List<Product> searchProducts(String keyword);
     List<Product> getAllActiveProducts();
+    List<Product> getPopNowProducts();
 
     // Các phương thức phục vụ Quản trị Kho Hàng (Admin)
     Product getProductById(Long id);

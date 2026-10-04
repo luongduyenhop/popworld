@@ -71,13 +71,30 @@ class CloudinaryServiceTest {
     }
 
     @Test
-    @DisplayName("Upload file khi Cloudinary chưa cấu hình -> Ném ngoại lệ BadRequestException")
+    @DisplayName("Upload file khi Cloudinary chưa cấu hình và tắt fallback -> Ném ngoại lệ BadRequestException")
     void uploadImage_UnconfiguredCloudinary_ThrowsException() {
         ReflectionTestUtils.setField(cloudinaryService, "cloudName", "");
+        ReflectionTestUtils.setField(cloudinaryService, "localFallback", false);
         MockMultipartFile validFile = new MockMultipartFile("file", "toy.jpg", "image/jpeg", new byte[]{1, 2, 3});
 
         BadRequestException ex = assertThrows(BadRequestException.class, () -> cloudinaryService.uploadImage(validFile));
         assertTrue(ex.getMessage().contains("Cloudinary chưa được cấu hình"));
+    }
+
+    @Test
+    @DisplayName("Upload file khi Cloudinary chưa cấu hình nhưng bật fallback -> Lưu trữ cục bộ thành công")
+    void uploadImage_UnconfiguredCloudinary_LocalFallback_Success() {
+        ReflectionTestUtils.setField(cloudinaryService, "cloudName", "");
+        ReflectionTestUtils.setField(cloudinaryService, "localFallback", true);
+        MockMultipartFile validFile = new MockMultipartFile("file", "toy.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+        CloudinaryUploadResult result = cloudinaryService.uploadImage(validFile);
+        assertNotNull(result);
+        assertTrue(result.getSecureUrl().startsWith("/uploads/images/"));
+        assertTrue(result.getPublicId().startsWith("local_"));
+
+        // Dọn dẹp
+        cloudinaryService.deleteImage(result.getPublicId());
     }
 
     @Test

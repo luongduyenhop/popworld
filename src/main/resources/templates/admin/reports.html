@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Báo Cáo Doanh Thu & Tài Chính')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#reportsContent}, 'Báo Cáo Doanh Thu & Dòng Tiền', 'reports')}">
+    <div id="reportsContent" class="container-fluid px-4 py-4">
+
+        <!-- Page Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="fw-black text-uppercase mb-1" style="letter-spacing: 0.5px;">
+                    <i class="bi bi-graph-up-arrow text-danger me-2"></i>Báo Cáo Doanh Thu &amp; Dòng Tiền
+                </h2>
+                <p class="text-muted small mb-0 text-uppercase" style="letter-spacing: 1px;">
+                    Kỳ báo cáo: Từ <strong class="text-dark" th:text="${#temporals.format(report.startDate, 'dd/MM/yyyy')}">01/09/2026</strong> 
+                    đến <strong class="text-dark" th:text="${#temporals.format(report.endDate, 'dd/MM/yyyy')}">30/09/2026</strong>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reports(timeRange=${report.timeRange})}" class="btn btn-outline-dark fw-bold btn-sm">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Làm Mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Time Range Selector Bar -->
+        <div class="admin-card p-3 mb-4 shadow-sm">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <!-- Preset buttons -->
+                <div class="btn-group" role="group">
+                    <a th:href="@{/admin/reports(timeRange='TODAY')}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${report.timeRange == 'TODAY' ? 'btn-dark' : 'btn-outline-dark'}">
+                        Hôm Nay
+                    </a>
+                    <a th:href="@{/admin/reports(timeRange='7DAYS')}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${report.timeRange == '7DAYS' ? 'btn-dark' : 'btn-outline-dark'}">
+                        7 Ngày
+                    </a>
+                    <a th:href="@{/admin/reports(timeRange='30DAYS')}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${report.timeRange == '30DAYS' ? 'btn-dark' : 'btn-outline-dark'}">
+                        30 Ngày
+                    </a>
+                    <a th:href="@{/admin/reports(timeRange='THIS_MONTH')}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${report.timeRange == 'THIS_MONTH' ? 'btn-dark' : 'btn-outline-dark'}">
+                        Tháng Này
+                    </a>
+                    <a th:href="@{/admin/reports(timeRange='THIS_YEAR')}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${report.timeRange == 'THIS_YEAR' ? 'btn-dark' : 'btn-outline-dark'}">
+                        Năm Nay
+                    </a>
+                </div>
+
+                <!-- Custom Date Range Form -->
+                <form th:action="@{/admin/reports}" method="get" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="timeRange" value="CUSTOM">
+                    <span class="small fw-bold text-muted text-uppercase">Từ:</span>
+                    <input type="date" name="startDate" class="form-control form-control-sm" th:value="${report.startDate}" required>
+                    <span class="small fw-bold text-muted text-uppercase">Đến:</span>
+                    <input type="date" name="endDate" class="form-control form-control-sm" th:value="${report.endDate}" required>
+                    <button type="submit" class="btn btn-sm btn-danger fw-bold" style="background: #D2001E; border-color: #D2001E;">
+                        <i class="bi bi-funnel me-1"></i>Lọc
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4 Core Financial KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card p-3 border-start border-4 border-success h-100 shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-success text-uppercase fw-bold small" style="letter-spacing: 0.5px;">Doanh Thu Thuần (Net)</span>
+                            <h3 class="fw-black text-success mb-0 mt-2" th:text="${#numbers.formatDecimal(report.netRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</h3>
+                            <small class="text-muted">Doanh thu thực nhận sau hoàn tiền</small>
+                        </div>
+                        <div class="bg-success-subtle p-3 rounded-circle text-success">
+                            <i class="bi bi-wallet2 fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card p-3 border-start border-4 border-dark h-100 shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase fw-bold small" style="letter-spacing: 0.5px;">Doanh Thu Gộp (Gross)</span>
+                            <h3 class="fw-black mb-0 mt-2" th:text="${#numbers.formatDecimal(report.grossRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</h3>
+                            <small class="text-muted" th:text="'Từ ' + ${report.successfulOrderCount} + ' đơn thành công'">0 đơn</small>
+                        </div>
+                        <div class="bg-light p-3 rounded-circle text-dark">
+                            <i class="bi bi-cash-coin fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card p-3 border-start border-4 border-danger h-100 shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-danger text-uppercase fw-bold small" style="letter-spacing: 0.5px;">Tiền Đã Hoàn Lại</span>
+                            <h3 class="fw-black text-danger mb-0 mt-2" th:text="${#numbers.formatDecimal(report.totalRefunded, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</h3>
+                            <small class="text-danger-emphasis" th:text="'Tỷ lệ hoàn: ' + ${report.refundRatePercent} + '%'">0%</small>
+                        </div>
+                        <div class="bg-danger-subtle p-3 rounded-circle text-danger">
+                            <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card p-3 border-start border-4 border-primary h-100 shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-primary text-uppercase fw-bold small" style="letter-spacing: 0.5px;">Giá Trị Đơn Trung Bình</span>
+                            <h3 class="fw-black text-primary mb-0 mt-2" th:text="${#numbers.formatDecimal(report.averageOrderValue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</h3>
+                            <small class="text-muted">AOV (Average Order Value)</small>
+                        </div>
+                        <div class="bg-primary-subtle p-3 rounded-circle text-primary">
+                            <i class="bi bi-receipt-cutoff fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Analysis: Payment Methods Split & Top Products -->
+        <div class="row g-4 mb-4">
+            <!-- Payment methods -->
+            <div class="col-12 col-lg-5">
+                <div class="admin-card p-4 h-100 shadow-sm">
+                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">
+                        <i class="bi bi-credit-card-2-front text-danger me-2"></i>Cơ Cấu Phương Thức Thanh Toán
+                    </h5>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                <i class="bi bi-qr-code text-primary me-2"></i>Chuyển Khoản QR / Online 
+                                <small class="text-muted fw-normal" th:text="'(' + ${report.bankingRevenuePercent} + '%)'">(0%)</small>
+                            </span>
+                            <span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(report.bankingRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</span>
+                        </div>
+                        <div class="small text-muted mb-2" th:text="${report.bankingOrderCount} + ' đơn thanh toán thành công'">0 đơn</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 th:style="|width: ${report.bankingRevenuePercent}%;|"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                <i class="bi bi-truck text-warning me-2"></i>Tiền Mặt Khi Nhận Hàng (COD)
+                                <small class="text-muted fw-normal" th:text="'(' + ${report.codRevenuePercent} + '%)'">(0%)</small>
+                            </span>
+                            <span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(report.codRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</span>
+                        </div>
+                        <div class="small text-muted mb-2" th:text="${report.codOrderCount} + ' đơn thanh toán khi giao'">0 đơn</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 th:style="|width: ${report.codRevenuePercent}%;|"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded mt-4 border">
+                        <div class="small text-muted">
+                            <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                            Thanh toán chuyển khoản QR SePay giúp hạn chế rủi ro hoàn đơn do khách không nhận hàng và dòng tiền được đối soát ngay lập tức.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Selling Products -->
+            <div class="col-12 col-lg-7">
+                <div class="admin-card p-4 h-100 shadow-sm">
+                    <h5 class="fw-bold text-uppercase mb-3 pb-2 border-bottom">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i>Top Sản Phẩm Mang Lại Doanh Thu Cao Nhất
+                    </h5>
+
+                    <div th:if="${#lists.isEmpty(report.topProducts)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        Chưa có dữ liệu sản phẩm bán ra trong kỳ báo cáo đã chọn.
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(report.topProducts)}" class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="small text-muted text-uppercase">
+                                <tr>
+                                    <th style="width: 50px;">Top</th>
+                                    <th>Mẫu Art Toy</th>
+                                    <th class="text-center" style="width: 100px;">Đã Bán</th>
+                                    <th class="text-end" style="width: 140px;">Doanh Thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p, stat : ${report.topProducts}">
+                                    <td>
+                                        <span class="badge rounded-circle fw-bold"
+                                              th:classappend="${stat.index == 0 ? 'bg-warning text-dark' : (stat.index == 1 ? 'bg-secondary text-white' : 'bg-light text-dark border')}"
+                                              th:text="${stat.index + 1}">1</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img th:src="${p.imageUrl}" alt="" class="rounded border" style="width: 38px; height: 38px; object-fit: cover;">
+                                            <span class="fw-bold text-dark text-truncate" style="max-width: 250px;" th:text="${p.productName}">Mẫu Art Toy</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center fw-bold">
+                                        <span class="badge bg-light text-dark border" th:text="${p.unitsSold} + ' hộp'">10 hộp</span>
+                                    </td>
+                                    <td class="text-end fw-black text-danger">
+                                        <span th:text="${#numbers.formatDecimal(p.revenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Revenue Breakdown Table (Scrollable ~10 rows viewport) -->
+        <div class="admin-card shadow-sm overflow-hidden mb-4">
+            <div class="p-3 bg-light border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="fw-bold text-uppercase mb-0">
+                        <i class="bi bi-calendar3 me-2 text-danger"></i>Chi Tiết Doanh Thu Theo Từng Ngày
+                    </h6>
+                    <span class="badge bg-dark text-white rounded-pill px-2 py-1" style="font-size: 0.75rem;" 
+                          th:text="${#lists.size(report.dailyBreakdown)} + ' ngày'">30 ngày</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                    <i class="bi bi-arrows-vertical text-secondary"></i>
+                    <span>Hiển thị ~10 ngày trên màn hình • Cuộn danh sách để xem đầy đủ</span>
+                </div>
+            </div>
+
+            <!-- Scrollable table container pinned to ~10 rows (~490px) -->
+            <div class="table-responsive admin-scrollable-table" style="max-height: 490px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-uppercase small position-sticky top-0 shadow-sm" style="letter-spacing: 0.5px; z-index: 5;">
+                        <tr>
+                            <th style="width: 170px;">Ngày</th>
+                            <th style="width: 140px;" class="text-center">Số Đơn Hàng</th>
+                            <th class="text-end">Doanh Thu Gộp</th>
+                            <th class="text-end">Tiền Hoàn Lại</th>
+                            <th class="text-end">Doanh Thu Thuần</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(report.dailyBreakdown)}">
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x fs-2 d-block mb-2 text-secondary"></i>
+                                Không có dữ liệu doanh thu trong khoảng ngày này.
+                            </td>
+                        </tr>
+                        <tr th:each="day : ${report.dailyBreakdown}"
+                            th:classappend="${day.orderCount > 0 ? 'table-light' : ''}">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi" th:classappend="${day.orderCount > 0 ? 'bi-calendar-check-fill text-success' : 'bi-calendar-event text-muted'}"></i>
+                                    <span class="fw-bold text-dark" th:text="${#temporals.format(day.date, 'dd/MM/yyyy')}">01/10/2026</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span th:if="${day.orderCount > 0}" class="badge bg-primary px-2 py-1 fw-bold"
+                                      th:text="${day.orderCount} + ' đơn'">3 đơn</span>
+                                <span th:unless="${day.orderCount > 0}" class="text-muted small">0 đơn</span>
+                            </td>
+                            <td class="text-end fw-bold">
+                                <span th:if="${day.grossRevenue.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-dark"
+                                      th:text="${#numbers.formatDecimal(day.grossRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">586.000 đ</span>
+                                <span th:unless="${day.grossRevenue.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-muted">0 đ</span>
+                            </td>
+                            <td class="text-end">
+                                <span th:if="${day.refundedAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
+                                      class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold"
+                                      th:text="'-' + ${#numbers.formatDecimal(day.refundedAmount, 0, 'POINT', 0, 'POINT')} + ' đ'">-5.200.000 đ</span>
+                                <span th:unless="${day.refundedAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-muted">0 đ</span>
+                            </td>
+                            <td class="text-end fw-black" 
+                                th:classappend="${day.netRevenue.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 'text-success' : 'text-muted'}">
+                                <span th:text="${#numbers.formatDecimal(day.netRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <!-- Sticky Summary Footer -->
+                    <tfoot class="table-dark position-sticky bottom-0 fw-bold shadow-sm" style="z-index: 5;">
+                        <tr>
+                            <td>
+                                <span class="text-uppercase small"><i class="bi bi-calculator me-1 text-danger"></i>Tổng Toàn Kỳ</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-white text-dark fw-bold px-2 py-1" th:text="${report.successfulOrderCount} + ' đơn'">6 đơn</span>
+                            </td>
+                            <td class="text-end fw-black" th:text="${#numbers.formatDecimal(report.grossRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">8.294.000 đ</td>
+                            <td class="text-end text-danger fw-black">
+                                <span th:if="${report.totalRefunded.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
+                                      th:text="'-' + ${#numbers.formatDecimal(report.totalRefunded, 0, 'POINT', 0, 'POINT')} + ' đ'">-5.200.000 đ</span>
+                                <span th:unless="${report.totalRefunded.compareTo(T(java.math.BigDecimal).ZERO) > 0}">0 đ</span>
+                            </td>
+                            <td class="text-end text-success fw-black fs-6" th:text="${#numbers.formatDecimal(report.netRevenue, 0, 'POINT', 0, 'POINT')} + ' đ'">3.094.000 đ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <style>
+            .admin-scrollable-table {
+                scrollbar-width: thin;
+                scrollbar-color: #adb5bd #f8f9fa;
+            }
+            .admin-scrollable-table::-webkit-scrollbar {
+                width: 6px;
+            }
+            .admin-scrollable-table::-webkit-scrollbar-track {
+                background: #f8f9fa;
+            }
+            .admin-scrollable-table::-webkit-scrollbar-thumb {
+                background: #adb5bd;
+                border-radius: 4px;
+            }
+            .admin-scrollable-table::-webkit-scrollbar-thumb:hover {
+                background: #D2001E;
+            }
+        </style>
+
+    </div>
+</div>
+</body>
+</html>

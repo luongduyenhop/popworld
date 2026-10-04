@@ -18,11 +18,13 @@ import com.manguonmo.popworld.dto.response.RefundResponse;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.service.RefundService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.math.BigDecimal;
 import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin/orders")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminOrderWebController {
 

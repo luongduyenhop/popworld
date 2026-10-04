@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Yêu Cầu Hỗ Trợ & Phản Hồi')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#supportContent}, 'Yêu Cầu Hỗ Trợ & Phản Hồi', 'support')}">
+    <div id="supportContent" class="container-fluid px-4 py-4">
+
+        <!-- Flash alerts -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}">Thao tác thành công!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}">Đã xảy ra lỗi!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="fw-black text-uppercase mb-1" style="letter-spacing: 0.5px;">
+                    <i class="bi bi-headset text-danger me-2"></i>Yêu Cầu Hỗ Trợ &amp; Phản Hồi
+                </h2>
+                <p class="text-muted small mb-0 text-uppercase" style="letter-spacing: 1px;">
+                    Trung tâm tiếp nhận thắc mắc, khiếu nại và phản hồi từ biểu tượng CSKH
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/support}" class="btn btn-outline-dark fw-bold btn-sm">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Làm Mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="admin-card p-3 border-start border-4 border-dark h-100 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted text-uppercase fw-bold small" style="letter-spacing: 1px;">Tổng Yêu Cầu Tiếp Nhận</span>
+                            <h3 class="fw-black mb-0 mt-2" th:text="${totalCount}">0</h3>
+                        </div>
+                        <div class="bg-light p-3 rounded-circle text-dark">
+                            <i class="bi bi-inbox-fill fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="admin-card p-3 border-start border-4 border-warning h-100 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-warning text-uppercase fw-bold small" style="letter-spacing: 1px;">Chờ Xử Lý (Cần Liên Hệ)</span>
+                            <h3 class="fw-black text-warning mb-0 mt-2" th:text="${pendingCount}">0</h3>
+                        </div>
+                        <div class="bg-warning-subtle p-3 rounded-circle text-warning">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="admin-card p-3 border-start border-4 border-success h-100 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-success text-uppercase fw-bold small" style="letter-spacing: 1px;">Đã Giải Quyết Xong</span>
+                            <h3 class="fw-black text-success mb-0 mt-2" th:text="${resolvedCount}">0</h3>
+                        </div>
+                        <div class="bg-success-subtle p-3 rounded-circle text-success">
+                            <i class="bi bi-check2-all fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="admin-card p-3 mb-4 shadow-sm">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <!-- Status Filter Tabs -->
+                <div class="btn-group" role="group">
+                    <a th:href="@{/admin/support(status='ALL', keyword=${keyword})}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${currentStatus == 'ALL' ? 'btn-dark' : 'btn-outline-dark'}">
+                        Tất Cả (<span th:text="${totalCount}">0</span>)
+                    </a>
+                    <a th:href="@{/admin/support(status='PENDING', keyword=${keyword})}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${currentStatus == 'PENDING' ? 'btn-warning text-dark' : 'btn-outline-warning'}">
+                        <i class="bi bi-exclamation-circle me-1"></i>Chờ Xử Lý (<span th:text="${pendingCount}">0</span>)
+                    </a>
+                    <a th:href="@{/admin/support(status='RESOLVED', keyword=${keyword})}" 
+                       class="btn btn-sm fw-bold"
+                       th:classappend="${currentStatus == 'RESOLVED' ? 'btn-success text-white' : 'btn-outline-success'}">
+                        <i class="bi bi-check-circle me-1"></i>Đã Giải Quyết (<span th:text="${resolvedCount}">0</span>)
+                    </a>
+                </div>
+
+                <!-- Search form -->
+                <form th:action="@{/admin/support}" method="get" class="d-flex gap-2">
+                    <input type="hidden" name="status" th:value="${currentStatus}">
+                    <div class="input-group input-group-sm" style="min-width: 280px;">
+                        <input type="text" name="keyword" class="form-control" 
+                               placeholder="Tìm theo tên, email, SĐT, tiêu đề..." th:value="${keyword}">
+                        <button class="btn btn-dark" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/admin/support(status=${currentStatus})}" 
+                       class="btn btn-sm btn-outline-secondary" title="Hủy tìm kiếm">
+                        <i class="bi bi-x"></i>
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="admin-card shadow-sm overflow-hidden mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-uppercase small" style="letter-spacing: 0.5px;">
+                        <tr>
+                            <th style="width: 70px;">Mã #</th>
+                            <th style="width: 220px;">Khách Hàng &amp; Liên Hệ</th>
+                            <th style="width: 140px;">Phân Loại</th>
+                            <th>Tiêu Đề &amp; Nội Dung Yêu Cầu</th>
+                            <th style="width: 130px;" class="text-center">Trạng Thái</th>
+                            <th style="width: 160px;">Thời Gian</th>
+                            <th style="width: 140px;" class="text-end sticky-action-col">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(contacts)}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-chat-square-dots fs-1 d-block mb-2 text-secondary"></i>
+                                Không có yêu cầu hỗ trợ nào phù hợp với bộ lọc.
+                            </td>
+                        </tr>
+                        <tr th:each="contact : ${contacts}">
+                            <td class="fw-bold text-muted">
+                                #<span th:text="${contact.id}">1</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark" th:text="${contact.senderName}">Nguyễn Văn A</div>
+                                <div class="small text-secondary">
+                                    <i class="bi bi-envelope me-1"></i>
+                                    <a th:href="'mailto:' + ${contact.email}" class="text-decoration-none text-muted" th:text="${contact.email}">email@domain.com</a>
+                                </div>
+                                <div th:if="${contact.phone != null and !contact.phone.isEmpty()}" class="small text-secondary">
+                                    <i class="bi bi-telephone me-1"></i>
+                                    <a th:href="'tel:' + ${contact.phone}" class="text-decoration-none text-dark fw-bold" th:text="${contact.phone}">0987654321</a>
+                                </div>
+                                <div th:if="${contact.userId != null}" class="mt-1">
+                                    <a th:href="@{'/admin/customers/' + ${contact.userId}}" class="badge bg-dark text-white text-decoration-none py-1 px-2" style="font-size: 0.7rem;">
+                                        <i class="bi bi-person-check-fill me-1"></i>Thành Viên #<span th:text="${contact.userId}">1</span>
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge text-uppercase px-2 py-1"
+                                      th:classappend="${contact.category == 'DON_HANG' ? 'bg-primary' : (contact.category == 'POP_NOW' ? 'bg-danger' : (contact.category == 'VAN_CHUYEN' ? 'bg-info text-dark' : 'bg-secondary'))}"
+                                      th:text="${contact.category != null ? contact.category : 'CHUNG'}">
+                                    DON_HANG
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark mb-1" th:text="${contact.subject}">Tiêu đề yêu cầu</div>
+                                <p class="text-secondary small mb-1" style="white-space: pre-wrap; max-height: 80px; overflow-y: auto;" th:text="${contact.message}">
+                                    Nội dung chi tiết yêu cầu của khách hàng...
+                                </p>
+                                <!-- Admin note if exists -->
+                                <div th:if="${contact.adminNote != null and !contact.adminNote.isEmpty()}" 
+                                     class="p-2 bg-light border-start border-3 border-success small text-muted rounded-1 mt-1">
+                                    <i class="bi bi-clipboard2-check text-success me-1"></i>
+                                    <strong class="text-dark">Ghi chú xử lý:</strong> <span th:text="${contact.adminNote}">Đã gọi điện tư vấn</span>
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        Bởi: <span th:text="${contact.processedBy != null ? contact.processedBy : 'Admin'}">admin</span> • 
+                                        <span th:text="${contact.processedAt != null ? #temporals.format(contact.processedAt, 'dd/MM/yyyy HH:mm') : ''}"></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span th:if="${contact.isProcessed}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-bold">
+                                    <i class="bi bi-check-circle-fill me-1"></i>ĐÃ XỬ LÝ
+                                </span>
+                                <span th:unless="${contact.isProcessed}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-bold">
+                                    <i class="bi bi-clock me-1"></i>CHỜ XỬ LÝ
+                                </span>
+                            </td>
+                            <td class="small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${#temporals.format(contact.createdAt, 'dd/MM/yyyy HH:mm')}">01/10/2026 14:00</span>
+                            </td>
+                            <td class="text-end sticky-action-col">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="btn btn-sm btn-dark" 
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#processModal' + ${contact.id}"
+                                            title="Cập nhật xử lý & Ghi chú">
+                                        <i class="bi bi-pencil-square me-1"></i>Xử Lý
+                                    </button>
+                                </div>
+
+                                <!-- Process Modal -->
+                                <div class="modal fade text-start" th:id="'processModal' + ${contact.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-dark text-white px-3 py-2 border-0">
+                                                <h6 class="modal-title fw-bold">
+                                                    <i class="bi bi-headset me-1 text-danger"></i>Xử Lý Yêu Cầu #<span th:text="${contact.id}">1</span>
+                                                </h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form th:action="@{'/admin/support/' + ${contact.id} + '/process'}" method="post">
+                                                <div class="modal-body p-3">
+                                                    <div class="mb-3 p-2 bg-light rounded border">
+                                                        <div class="fw-bold" th:text="${contact.senderName}">Tên khách</div>
+                                                        <div class="small text-muted">
+                                                            Email: <span th:text="${contact.email}">email</span> | 
+                                                            SĐT: <span th:text="${contact.phone != null ? contact.phone : 'Chưa nhập'}">phone</span>
+                                                        </div>
+                                                        <div class="small mt-1 text-dark fw-bold" th:text="${contact.subject}">Tiêu đề</div>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small text-uppercase">Trạng Thái Xử Lý</label>
+                                                        <select name="isProcessed" class="form-select">
+                                                            <option value="true" th:selected="${contact.isProcessed}">ĐÃ GIẢI QUYẾT (RESOLVED)</option>
+                                                            <option value="false" th:selected="${!contact.isProcessed}">CHỜ XỬ LÝ (PENDING)</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small text-uppercase">Ghi Chú Giải Quyết Của Admin</label>
+                                                        <textarea name="adminNote" class="form-control" rows="3" 
+                                                                  placeholder="Vd: Đã gọi điện qua hotline giải thích cho khách hàng về mã đơn hàng..." 
+                                                                  th:text="${contact.adminNote}"></textarea>
+                                                        <div class="form-text small">Ghi chú này giúp đồng nghiệp CSKH theo dõi tiến độ xử lý khi khách liên hệ lại.</div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer px-3 py-2 border-top">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                                        <i class="bi bi-save me-1"></i>Lưu Thay Đổi
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Quản Lý Khuyến Mãi & Voucher')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#couponsContent}, 'Khuyến Mãi & Mã Giảm Giá', 'coupons')}">
+    <div id="couponsContent" class="container-fluid px-4 py-4">
+
+        <!-- Page Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h2 class="fw-black text-uppercase mb-1" style="letter-spacing: 0.5px;">
+                    <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>Quản Lý Khuyến Mãi &amp; Voucher
+                </h2>
+                <p class="text-muted small mb-0 text-uppercase" style="letter-spacing: 1px;">
+                    Cấu hình mã giảm giá, giới hạn ngân sách và kích thích sức mua Art Toy
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-danger fw-black btn-sm py-2 px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#createCouponModal">
+                    <i class="bi bi-plus-lg me-1"></i>TẠO MÃ KHUYẾN MÃI MỚI
+                </button>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-4">
+                <div class="admin-stat-card py-3 h-100 shadow-sm">
+                    <div>
+                        <div class="admin-stat-label">Tổng Số Mã Khuyến Mãi</div>
+                        <div class="admin-stat-number fs-3" th:text="${totalCount}">0</div>
+                        <small class="text-muted">Được tạo trong hệ thống</small>
+                    </div>
+                    <div class="admin-stat-icon icon-blue" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-ticket-detailed-fill"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+                <div class="admin-stat-card py-3 h-100 shadow-sm">
+                    <div>
+                        <div class="admin-stat-label">Đang Hoạt Động</div>
+                        <div class="admin-stat-number fs-3 text-success" th:text="${activeCount}">0</div>
+                        <small class="text-success-emphasis">Khách có thể áp dụng tại checkout</small>
+                    </div>
+                    <div class="admin-stat-icon icon-green" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+                <div class="admin-stat-card py-3 h-100 shadow-sm">
+                    <div>
+                        <div class="admin-stat-label">Đã Hết Hạn</div>
+                        <div class="admin-stat-number fs-3 text-danger" th:text="${expiredCount}">0</div>
+                        <small class="text-danger-emphasis">Đã quá ngày kết thúc mở bán</small>
+                    </div>
+                    <div class="admin-stat-icon icon-red" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-calendar-x-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coupons Data Table -->
+        <div class="admin-card shadow-sm overflow-hidden mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-uppercase small" style="letter-spacing: 0.5px;">
+                        <tr>
+                            <th style="min-width: 150px;">Mã Voucher</th>
+                            <th style="min-width: 220px;">Mô Tả &amp; Điều Kiện</th>
+                            <th style="min-width: 130px;" class="text-end">Mức Giảm</th>
+                            <th style="min-width: 140px;" class="text-center">Lượt Sử Dụng</th>
+                            <th style="min-width: 180px;">Thời Gian Áp Dụng</th>
+                            <th style="min-width: 120px;" class="text-center">Trạng Thái</th>
+                            <th style="min-width: 120px;" class="text-end sticky-action-col">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${coupons == null or coupons.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+                                Chưa có mã khuyến mãi nào. Hãy nhấn "TẠO MÃ KHUYẾN MÃI MỚI" để bắt đầu!
+                            </td>
+                        </tr>
+                        <tr th:each="coupon : ${coupons}">
+                            <!-- Code -->
+                            <td>
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <span class="badge bg-black text-white px-2 py-1 font-monospace fs-6 fw-bold border" th:text="${coupon.code}">
+                                        POPWELCOME
+                                    </span>
+                                </div>
+                            </td>
+
+                            <!-- Description & Condition -->
+                            <td>
+                                <div class="fw-bold text-dark mb-1" th:text="${coupon.description != null ? coupon.description : 'Không có mô tả'}">Mô tả</div>
+                                <div class="small text-muted">
+                                    <span th:if="${coupon.minOrderAmount != null and coupon.minOrderAmount > 0}">
+                                        Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(coupon.minOrderAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></strong>
+                                    </span>
+                                    <span th:unless="${coupon.minOrderAmount != null and coupon.minOrderAmount > 0}">
+                                        Mọi đơn hàng
+                                    </span>
+                                    <span th:if="${coupon.maxDiscountAmount != null and coupon.maxDiscountAmount > 0}">
+                                        • Tối đa: <strong th:text="${#numbers.formatDecimal(coupon.maxDiscountAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></strong>
+                                    </span>
+                                </div>
+                            </td>
+
+                            <!-- Discount Value -->
+                            <td class="text-end fw-black">
+                                <div th:if="${coupon.discountType == 'PERCENTAGE' or coupon.discountType == 'PERCENT'}" class="text-danger fs-6">
+                                    -<span th:text="${#numbers.formatDecimal(coupon.discountValue, 0, 'POINT', 0, 'POINT')} + '%'">10%</span>
+                                </div>
+                                <div th:if="${coupon.discountType == 'SHIPPING' or coupon.discountType == 'FREESHIP'}" class="text-primary fs-6">
+                                    <i class="bi bi-truck me-1"></i><span th:text="${coupon.discountValue != null and coupon.discountValue > 0 and coupon.discountValue < 30000 ? ('-' + #numbers.formatDecimal(coupon.discountValue, 0, 'POINT', 0, 'POINT') + ' đ (Ship)') : 'Freeship (30.000 đ)'}">Freeship</span>
+                                </div>
+                                <div th:if="${coupon.discountType != 'PERCENTAGE' and coupon.discountType != 'PERCENT' and coupon.discountType != 'SHIPPING' and coupon.discountType != 'FREESHIP'}" class="text-success fs-6">
+                                    -<span th:text="${#numbers.formatDecimal(coupon.discountValue, 0, 'POINT', 0, 'POINT')} + ' đ'">50.000 đ</span>
+                                </div>
+                            </td>
+
+                            <!-- Usage count / Limit -->
+                            <td class="text-center">
+                                <span class="fw-bold text-dark" th:text="${coupon.usedCount != null ? coupon.usedCount : 0}">0</span>
+                                <span class="text-muted" th:text="' / ' + (${coupon.usageLimit != null ? coupon.usageLimit : '∞'})"> / ∞</span>
+                            </td>
+
+                            <!-- Dates -->
+                            <td>
+                                <small class="text-secondary d-block">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    <span th:text="${coupon.startDate != null ? #temporals.format(coupon.startDate, 'dd/MM/yyyy') : 'Ngay'}">01/01/2026</span>
+                                    &rarr;
+                                    <span th:text="${coupon.endDate != null ? #temporals.format(coupon.endDate, 'dd/MM/yyyy') : 'Vô thời hạn'}">31/12/2026</span>
+                                </small>
+                            </td>
+
+                            <!-- Status Badge -->
+                            <td class="text-center">
+                                <span th:if="${coupon.active}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Đang chạy
+                                </span>
+                                <span th:unless="${coupon.active}" class="badge bg-secondary-subtle text-muted border px-2 py-1">
+                                    <i class="bi bi-pause-circle-fill me-1"></i>Tạm dừng
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="text-end sticky-action-col">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Toggle active -->
+                                    <form th:action="@{'/admin/coupons/' + ${coupon.id} + '/toggle'}" method="post" class="d-inline m-0">
+                                        <button type="submit" class="btn btn-outline-dark" 
+                                                th:title="${coupon.active ? 'Tạm dừng mã' : 'Kích hoạt mã'}">
+                                            <i class="bi" th:classappend="${coupon.active ? 'bi-pause-circle text-warning' : 'bi-play-circle text-success'}"></i>
+                                        </button>
+                                    </form>
+
+                                    <!-- Delete -->
+                                    <form th:action="@{'/admin/coupons/' + ${coupon.id} + '/delete'}" method="post" class="d-inline m-0"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã voucher này?');">
+                                        <button type="submit" class="btn btn-outline-danger" title="Xóa mã voucher">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL: TẠO MÃ KHUYẾN MÃI MỚI                                             -->
+        <!-- ========================================================================= -->
+        <div class="modal fade text-start" id="createCouponModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-dark text-white px-3 py-2 border-0">
+                        <h6 class="modal-title fw-bold">
+                            <i class="bi bi-ticket-perforated-fill text-danger me-1"></i>Tạo Mã Khuyến Mãi / Voucher Mới
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/admin/coupons}" method="post">
+                        <div class="modal-body p-3">
+                            <!-- Code -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Mã Voucher (Code) <span class="text-danger">*</span></label>
+                                <input type="text" name="code" class="form-control fw-bold font-monospace text-uppercase" 
+                                       placeholder="VD: POPWELCOME, FREESHIP, ARTTOY20" required>
+                                <div class="form-text small">Mã sẽ được tự động chuyển thành chữ in hoa và không dấu.</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Mô Tả Khuyến Mãi</label>
+                                <input type="text" name="description" class="form-control" 
+                                       placeholder="VD: Giảm 10% cho đơn hàng đầu tiên">
+                            </div>
+
+                            <!-- Discount Type & Value -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Loại Giảm Giá</label>
+                                    <select name="discountType" class="form-select fw-semibold" id="selectDiscountType">
+                                        <option value="PERCENTAGE">Phần trăm (%)</option>
+                                        <option value="FIXED_AMOUNT">Số tiền cố định (đ)</option>
+                                        <option value="SHIPPING">Giảm phí vận chuyển (Freeship)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Giá Trị Giảm <span class="text-danger">*</span></label>
+                                    <input type="number" name="discountValue" class="form-control fw-bold" min="1" step="any" placeholder="VD: 10 hoặc 50000" required>
+                                </div>
+                            </div>
+
+                            <!-- Min Order & Max Discount -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Đơn Tối Thiểu (đ)</label>
+                                    <input type="number" name="minOrderAmount" class="form-control" min="0" value="0" placeholder="0 = Không giới hạn">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Giảm Tối Đa (đ)</label>
+                                    <input type="number" name="maxDiscountAmount" class="form-control" min="0" placeholder="Để trống nếu không giới hạn">
+                                </div>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Ngày Bắt Đầu</label>
+                                    <input type="date" name="startDate" class="form-control">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-uppercase">Ngày Hết Hạn</label>
+                                    <input type="date" name="endDate" class="form-control">
+                                </div>
+                            </div>
+
+                            <!-- Usage Limit -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Giới Hạn Lượt Dùng (Toàn Sàn)</label>
+                                <input type="number" name="usageLimit" class="form-control" min="1" placeholder="Để trống nếu không giới hạn">
+                            </div>
+                        </div>
+                        <div class="modal-footer px-3 py-2 border-top">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                <i class="bi bi-check-lg me-1"></i>Tạo Voucher Mới
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

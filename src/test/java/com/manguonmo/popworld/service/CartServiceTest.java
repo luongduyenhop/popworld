@@ -6,6 +6,7 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import com.manguonmo.popworld.repository.CartItemRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.repository.UserRepository;
@@ -155,14 +156,14 @@ class CartServiceTest {
 
     @Test
     @DisplayName("IDOR Prevention: updateQuantity - User B cố sửa giỏ của User A -> Bị chặn và state KHÔNG thay đổi")
-    void updateQuantity_WhenOtherUser_ShouldThrowBadRequestAndNotModifyState() {
+    void updateQuantity_WhenOtherUser_ShouldThrowAccessDeniedAndNotModifyState() {
         User userA = User.builder().id(1L).build();
         CartItem item = CartItem.builder().id(10L).user(userA).quantity(2).build();
 
         when(cartItemRepository.findById(10L)).thenReturn(Optional.of(item));
 
         // User B (id = 2) cố tình cập nhật CartItem #10 của User A
-        assertThrows(BadRequestException.class, () -> cartService.updateQuantity(2L, 10L, 99));
+        assertThrows(AccessDeniedException.class, () -> cartService.updateQuantity(2L, 10L, 99));
 
         // State bất biến: số lượng vẫn giữ nguyên là 2, không gọi save hay delete
         assertEquals(2, item.getQuantity());
@@ -200,13 +201,13 @@ class CartServiceTest {
 
     @Test
     @DisplayName("IDOR Prevention: updateSelection - User B cố đổi trạng thái chọn của User A -> Bị từ chối")
-    void updateSelection_WhenOtherUser_ShouldThrowBadRequestAndNotModifyState() {
+    void updateSelection_WhenOtherUser_ShouldThrowAccessDeniedAndNotModifyState() {
         User userA = User.builder().id(1L).build();
         CartItem item = CartItem.builder().id(10L).user(userA).isSelected(true).build();
 
         when(cartItemRepository.findById(10L)).thenReturn(Optional.of(item));
 
-        assertThrows(BadRequestException.class, () -> cartService.updateSelection(2L, 10L, false));
+        assertThrows(AccessDeniedException.class, () -> cartService.updateSelection(2L, 10L, false));
 
         assertTrue(item.getIsSelected());
         verify(cartItemRepository, never()).save(any());
@@ -227,13 +228,13 @@ class CartServiceTest {
 
     @Test
     @DisplayName("IDOR Prevention: removeFromCart - User B cố xóa món của User A -> Bị chặn, món hàng KHÔNG bị xóa")
-    void removeFromCart_WhenOtherUser_ShouldThrowBadRequestAndNotDelete() {
+    void removeFromCart_WhenOtherUser_ShouldThrowAccessDeniedAndNotDelete() {
         User userA = User.builder().id(1L).build();
         CartItem item = CartItem.builder().id(10L).user(userA).build();
 
         when(cartItemRepository.findById(10L)).thenReturn(Optional.of(item));
 
-        assertThrows(BadRequestException.class, () -> cartService.removeFromCart(2L, 10L));
+        assertThrows(AccessDeniedException.class, () -> cartService.removeFromCart(2L, 10L));
 
         verify(cartItemRepository, never()).delete(any());
         verify(cartItemRepository, never()).deleteById(any());

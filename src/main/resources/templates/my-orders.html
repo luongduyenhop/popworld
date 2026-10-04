@@ -118,20 +118,31 @@
                     <div class="pop-side-menu-card">
                         <div class="pop-side-menu-title" role="button" onclick="switchAccountPanel('ORDERS')">My Orders</div>
 
-                        <!-- Delivery vs Pickup Toggle -->
+                        <!-- Delivery vs Virtual Cabinet Toggle -->
                         <div class="pop-delivery-toggle">
                             <button type="button" class="pop-delivery-btn active" id="toggleDelivery" onclick="switchAccountPanel('ORDERS'); switchDeliveryMode('DELIVERY')">
-                                <i class="bi bi-shop"></i>
-                                <span>DELIVERY</span>
+                                <i class="bi bi-box-seam"></i>
+                                <span>ĐƠN HÀNG</span>
                             </button>
-                            <button type="button" class="pop-delivery-btn" id="togglePickup" onclick="switchAccountPanel('ORDERS'); switchDeliveryMode('PICKUP')">
-                                <i class="bi bi-bag"></i>
-                                <span>PICKUP</span>
-                            </button>
+                            <a th:href="@{/popnow/cabinet}" class="pop-delivery-btn text-decoration-none" id="toggleVirtualCabinet" title="Tủ Đồ Ảo POP NOW">
+                                <i class="bi bi-box2-heart"></i>
+                                <span>TỦ ĐỒ ẢO</span>
+                            </a>
                         </div>
 
                         <!-- Sub-navigation links -->
                         <div class="pop-side-nav-links">
+                            <a th:href="@{/popnow/cabinet}" class="pop-side-nav-item">
+                                <div class="pop-side-nav-content">
+                                    <i class="bi bi-box2-heart text-danger"></i>
+                                    <div>
+                                        <div class="pop-side-nav-name fw-bold text-dark">Tủ Đồ Ảo POP NOW</div>
+                                        <div class="pop-side-nav-desc">Mô hình đã khui &amp; yêu cầu giao</div>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
+                            </a>
+
                             <a href="javascript:void(0)" onclick="switchAccountPanel('ORDERS')" class="pop-side-nav-item">
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-ticket-perforated"></i>
@@ -513,14 +524,7 @@
                         </button>
                     </div>
 
-                    <!-- Pickup Empty State Notice (When in Pickup mode) -->
-                    <div id="pickupNotice" class="pop-orders-empty-state" style="display: none;">
-                        <div class="pop-empty-icon-box">
-                            <i class="bi bi-bag-x"></i>
-                        </div>
-                        <p class="pop-empty-text">You don't have any pickup orders yet.</p>
-                        <small class="text-muted mt-1">Đơn hàng nhận tại cửa hàng sẽ xuất hiện tại đây.</small>
-                    </div>
+
 
                     <!-- Skeleton Loader (POP MART 15deg Lightline Animation) -->
                     <div id="ordersSkeletonLoader" class="row g-3 mb-4" style="display: none;">
@@ -1218,7 +1222,7 @@
                                          th:src="${user != null && user.avatarUrl != null && !user.avatarUrl.isBlank() ? user.avatarUrl : 'https://cdn-global.popmart.com/images/default-avatar.png'}" 
                                          alt="Avatar Preview" 
                                          class="rounded-circle border border-2 border-dark object-fit-cover shadow-sm w-100 h-100"
-                                         onerror="this.src='https://cdn-global.popmart.com/images/default-avatar.png';">
+                                         onerror="this.onerror=null; this.src='https://cdn-global.popmart.com/images/default-avatar.png';">
                                     <label for="avatarFileInput" class="position-absolute bottom-0 end-0 bg-dark text-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center" 
                                            style="width: 26px; height: 26px; cursor: pointer;" title="Chọn ảnh từ thiết bị">
                                         <i class="bi bi-camera-fill" style="font-size: 13px;"></i>
@@ -1615,43 +1619,26 @@
             }
         }
 
-        // Delivery vs Pickup Mode Toggle
+        // Delivery / Orders Mode Handling
         let currentDeliveryMode = 'DELIVERY';
 
         function switchDeliveryMode(mode) {
-            currentDeliveryMode = mode;
+            currentDeliveryMode = 'DELIVERY';
             const btnDelivery = document.getElementById('toggleDelivery');
-            const btnPickup = document.getElementById('togglePickup');
             const ordersContainer = document.getElementById('ordersContainer');
-            const pickupNotice = document.getElementById('pickupNotice');
-            const noTabNotice = document.getElementById('noTabOrdersNotice');
 
-            if (mode === 'DELIVERY') {
-                btnDelivery.classList.add('active');
-                btnPickup.classList.remove('active');
-                if (pickupNotice) pickupNotice.style.display = 'none';
-                if (ordersContainer) ordersContainer.style.display = 'flex';
-                // Trigger current active tab filter
-                const activeTab = document.querySelector('.pop-underline-tab.active');
-                if (activeTab) {
-                    const status = activeTab.getAttribute('data-target-status') || 'TO_PAY';
-                    filterOrders(status, activeTab);
-                }
-            } else {
-                btnPickup.classList.add('active');
-                btnDelivery.classList.remove('active');
-                if (ordersContainer) ordersContainer.style.display = 'none';
-                if (noTabNotice) noTabNotice.style.display = 'none';
-                if (pickupNotice) pickupNotice.style.display = 'flex';
+            if (btnDelivery) btnDelivery.classList.add('active');
+            if (ordersContainer) ordersContainer.style.display = 'flex';
+            // Trigger current active tab filter
+            const activeTab = document.querySelector('.pop-underline-tab.active');
+            if (activeTab) {
+                const status = activeTab.getAttribute('data-target-status') || 'TO_PAY';
+                filterOrders(status, activeTab);
             }
         }
 
         // Lọc đơn hàng theo Tab gạch chân đỏ chuẩn POP MART US
         function filterOrders(status, tabElement) {
-            if (currentDeliveryMode === 'PICKUP') {
-                return;
-            }
-
             // Đổi active underline tab
             document.querySelectorAll('.pop-underline-tab').forEach(t => t.classList.remove('active'));
             tabElement.classList.add('active');
@@ -1659,9 +1646,6 @@
             const ordersContainer = document.getElementById('ordersContainer');
             const skeletonLoader = document.getElementById('ordersSkeletonLoader');
             const notice = document.getElementById('noTabOrdersNotice');
-            const pickupNotice = document.getElementById('pickupNotice');
-
-            if (pickupNotice) pickupNotice.style.display = 'none';
 
             // Kích hoạt Skeleton hiệu ứng vệt sáng 15 độ trong 240ms
             if (skeletonLoader && ordersContainer) {

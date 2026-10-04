@@ -157,16 +157,13 @@
             <button type="button" class="btn-close" onclick="dismissCartJsAlert()"></button>
         </div>
 
-        <!-- POP MART Tabs Header (Pop Upon Delivery | POP NOW | Store Pickup) -->
+        <!-- POP MART Tabs Header (Pop Upon Delivery | POP NOW Tủ Đồ Ảo) -->
         <div class="popmart-cart-tabs d-flex align-items-center gap-4 mb-4 border-bottom">
             <a th:href="@{/cart}" class="popmart-cart-tab active text-decoration-none">
-                Pop Upon Delivery (<span th:text="${cartCount}">0</span>)
+                Giao Tận Nơi (<span th:text="${cartCount}">0</span>)
             </a>
             <a th:href="@{/popnow/cabinet}" class="popmart-cart-tab text-decoration-none">
-                POP NOW
-            </a>
-            <a href="javascript:void(0)" class="popmart-cart-tab text-decoration-none disabled" style="cursor: not-allowed; opacity: 0.5;">
-                Store Pickup (0)
+                POP NOW Tủ Đồ Ảo
             </a>
         </div>
 
@@ -201,13 +198,13 @@
                      th:data-unit-price="${item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice}"
                      th:data-quantity="${item.quantity}">
 
-                    <!-- Nút xóa (Góc trên bên phải) -->
-                    <form th:action="@{'/cart/delete/' + ${item.id}}" method="post" class="position-absolute top-0 end-0 m-3"
-                          onsubmit="return confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ?')">
-                        <button type="submit" class="btn btn-sm text-secondary p-1 border-0" title="Xóa món" aria-label="Xóa">
-                            <i class="bi bi-trash3 fs-6"></i>
-                        </button>
-                    </form>
+                    <!-- Nút xóa AJAX (Góc trên bên phải) -->
+                    <button type="button" class="btn btn-sm text-secondary p-1 border-0 position-absolute top-0 end-0 m-3"
+                            th:attr="data-item-id=${item.id}"
+                            onclick="handleDeleteCartItem(this)"
+                            title="Xóa món" aria-label="Xóa">
+                        <i class="bi bi-trash3 fs-6"></i>
+                    </button>
 
                     <div class="d-flex align-items-start gap-3">
                         <!-- Checkbox chọn item -->
@@ -244,16 +241,13 @@
                         </div>
                     </div>
 
-                    <!-- Bộ điều chỉnh số lượng (Góc dưới bên phải) -->
+                    <!-- Bộ điều chỉnh số lượng AJAX (Góc dưới bên phải) -->
                     <div class="d-flex justify-content-end mt-2">
-                        <form th:action="@{/cart/update}" method="post" class="d-inline-flex align-items-center">
-                            <input type="hidden" name="cartItemId" th:value="${item.id}">
-                            <div class="popmart-stepper d-flex align-items-center">
-                                <button class="btn" type="submit" name="quantity" th:value="${item.quantity - 1}" aria-label="Giảm">-</button>
-                                <input type="text" readonly th:value="${item.quantity}" aria-label="Số lượng">
-                                <button class="btn" type="submit" name="quantity" th:value="${item.quantity + 1}" aria-label="Tăng">+</button>
-                            </div>
-                        </form>
+                        <div class="popmart-stepper d-flex align-items-center">
+                            <button class="btn stepper-btn-dec" type="button" th:attr="data-item-id=${item.id}" onclick="changeCartItemQty(this, -1)" aria-label="Giảm">-</button>
+                            <input type="text" readonly th:value="${item.quantity}" class="item-qty-input" aria-label="Số lượng">
+                            <button class="btn stepper-btn-inc" type="button" th:attr="data-item-id=${item.id}" onclick="changeCartItemQty(this, 1)" aria-label="Tăng">+</button>
+                        </div>
                     </div>
                 </div>
 
@@ -547,6 +541,127 @@
                     }
                 }
             });
+        }
+
+        // =========================================================================
+        // AJAX THAY ĐỔI SỐ LƯỢNG MÓN HÀNG
+        // =========================================================================
+        async function changeCartItemQty(btn, delta) {
+            const itemId = btn.getAttribute('data-item-id');
+            const cartItemRow = document.getElementById('cart-item-' + itemId);
+            if (!cartItemRow) return;
+
+            const qtyInput = cartItemRow.querySelector('.item-qty-input');
+            const currentQty = parseInt(qtyInput.value) || 1;
+            const newQty = currentQty + delta;
+
+            if (newQty <= 0) {
+                if (confirm('Bạn có muốn xóa món hàng này khỏi giỏ không?')) {
+                    executeDeleteCartItem(itemId, cartItemRow);
+                }
+                return;
+            }
+
+            // Cập nhật UI ngay lập tức
+            qtyInput.value = newQty;
+            cartItemRow.setAttribute('data-quantity', newQty);
+            recalculateCart();
+
+            // Vô hiệu hóa tạm thời stepper để chống spam click
+            const stepperBtns = cartItemRow.querySelectorAll('.popmart-stepper .btn');
+            stepperBtns.forEach(b => b.disabled = true);
+
+            try {
+                const res = await fetch(`/api/cart/items/${itemId}/quantity?quantity=${newQty}`, {
+                    method: 'PATCH',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Không thể cập nhật số lượng');
+                }
+
+                // Cập nhật header cart badge
+                fetch('/api/cart/summary')
+                    .then(r => r.json())
+                    .then(sumData => {
+                        if (sumData.success && sumData.data && window.updateHeaderCartCount) {
+                            window.updateHeaderCartCount(sumData.data.cartCount);
+                        }
+                    })
+                    .catch(() => {});
+
+            } catch (err) {
+                console.error('Lỗi cập nhật số lượng:', err);
+                qtyInput.value = currentQty;
+                cartItemRow.setAttribute('data-quantity', currentQty);
+                recalculateCart();
+                showCartError('Lỗi cập nhật số lượng: ' + err.message);
+            } finally {
+                stepperBtns.forEach(b => b.disabled = false);
+            }
+        }
+
+        // =========================================================================
+        // AJAX XÓA MÓN HÀNG VỚI HIỆU ỨNG MỜ DẦN (FADE-OUT)
+        // =========================================================================
+        function handleDeleteCartItem(btn) {
+            const itemId = btn.getAttribute('data-item-id');
+            const cartItemRow = document.getElementById('cart-item-' + itemId);
+            if (!cartItemRow) return;
+
+            if (confirm('Bạn chắc chắn muốn xóa món này khỏi giỏ hàng?')) {
+                executeDeleteCartItem(itemId, cartItemRow);
+            }
+        }
+
+        async function executeDeleteCartItem(itemId, cartItemRow) {
+            cartItemRow.style.transition = 'all 0.3s ease';
+            cartItemRow.style.opacity = '0.4';
+
+            try {
+                const res = await fetch(`/api/cart/items/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Xóa món hàng thất bại');
+                }
+
+                // Hiệu ứng biến mất
+                cartItemRow.style.opacity = '0';
+                cartItemRow.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    cartItemRow.remove();
+                    recalculateCart();
+
+                    // Cập nhật header badge
+                    fetch('/api/cart/summary')
+                        .then(r => r.json())
+                        .then(sumData => {
+                            if (sumData.success && sumData.data && window.updateHeaderCartCount) {
+                                window.updateHeaderCartCount(sumData.data.cartCount);
+                            }
+                        })
+                        .catch(() => {});
+
+                    // Nếu giỏ hàng trống hoàn toàn, reload để hiển thị empty state
+                    const remainingItems = document.querySelectorAll('.popmart-cart-item');
+                    if (remainingItems.length === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+
+            } catch (err) {
+                console.error('Lỗi khi xóa:', err);
+                cartItemRow.style.opacity = '1';
+                showCartError('Lỗi xóa sản phẩm: ' + err.message);
+            }
         }
 
         // Bắt sự kiện click Checkout - Chờ tất cả request đồng bộ hoàn tất trước khi chuyển trang

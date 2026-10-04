@@ -269,5 +269,12 @@ class AccountWebControllerTest {
         assertEquals("redirect:/account?tab=addresses", view);
         verify(userAddressService).setDefaultAddress(1L, 10L);
     }
+
+    @Test
+    @DisplayName("showAddressBookRedirect: Chuyển hướng 302 từ /account/addresses về /account?tab=addresses")
+    void showAddressBookRedirect_ShouldRedirectToAddressesTab() {
+        String view = accountWebController.showAddressBookRedirect();
+        assertEquals("redirect:/account?tab=addresses", view);
+    }
 }
 

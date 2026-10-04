@@ -11,6 +11,7 @@ import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.FileStorageService;
 import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -303,5 +305,36 @@ public class UserServiceImpl implements UserService {
             user.setHintCards(Math.max(0, current + hintCardsDelta));
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void adminResetPassword(Long targetUserId, String newPassword, String confirmPassword, String adminEmail) {
+        if (targetUserId == null) {
+            throw new BadRequestException("ID người dùng không hợp lệ.");
+        }
+
+        User user = userRepository.findById(targetUserId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + targetUserId)
+        );
+
+        // Chống leo thang đặc quyền: Không cho phép đổi mật khẩu tài khoản ADMIN qua chức năng CSKH
+        if (user.getRole() != null && user.getRole().toUpperCase().contains("ADMIN")) {
+            throw new BadRequestException("Không thể đặt lại mật khẩu cho tài khoản Quản trị viên qua chức năng này!");
+        }
+
+        if (newPassword == null || newPassword.trim().length() < 6) {
+            throw new BadRequestException("Mật khẩu mới phải có ít nhất 6 ký tự!");
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            throw new BadRequestException("Mật khẩu mới và mật khẩu xác nhận không khớp!");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword.trim()));
+        userRepository.save(user);
+
+        log.info("Quản trị viên '{}' đã đặt lại mật khẩu thành công cho tài khoản '{}' (ID={})",
+                adminEmail, user.getEmail(), targetUserId);
     }
 }

@@ -395,7 +395,7 @@ class PopNowServiceTest {
     @DisplayName("getProductSlots: Tự động điều chỉnh số lượng slot linh hoạt khi series có 6 hộp")
     void getProductSlots_When6SlotsConfigured_Returns6Slots() {
         Product sixBoxProduct = Product.builder().id(10L).name("Hirono After Dark").active(true)
-                .packagingType("6 Boxes per Set").singlePrice(BigDecimal.valueOf(350000)).stockQuantity(20).build();
+                .packagingType("6 Boxes per Set").boxesPerSet(6).singlePrice(BigDecimal.valueOf(350000)).stockQuantity(20).build();
         when(productRepository.findById(10L)).thenReturn(Optional.of(sixBoxProduct));
 
         List<BlindBoxSlot> sixSlots = new ArrayList<>();

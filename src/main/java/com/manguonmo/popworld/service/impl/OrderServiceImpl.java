@@ -22,7 +22,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -106,9 +108,14 @@ public class OrderServiceImpl implements OrderService {
 
         // =========================================================================
         // BƯỚC 3: Tính tiền hàng (subtotal) & Trừ tồn kho nguyên tử
+        // [ANTI-DEADLOCK]: Sắp xếp deterministic theo product.id ASC trước khi lock/update
+        // Tránh tình trạng Thread 1 giữ lock Product A đòi B, Thread 2 giữ B đòi A gây Deadlock MySQL!
         // =========================================================================
+        List<CartItem> orderedCartItems = new java.util.ArrayList<>(selectedCartItems);
+        orderedCartItems.sort(java.util.Comparator.comparing(item -> item.getProduct().getId()));
+
         BigDecimal subtotal = BigDecimal.ZERO;
-        for (CartItem cart : selectedCartItems) {
+        for (CartItem cart : orderedCartItems) {
             BigDecimal unitPrice;
             if ("SINGLE_BOX".equalsIgnoreCase(cart.getPurchaseType())) {
                 unitPrice = cart.getProduct().getSinglePrice();
@@ -409,6 +416,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public Map<Long, List<OrderItem>> getOrderItemsByOrderIds(List<Long> orderIds) {
+        if (orderIds == null || orderIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return orderItemRepository.findByOrderIdIn(orderIds).stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders(String status) {
         List<Order> getOrders;
         if (status == null || status.trim().isBlank() || "ALL".equalsIgnoreCase(status.trim())) {
@@ -422,11 +439,13 @@ public class OrderServiceImpl implements OrderService {
             }
             getOrders = orderRepository.findByStatusOrderByCreatedAtDesc(filterStatus);
         }
+        if (getOrders.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> orderIds = getOrders.stream().map(Order::getId).toList();
+        Map<Long, List<OrderItem>> itemsByOrderId = getOrderItemsByOrderIds(orderIds);
         return getOrders.stream().map(
-                order -> {
-                    List<OrderItem> orderItem = orderItemRepository.findByOrderId(order.getId());
-                    return orderMapper.toResponse(order,orderItem);
-                }
+                order -> orderMapper.toResponse(order, itemsByOrderId.getOrDefault(order.getId(), Collections.emptyList()))
         ).toList();
     }
 
@@ -586,16 +605,17 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> searchOrders(String keyword) {
-
         if(keyword == null || keyword.isBlank() ){
             return getAllOrders("ALL");
         }
         List<Order> orders = orderRepository.searchOrders(keyword.trim());
+        if (orders.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> orderIds = orders.stream().map(Order::getId).toList();
+        Map<Long, List<OrderItem>> itemsByOrderId = getOrderItemsByOrderIds(orderIds);
         return orders.stream().map(
-                order -> {
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
-                    return orderMapper.toResponse(order,items);
-                }
+                order -> orderMapper.toResponse(order, itemsByOrderId.getOrDefault(order.getId(), Collections.emptyList()))
         ).toList();
     }
 

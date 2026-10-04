@@ -14,6 +14,7 @@ import com.manguonmo.popworld.repository.*;
 import com.manguonmo.popworld.service.PopNowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -218,7 +219,7 @@ public class PopNowServiceImpl implements PopNowService {
 
         // Kiểm tra quyền sở hữu IDOR
         if (!reservation.getUser().getId().equals(userId)) {
-            throw new BadRequestException("Bạn không có quyền mở hộp với mã phiếu này!");
+            throw new AccessDeniedException("Bạn không có quyền mở hộp với mã phiếu này!");
         }
 
         // Idempotency: Nếu hộp này đã được unbox trước đó, trả về đúng vật phẩm đã mở (không sinh thêm)
@@ -501,8 +502,9 @@ public class PopNowServiceImpl implements PopNowService {
         Map<Integer, BlindBoxSlot> slotMap = existingSlots.stream()
                 .collect(Collectors.toMap(BlindBoxSlot::getSlotIndex, s -> s, (s1, s2) -> s1));
 
-        int totalSlots = 12; // Mặc định 12 ô chuẩn POP MART
-        if (product.getPackagingType() != null && !product.getPackagingType().isBlank()) {
+        int totalSlots = product.getBoxesPerSet() != null && product.getBoxesPerSet() > 0
+                ? product.getBoxesPerSet() : 12;
+        if (product.getBoxesPerSet() == null && product.getPackagingType() != null && !product.getPackagingType().isBlank()) {
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\s*(?:box|hộp|mẫu|piece|case|slot)", java.util.regex.Pattern.CASE_INSENSITIVE)
                     .matcher(product.getPackagingType());
             int foundCount = 0;

@@ -11,6 +11,7 @@ import com.manguonmo.popworld.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,16 +23,19 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequestMapping("/admin/products")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminProductWebController {
 
     private final ProductService productService;
     private final CategoryService categoryService;
     private final SeriesRepository seriesRepository;
+    private final com.manguonmo.popworld.repository.CharacterIpRepository characterIpRepository;
 
     private void addCommonFormData(Model model) {
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("seriesList", seriesRepository.findAllByOrderByReleaseDateDesc());
+        model.addAttribute("characterIps", characterIpRepository.findAll());
         model.addAttribute("activeNav", "products");
     }
 

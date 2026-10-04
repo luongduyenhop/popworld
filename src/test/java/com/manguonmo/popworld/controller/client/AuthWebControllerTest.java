@@ -37,6 +37,9 @@ class AuthWebControllerTest {
     @MockitoBean
     private com.manguonmo.popworld.service.CartService cartService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.service.WishlistService wishlistService;
+
     @Test
     @DisplayName("GET /register: Hiển thị form đăng ký thành công")
     void showRegisterForm_ShouldReturnRegisterView() throws Exception {

@@ -10,14 +10,14 @@ import com.manguonmo.popworld.repository.BlindBoxSlotRepository;
 import com.manguonmo.popworld.repository.OwnedItemRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.service.PopNowAdminService;
+import com.manguonmo.popworld.service.PopNowSeriesCatalog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -31,12 +31,17 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
     private final BlindBoxItemRepository blindBoxItemRepository;
     private final BlindBoxSlotRepository blindBoxSlotRepository;
     private final OwnedItemRepository ownedItemRepository;
+    private final PopNowSeriesCatalog popNowSeriesCatalog;
 
     @Override
     public List<PopNowAdminProductSummary> getPopNowProductSummaries() {
         List<Product> products = productRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return products.stream().map(product -> {
+        return products.stream()
+                .filter(p -> p.getCategory() != null &&
+                        !"accessories".equalsIgnoreCase(p.getCategory().getSlug()) &&
+                        !"mega-collection".equalsIgnoreCase(p.getCategory().getSlug()))
+                .map(product -> {
             Long pId = product.getId();
             long totalItems = blindBoxItemRepository.findByProductId(pId).size();
             long activeItems = blindBoxItemRepository.countByProductIdAndActiveTrue(pId);
@@ -60,6 +65,7 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
                     .heldSlots(heldSlots)
                     .soldSlots(soldSlots)
                     .totalSlots(totalSlots)
+                    .boxesPerSet(product.getBoxesPerSet() != null ? product.getBoxesPerSet() : 12)
                     .build();
         }).toList();
     }
@@ -74,9 +80,17 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
     }
 
     @Override
+    @Transactional
     public List<BlindBoxItem> getItemsByProductId(Long productId) {
-        getProductForConfig(productId);
-        return blindBoxItemRepository.findByProductId(productId);
+        Product product = getProductForConfig(productId);
+        List<BlindBoxItem> items = blindBoxItemRepository.findByProductId(productId);
+        if (items.isEmpty() && isExistingSeriesWithStandardItems(productId)) {
+            // Tự động nạp sẵn đủ các mô hình thuộc series đó nếu là bộ sưu tập đã tồn tại
+            log.info("Phát hiện bộ sưu tập đã tồn tại có định nghĩa chuẩn. Tự động nạp danh sách mô hình cho productId={}", productId);
+            syncSeriesStandardItems(productId, false);
+            items = blindBoxItemRepository.findByProductId(productId);
+        }
+        return items;
     }
 
     @Override
@@ -199,10 +213,27 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
     @Override
     @Transactional
     public int initializeStandardSlots(Long productId) {
-        Product product = getProductForConfig(productId);
-        int createdCount = 0;
+        return initializeSlots(productId, null);
+    }
 
-        for (int slotIdx = 1; slotIdx <= STANDARD_SLOT_COUNT; slotIdx++) {
+    @Override
+    @Transactional
+    public int initializeSlots(Long productId, Integer slotCount) {
+        Product product = getProductForConfig(productId);
+        if (product.getCategory() != null && "accessories".equalsIgnoreCase(product.getCategory().getSlug())) {
+            throw new BadRequestException("Không thể khởi tạo ô hộp POP NOW cho sản phẩm thuộc danh mục Phụ kiện!");
+        }
+
+        int targetSlots = (slotCount != null && slotCount > 0) ? slotCount :
+                (product.getBoxesPerSet() != null && product.getBoxesPerSet() > 0 ? product.getBoxesPerSet() : 12);
+
+        if (product.getBoxesPerSet() == null || !product.getBoxesPerSet().equals(targetSlots)) {
+            product.setBoxesPerSet(targetSlots);
+            productRepository.save(product);
+        }
+
+        int createdCount = 0;
+        for (int slotIdx = 1; slotIdx <= targetSlots; slotIdx++) {
             Optional<BlindBoxSlot> existingSlot = blindBoxSlotRepository.findByProductIdAndSlotIndex(productId, slotIdx);
             if (existingSlot.isEmpty()) {
                 BlindBoxSlot newSlot = BlindBoxSlot.builder()
@@ -213,10 +244,205 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
                 blindBoxSlotRepository.save(newSlot);
                 createdCount++;
             }
-            // Tuyệt đối không reset hay sửa đổi slot đã tồn tại (đặc biệt HELD hoặc SOLD)
         }
 
-        log.info("Admin đã khởi tạo {} ô hộp tiêu chuẩn mới cho sản phẩm ID={}", createdCount, productId);
+        log.info("Admin đã khởi tạo {} ô hộp mới (quy cách {} ô) cho sản phẩm ID={}", createdCount, targetSlots, productId);
         return createdCount;
+    }
+
+    @Override
+    @Transactional
+    public void updateBoxesPerSet(Long productId, Integer boxesPerSet) {
+        if (boxesPerSet == null || boxesPerSet <= 0) {
+            throw new BadRequestException("Số lượng hộp trong 1 bộ phải lớn hơn 0!");
+        }
+        Product product = getProductForConfig(productId);
+        product.setBoxesPerSet(boxesPerSet);
+        productRepository.save(product);
+        log.info("Admin đã cập nhật quy cách bộ hộp productId={} thành {} hộp/set", productId, boxesPerSet);
+    }
+
+    @Override
+    @Transactional
+    public int cleanupExcessAvailableSlots(Long productId, Integer targetCount) {
+        if (targetCount == null || targetCount <= 0) {
+            throw new BadRequestException("Số lượng hộp mục tiêu không hợp lệ!");
+        }
+        Product product = getProductForConfig(productId);
+        List<BlindBoxSlot> slots = blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(productId);
+        int deletedCount = 0;
+        for (BlindBoxSlot slot : slots) {
+            if (slot.getSlotIndex() > targetCount && slot.getStatus() == SlotStatus.AVAILABLE) {
+                blindBoxSlotRepository.delete(slot);
+                deletedCount++;
+            }
+        }
+        log.info("Admin đã dọn dẹp {} ô trống vượt quá quy cách {} ô cho sản phẩm ID={}", deletedCount, targetCount, productId);
+        return deletedCount;
+    }
+
+    @Override
+    public boolean isExistingSeriesWithStandardItems(Long productId) {
+        Product product = getProductForConfig(productId);
+        String seriesName = product.getSeries() != null ? product.getSeries().getName() : null;
+
+        // 1. Kiểm tra catalog chuẩn POP MART
+        if (popNowSeriesCatalog.hasCatalog(product.getSlug(), seriesName, product.getName())) {
+            return true;
+        }
+
+        // 2. Kiểm tra xem có sản phẩm nào khác cùng Series đã có mô hình chưa
+        if (product.getSeries() != null) {
+            List<Product> siblingProducts = productRepository.findBySeriesId(product.getSeries().getId());
+            for (Product sib : siblingProducts) {
+                if (!sib.getId().equals(productId) && !blindBoxItemRepository.findByProductId(sib.getId()).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public int syncSeriesStandardItems(Long productId, boolean overrideExisting) {
+        Product product = getProductForConfig(productId);
+        String seriesName = product.getSeries() != null ? product.getSeries().getName() : null;
+        List<BlindBoxItem> existingItems = blindBoxItemRepository.findByProductId(productId);
+        Map<String, BlindBoxItem> existingByName = new HashMap<>();
+        for (BlindBoxItem item : existingItems) {
+            existingByName.put(item.getName().trim().toLowerCase(), item);
+        }
+
+        List<PopNowSeriesCatalog.StandardItemDef> defsToSync = new ArrayList<>();
+        int targetBoxesPerSet = product.getBoxesPerSet() != null ? product.getBoxesPerSet() : 12;
+
+        // 1. Ưu tiên kiểm tra catalog chuẩn
+        Optional<PopNowSeriesCatalog.SeriesCatalogDef> catalogDef = popNowSeriesCatalog.findCatalog(product.getSlug(), seriesName, product.getName());
+        if (catalogDef.isPresent()) {
+            defsToSync.addAll(catalogDef.get().getItems());
+            targetBoxesPerSet = catalogDef.get().getBoxesPerSet();
+        } else if (product.getSeries() != null) {
+            // 2. Kiểm tra sản phẩm cùng series đã có items
+            List<Product> siblingProducts = productRepository.findBySeriesId(product.getSeries().getId());
+            for (Product sib : siblingProducts) {
+                if (!sib.getId().equals(productId)) {
+                    List<BlindBoxItem> sibItems = blindBoxItemRepository.findByProductId(sib.getId());
+                    if (!sibItems.isEmpty()) {
+                        for (BlindBoxItem sItem : sibItems) {
+                            defsToSync.add(new PopNowSeriesCatalog.StandardItemDef(
+                                    sItem.getName(),
+                                    sItem.getRarity(),
+                                    sItem.getImageUrl(),
+                                    sItem.getProbabilityWeight() != null ? sItem.getProbabilityWeight() : 100
+                            ));
+                        }
+                        if (sib.getBoxesPerSet() != null) {
+                            targetBoxesPerSet = sib.getBoxesPerSet();
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (defsToSync.isEmpty()) {
+            log.warn("Không tìm thấy định nghĩa mô hình chuẩn cho Series của productId={}", productId);
+            return 0;
+        }
+
+        // Cập nhật quy cách đóng gói nếu khác
+        if (product.getBoxesPerSet() == null || !product.getBoxesPerSet().equals(targetBoxesPerSet)) {
+            product.setBoxesPerSet(targetBoxesPerSet);
+            productRepository.save(product);
+        }
+
+        int savedCount = 0;
+        String fallbackImg = (product.getMainImageUrl() != null && !product.getMainImageUrl().isBlank())
+                ? product.getMainImageUrl()
+                : ((product.getImages() != null && !product.getImages().isEmpty())
+                    ? product.getImages().get(0).getImageUrl()
+                    : "/images/placeholder.svg");
+
+        for (PopNowSeriesCatalog.StandardItemDef def : defsToSync) {
+            String key = def.name().trim().toLowerCase();
+            BlindBoxItem existing = existingByName.get(key);
+
+            if (existing == null) {
+                BlindBoxItem newItem = BlindBoxItem.builder()
+                        .product(product)
+                        .name(def.name())
+                        .rarity(def.rarity())
+                        .imageUrl(def.imageUrl() != null && !def.imageUrl().isBlank() ? def.imageUrl() : fallbackImg)
+                        .probabilityWeight(def.weight() > 0 ? def.weight() : (def.rarity() == RarityType.SECRET ? 10 : 100))
+                        .active(true)
+                        .build();
+                blindBoxItemRepository.save(newItem);
+                savedCount++;
+            } else if (overrideExisting) {
+                existing.setRarity(def.rarity());
+                if (def.imageUrl() != null && !def.imageUrl().isBlank()) {
+                    existing.setImageUrl(def.imageUrl());
+                }
+                existing.setProbabilityWeight(def.weight() > 0 ? def.weight() : (def.rarity() == RarityType.SECRET ? 10 : 100));
+                existing.setActive(true);
+                blindBoxItemRepository.save(existing);
+                savedCount++;
+            }
+        }
+
+        // Tự động khởi tạo khay ô hộp nếu chưa có
+        List<BlindBoxSlot> slots = blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(productId);
+        if (slots.isEmpty()) {
+            initializeSlots(productId, targetBoxesPerSet);
+        }
+
+        log.info("Đã đồng bộ {} mô hình chuẩn cho productId={}", savedCount, productId);
+        return savedCount;
+    }
+
+    @Override
+    @Transactional
+    public int quickGenerateTemplateItems(Long productId, Integer count) {
+        Product product = getProductForConfig(productId);
+        int total = (count != null && count > 0) ? count : (product.getBoxesPerSet() != null ? product.getBoxesPerSet() : 12);
+
+        String fallbackImg = (product.getMainImageUrl() != null && !product.getMainImageUrl().isBlank())
+                ? product.getMainImageUrl()
+                : ((product.getImages() != null && !product.getImages().isEmpty())
+                    ? product.getImages().get(0).getImageUrl()
+                    : "/images/placeholder.svg");
+
+        List<BlindBoxItem> existing = blindBoxItemRepository.findByProductId(productId);
+        int startIndex = existing.size() + 1;
+        int created = 0;
+
+        for (int i = 1; i <= total; i++) {
+            boolean isSecret = (i == total); // Mô hình cuối là Secret
+            String itemName = isSecret ? "Mẫu Bí Mật (Secret Edition)" : ("Nhân vật #" + (startIndex + i - 1));
+            RarityType rarity = isSecret ? RarityType.SECRET : RarityType.REGULAR;
+            int weight = isSecret ? 10 : 100;
+
+            BlindBoxItem item = BlindBoxItem.builder()
+                    .product(product)
+                    .name(itemName)
+                    .rarity(rarity)
+                    .imageUrl(fallbackImg)
+                    .probabilityWeight(weight)
+                    .active(true)
+                    .build();
+            blindBoxItemRepository.save(item);
+            created++;
+        }
+
+        // Tự động tạo ô hộp nếu chưa có
+        List<BlindBoxSlot> slots = blindBoxSlotRepository.findByProductIdOrderBySlotIndexAsc(productId);
+        if (slots.isEmpty()) {
+            initializeSlots(productId, total);
+        }
+
+        log.info("Đã tạo nhanh {} mô hình mẫu cho bộ sưu tập mới productId={}", created, productId);
+        return created;
     }
 }

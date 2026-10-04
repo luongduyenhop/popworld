@@ -158,6 +158,9 @@ public class CheckoutWebController {
                 paymentMethod, couponCode, 0, false, redirectAttributes, principal);
     }
 
+    private static final java.util.regex.Pattern VIETNAM_PHONE_PATTERN =
+            java.util.regex.Pattern.compile("^(?:0|\\+84)(?:3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\\d{7}$");
+
     /**
      * Tiếp nhận form đặt hàng
      */
@@ -193,16 +196,22 @@ public class CheckoutWebController {
                 return "redirect:/checkout";
             }
 
+            String cleanPhone = recipientPhone.trim().replaceAll("\\s+", "");
+            if (!VIETNAM_PHONE_PATTERN.matcher(cleanPhone).matches()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Số điện thoại nhận hàng không hợp lệ (yêu cầu 10 chữ số của các nhà mạng Việt Nam, ví dụ: 0987654321).");
+                return "redirect:/checkout";
+            }
+
             Order order;
             if (pointsToUse != null && pointsToUse > 0) {
                 order = orderService.createOrder(
                         user.getId(),
-                        recipientName,
-                        recipientPhone,
-                        provinceCity,
-                        district,
-                        ward,
-                        detailedAddress,
+                        recipientName.trim(),
+                        cleanPhone,
+                        provinceCity.trim(),
+                        district != null ? district.trim() : "",
+                        ward != null ? ward.trim() : "",
+                        detailedAddress.trim(),
                         paymentMethod,
                         couponCode,
                         pointsToUse
@@ -210,12 +219,12 @@ public class CheckoutWebController {
             } else {
                 order = orderService.createOrder(
                         user.getId(),
-                        recipientName,
-                        recipientPhone,
-                        provinceCity,
-                        district,
-                        ward,
-                        detailedAddress,
+                        recipientName.trim(),
+                        cleanPhone,
+                        provinceCity.trim(),
+                        district != null ? district.trim() : "",
+                        ward != null ? ward.trim() : "",
+                        detailedAddress.trim(),
                         paymentMethod,
                         couponCode
                 );

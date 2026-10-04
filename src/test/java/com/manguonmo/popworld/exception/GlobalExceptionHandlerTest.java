@@ -87,4 +87,28 @@ class GlobalExceptionHandlerTest {
         assertEquals("Đã xảy ra lỗi nội bộ từ hệ thống. Vui lòng thử lại sau!", response.getBody().getMessage());
         assertFalse(response.getBody().getMessage().contains("Null reference"));
     }
+
+    @Test
+    @DisplayName("handleAccessDenied: Trả về HTTP 403 Forbidden và thông báo phân quyền")
+    void handleAccessDenied_ReturnsForbidden() {
+        org.springframework.security.access.AccessDeniedException ex =
+                new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem thông tin đơn hàng này.");
+        ResponseEntity<ApiResponse<?>> response = handler.handleAccessDenied(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Bạn không có quyền xem thông tin đơn hàng này.", response.getBody().getMessage());
+    }
+
+    @Test
+    @DisplayName("handleAccessDenied: Trả về HTTP 403 Forbidden và thông báo mặc định khi không có message cụ thể")
+    void handleAccessDenied_DefaultMessage_ReturnsForbidden() {
+        org.springframework.security.access.AccessDeniedException ex =
+                new org.springframework.security.access.AccessDeniedException("Access Denied");
+        ResponseEntity<ApiResponse<?>> response = handler.handleAccessDenied(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Bạn không có quyền thực hiện thao tác này!", response.getBody().getMessage());
+    }
 }

@@ -40,6 +40,9 @@ public class HomeControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.service.WishlistService wishlistService;
+
     @Test
     @DisplayName("Truy cap trang chu GET / phai tra ve HTTP 200, View 'index'")
     void test_HomePage_ShouldReturnIndexViewWithModelAttributes() throws Exception {

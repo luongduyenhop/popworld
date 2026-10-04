@@ -77,6 +77,30 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                     "Yêu cầu thông tin đơn hàng vượt quá tần suất cho phép. Vui lòng thử lại sau!");
         }
 
+        // 6. Login: Chống brute-force mật khẩu (10 req/phút)
+        if ("POST".equalsIgnoreCase(method) && "/login".equals(path)) {
+            return new RateLimitRule("LOGIN", 10, Duration.ofMinutes(1),
+                    "Bạn đã gửi yêu cầu đăng nhập quá nhiều lần (tối đa 10 lần/phút). Vui lòng thử lại sau 1 phút!");
+        }
+
+        // 7. Checkout Place Order: Chống spam đặt hàng chiếm dụng tài nguyên (15 req/phút)
+        if ("POST".equalsIgnoreCase(method) && "/checkout/place-order".equals(path)) {
+            return new RateLimitRule("CHECKOUT_PLACE_ORDER", 15, Duration.ofMinutes(1),
+                    "Bạn đang gửi yêu cầu đặt hàng quá thường xuyên (tối đa 15 lần/phút). Vui lòng thử lại sau ít phút!");
+        }
+
+        // 8. Order Tracking: Chống brute-force dò tìm mã đơn và số điện thoại (15 req/phút)
+        if ("POST".equalsIgnoreCase(method) && "/order-tracking".equals(path)) {
+            return new RateLimitRule("ORDER_TRACKING", 15, Duration.ofMinutes(1),
+                    "Bạn đã tra cứu đơn hàng quá nhiều lần (tối đa 15 lần/phút). Vui lòng thử lại sau ít phút!");
+        }
+
+        // 9. POP NOW Reserve: Chống spam giữ hộp và khóa khay đồ chơi (20 req/phút)
+        if ("POST".equalsIgnoreCase(method) && "/api/popnow/reserve".equals(path)) {
+            return new RateLimitRule("POPNOW_RESERVE", 20, Duration.ofMinutes(1),
+                    "Bạn đã gửi yêu cầu giữ hộp quá nhiều lần (tối đa 20 lần/phút). Vui lòng thử lại sau ít phút!");
+        }
+
         return null;
     }
 

@@ -78,6 +78,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> getPopNowProducts() {
+        return getAllActiveProducts().stream()
+                .filter(Product::isPopNowEligible)
+                .toList();
+    }
+
+    @Override
     public Product getProductById(Long id) {
         if (id == null) {
             throw new BadRequestException("ID sản phẩm không được để trống!");

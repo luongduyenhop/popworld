@@ -41,10 +41,7 @@ public class HomeController {
     public String home(Model model, Principal principal) {
         List<Product> featuredProducts = productService.getFeaturedProducts();
         List<Product> newReleases = productService.getNewReleases();
-        List<Product> popNowProducts = productService.getProductsByCategorySlug("blind-box");
-        if (popNowProducts.isEmpty()) {
-            popNowProducts = productService.getAllActiveProducts();
-        }
+        List<Product> popNowProducts = productService.getPopNowProducts();
         List<Product> megaProducts = productService.getProductsByCategorySlug("mega-collection");
         if (megaProducts.isEmpty()) {
             megaProducts = productService.getAllActiveProducts().stream()

@@ -66,6 +66,9 @@ class SecurityConfigTest {
     @MockitoBean
     private ProductService productService;
 
+    @MockitoBean
+    private WishlistService wishlistService;
+
 
     @Test
     @DisplayName("Chưa đăng nhập truy cập /admin/** -> Redirect về /login")

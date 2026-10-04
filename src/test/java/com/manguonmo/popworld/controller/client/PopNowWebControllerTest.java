@@ -94,7 +94,7 @@ class PopNowWebControllerTest {
     @Test
     @DisplayName("popNowCatalog: Hiển thị danh mục POP NOW")
     void popNowCatalog_ReturnsCatalogView() {
-        when(productService.getProductsByCategorySlug("blind-box")).thenReturn(List.of(sampleProduct));
+        when(productService.getPopNowProducts()).thenReturn(List.of(sampleProduct));
 
         String view = controller.popNowCatalog(model, null);
 

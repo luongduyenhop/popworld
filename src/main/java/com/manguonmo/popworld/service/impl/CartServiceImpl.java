@@ -10,6 +10,7 @@ import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.CartItemRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class CartServiceImpl implements CartService {
 
     private final CartItemRepository cartItemRepository;
@@ -40,6 +41,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartItem addToCart(Long userId, Long productId, String purchaseType, int quantity) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để thêm vào giỏ hàng.");
@@ -92,6 +94,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void updateQuantity(Long userId, Long cartItemId, int quantity) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
@@ -100,7 +103,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
 
         if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
-            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+            throw new AccessDeniedException("Bạn không có quyền thao tác trên món hàng này!");
         }
 
         if (quantity <= 0) {
@@ -119,6 +122,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void updateSelection(Long userId, Long cartItemId, boolean isSelected) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
@@ -127,7 +131,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
 
         if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
-            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+            throw new AccessDeniedException("Bạn không có quyền thao tác trên món hàng này!");
         }
 
         item.setIsSelected(isSelected);
@@ -135,6 +139,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void selectAll(Long userId, boolean selectAll) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để cập nhật giỏ hàng.");
@@ -156,6 +161,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void removeFromCart(Long userId, Long cartItemId) {
         if (userId == null) {
             throw new BadRequestException("Yêu cầu xác thực người dùng để xóa sản phẩm khỏi giỏ.");
@@ -164,7 +170,7 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy món hàng với ID: " + cartItemId));
 
         if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
-            throw new BadRequestException("Bạn không có quyền thao tác trên món hàng này!");
+            throw new AccessDeniedException("Bạn không có quyền thao tác trên món hàng này!");
         }
 
         cartItemRepository.delete(item);
@@ -194,7 +200,10 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public int getCartCount(Long userId) {
-        List<CartItem> items = cartItemRepository.findByUserId(userId);
-        return items.stream().mapToInt(CartItem::getQuantity).sum();
+        if (userId == null) {
+            return 0;
+        }
+        Integer count = cartItemRepository.countTotalQuantityByUserId(userId);
+        return count != null ? count : 0;
     }
 }

@@ -31,7 +31,13 @@
                         Cấu hình danh sách mẫu nhân vật (BlindBoxItem), trọng số bốc trúng Weighted Random và khay 12 vị trí chọn hộp chuẩn xác.
                     </p>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2">
+                    <form th:action="@{/admin/database/reseed}" method="post" class="d-inline"
+                          onsubmit="return confirm('Bạn có chắc muốn đồng bộ và làm mới toàn bộ dữ liệu chuẩn POP MART (khay 6/9/12 hộp, danh sách nhân vật, đánh giá)?');">
+                        <button type="submit" class="btn btn-warning rounded-pill px-4 py-2 text-dark fw-bold">
+                            <i class="bi bi-database-fill-gear me-1"></i> Đồng Bộ Dữ Liệu POP MART
+                        </button>
+                    </form>
                     <a th:href="@{/popnow}" target="_blank" class="btn btn-outline-light rounded-pill px-4 py-2">
                         <i class="bi bi-box-arrow-up-right me-1"></i> Xem Sảnh POP NOW Khách
                     </a>
@@ -49,16 +55,16 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr class="small text-uppercase text-muted fw-bold">
-                            <th class="ps-4">Tên Sản Phẩm / Series</th>
-                            <th>Mở Bán</th>
-                            <th>Tồn Kho</th>
-                            <th>Mô Hình Trong Series</th>
-                            <th>Khay 12 Ô Hộp</th>
-                            <th>Trạng Thái Sẵn Sàng</th>
-                            <th class="text-end pe-4">Thao Tác</th>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" style="min-width: 220px;">Tên Sản Phẩm / Series</th>
+                            <th class="text-nowrap">Mở Bán</th>
+                            <th class="text-nowrap">Tồn Kho</th>
+                            <th class="text-nowrap">Mô Hình Trong Series</th>
+                            <th class="text-nowrap">Quy Cách &amp; Ô Hộp</th>
+                            <th class="text-nowrap">Trạng Thái Sẵn Sàng</th>
+                            <th class="text-end pe-4 text-nowrap sticky-action-col" style="min-width: 170px;">Thao Tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,27 +75,27 @@
                             </td>
                         </tr>
                         <tr th:each="s : ${summaries}">
-                            <td class="ps-4 py-3">
+                            <td class="ps-4 py-3" style="min-width: 220px;">
                                 <div class="fw-bold text-dark" th:text="${s.productName}">Hirono Little Mischief</div>
                                 <div class="text-muted small">
                                     <span class="badge bg-light text-dark border me-1" th:text="${s.categoryName}">Blind Box</span>
                                     <span class="font-monospace text-secondary" th:text="'#' + ${s.productId}">#1</span>
                                 </div>
                             </td>
-                            <td>
-                                <span th:if="${s.productActive}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                            <td class="text-nowrap">
+                                <span th:if="${s.productActive}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 text-nowrap">
                                     <i class="bi bi-check-circle me-1"></i>Đang Bán
                                 </span>
-                                <span th:unless="${s.productActive}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1">
+                                <span th:unless="${s.productActive}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 text-nowrap">
                                     <i class="bi bi-pause-circle me-1"></i>Tạm Dừng
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <span class="fw-bold fs-6" th:classappend="${s.productStock != null && s.productStock > 0} ? 'text-dark' : 'text-danger'"
                                       th:text="${s.productStock != null ? s.productStock : 0}">0</span>
                                 <span class="text-muted small">hộp</span>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <div>
                                     <span class="fw-bold text-dark" th:text="${s.totalItems}">0</span> <span class="text-muted small">mẫu</span>
                                 </div>
@@ -101,34 +107,38 @@
                                     <i class="bi bi-exclamation-circle me-1"></i>Chưa cấu hình mẫu
                                 </div>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
+                                <div class="mb-1">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1"
+                                          th:text="'Bộ ' + (${s.boxesPerSet != null ? s.boxesPerSet : 12}) + ' hộp'">Bộ 12 hộp</span>
+                                </div>
                                 <div th:if="${s.totalSlots == 0}">
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 text-nowrap">
                                         <i class="bi bi-exclamation-triangle me-1"></i>Chưa tạo ô hộp
                                     </span>
                                 </div>
-                                <div th:if="${s.totalSlots > 0}" class="d-flex gap-1 flex-wrap">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle" title="Trống (Available)">
+                                <div th:if="${s.totalSlots > 0}" class="d-inline-flex gap-1 align-items-center flex-nowrap">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle text-nowrap" title="Trống (Available)">
                                         <i class="bi bi-unlock me-1"></i><span th:text="${s.availableSlots}">0</span>
                                     </span>
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" title="Đang giữ 5 phút (Held)">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle text-nowrap" title="Đang giữ 5 phút (Held)">
                                         <i class="bi bi-hourglass-split me-1"></i><span th:text="${s.heldSlots}">0</span>
                                     </span>
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" title="Đã bán (Sold)">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle text-nowrap" title="Đã bán (Sold)">
                                         <i class="bi bi-bag-check me-1"></i><span th:text="${s.soldSlots}">0</span>
                                     </span>
                                 </div>
                             </td>
-                            <td>
-                                <span th:if="${s.isConfigReady()}" class="badge bg-success rounded-pill px-3 py-2 fw-bold">
+                            <td class="text-nowrap">
+                                <span th:if="${s.isConfigReady()}" class="badge bg-success rounded-pill px-3 py-1 fw-bold text-nowrap">
                                     <i class="bi bi-check2-all me-1"></i>Sẵn Sàng
                                 </span>
-                                <span th:unless="${s.isConfigReady()}" class="badge bg-secondary-subtle text-muted rounded-pill px-3 py-2">
+                                <span th:unless="${s.isConfigReady()}" class="badge bg-secondary-subtle text-muted rounded-pill px-3 py-1 text-nowrap">
                                     <i class="bi bi-gear me-1"></i>Chưa Sẵn Sàng
                                 </span>
                             </td>
-                            <td class="text-end pe-4">
-                                <a th:href="@{/admin/popnow/{id}(id=${s.productId})}" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold">
+                            <td class="text-end pe-4 text-nowrap sticky-action-col" style="min-width: 170px;">
+                                <a th:href="@{/admin/popnow/{id}(id=${s.productId})}" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold text-nowrap">
                                     <i class="bi bi-sliders me-1"></i> Cấu Hình Series
                                 </a>
                             </td>
@@ -140,6 +150,5 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ import com.manguonmo.popworld.service.UserAddressService;
 import com.manguonmo.popworld.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequestMapping("/admin/customers")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminCustomerWebController {
 
@@ -102,6 +104,28 @@ public class AdminCustomerWebController {
         } catch (Exception e) {
             log.error("Lỗi khi điều chỉnh điểm khách hàng #{}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể điều chỉnh điểm: " + e.getMessage());
+        }
+        return "redirect:/admin/customers/" + id;
+    }
+
+    @PostMapping("/{id}/reset-password")
+    public String resetCustomerPassword(@PathVariable Long id,
+                                        @RequestParam("newPassword") String newPassword,
+                                        @RequestParam("confirmPassword") String confirmPassword,
+                                        @RequestParam(value = "redirect", required = false, defaultValue = "detail") String redirect,
+                                        Principal principal,
+                                        RedirectAttributes redirectAttributes) {
+        String adminEmail = principal != null ? principal.getName() : "Admin";
+        try {
+            userService.adminResetPassword(id, newPassword, confirmPassword, adminEmail);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã đặt lại mật khẩu cho khách hàng #" + id + " thành công!");
+        } catch (Exception e) {
+            log.error("Lỗi khi admin đặt lại mật khẩu cho khách hàng #{}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể đặt lại mật khẩu: " + e.getMessage());
+        }
+
+        if ("list".equalsIgnoreCase(redirect)) {
+            return "redirect:/admin/customers";
         }
         return "redirect:/admin/customers/" + id;
     }

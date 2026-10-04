@@ -21,11 +21,13 @@ public class PopNowAdminProductSummary {
     private long heldSlots;
     private long soldSlots;
     private long totalSlots;
+    private Integer boxesPerSet;
 
     public boolean isConfigReady() {
+        int requiredSlots = boxesPerSet != null && boxesPerSet > 0 ? boxesPerSet : 6;
         return Boolean.TRUE.equals(productActive)
                 && productStock != null && productStock > 0
                 && activeItems > 0
-                && totalSlots >= 12;
+                && totalSlots >= requiredSlots;
     }
 }

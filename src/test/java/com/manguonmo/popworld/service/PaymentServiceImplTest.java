@@ -5,8 +5,12 @@ import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.ReservationStatus;
 import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.entity.OrderTimeline;
+import com.manguonmo.popworld.entity.PaymentTransaction;
 import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
+import com.manguonmo.popworld.repository.OrderTimelineRepository;
+import com.manguonmo.popworld.repository.PaymentTransactionRepository;
 import com.manguonmo.popworld.service.PopNowService;
 import com.manguonmo.popworld.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +51,12 @@ class PaymentServiceImplTest {
 
     @Mock
     private PopNowService popNowService;
+
+    @Mock
+    private OrderTimelineRepository orderTimelineRepository;
+
+    @Mock
+    private PaymentTransactionRepository paymentTransactionRepository;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -684,5 +694,175 @@ class PaymentServiceImplTest {
         assertFalse(result, "Phải trả về false khi markPurchased gặp sự cố");
         assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng phải được giữ nguyên");
         verify(orderRepository, never()).save(order);
+    }
+
+    // =========================================================================
+    // TEST CASE 8: Idempotency tuyệt đối - Khi transactionCode đã từng được xử lý
+    // =========================================================================
+    @Test
+    @DisplayName("Idempotency tuyệt đối: Trả về true ngay lập tức và không đụng vào đơn hàng khi txCode đã tồn tại")
+    void processSePayWebhook_Idempotency_WhenTransactionCodeAlreadyProcessed_ShouldReturnTrueImmediately() {
+        String orderCode = "PW-1726000000991";
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(12345L)
+                .content("Chuyen khoan " + orderCode)
+                .transferAmount(new BigDecimal("300000"))
+                .referenceCode("FT_REPEAT_991")
+                .build();
+
+        Order order = Order.builder()
+                .id(991L)
+                .orderCode(orderCode)
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(paymentTransactionRepository.existsByTransactionCode("12345")).thenReturn(true);
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Phải trả về true khi giao dịch đã xử lý trước đó");
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(orderTimelineRepository, never()).save(any(OrderTimeline.class));
+    }
+
+    // =========================================================================
+    // TEST CASE 9: Chuyển khoản đa lần - Chuyển thiếu rồi chuyển bù đủ
+    // =========================================================================
+    @Test
+    @DisplayName("Chuyển khoản đa lần: Lần 1 chuyển thiếu lưu PARTIAL, lần 2 chuyển bù đủ sang PROCESSING")
+    void processSePayWebhook_CumulativeMultiTransfer_FirstShortThenPaidInFull_ShouldTransitionToProcessing() {
+        String orderCode = "PW-1726000000992";
+        Order order = Order.builder()
+                .id(992L)
+                .orderCode(orderCode)
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .paidAmount(BigDecimal.ZERO)
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+
+        // LẦN 1: Chuyển 100.000đ (thiếu 200.000đ)
+        SePayWebhookRequest request1 = SePayWebhookRequest.builder()
+                .id(1001L)
+                .content("Chuyen khoan " + orderCode)
+                .transferAmount(new BigDecimal("100000"))
+                .referenceCode("FT_MULTI_1")
+                .build();
+
+        when(paymentTransactionRepository.existsByTransactionCode("1001")).thenReturn(false);
+        when(paymentTransactionRepository.findByOrderIdOrderByCreatedAtDesc(992L)).thenReturn(java.util.List.of());
+
+        boolean result1 = paymentService.processSePayWebhook(request1, VALID_AUTH_HEADER);
+
+        assertFalse(result1, "Lần 1 chuyển thiếu tiền phải trả về false và giữ TO_PAY");
+        assertEquals("TO_PAY", order.getStatus());
+        verify(orderRepository, never()).save(order);
+        verify(paymentTransactionRepository, times(1)).save(any(PaymentTransaction.class));
+
+        // Giả lập sau lần 1, CSDL đã có bản ghi PARTIAL 100.000đ
+        PaymentTransaction tx1 = PaymentTransaction.builder()
+                .amount(new BigDecimal("100000"))
+                .status("PARTIAL")
+                .build();
+        when(paymentTransactionRepository.findByOrderIdOrderByCreatedAtDesc(992L)).thenReturn(java.util.List.of(tx1));
+
+        // LẦN 2: Chuyển nốt 200.000đ (đủ 300.000đ)
+        SePayWebhookRequest request2 = SePayWebhookRequest.builder()
+                .id(1002L)
+                .content("Chuyen khoan bù " + orderCode)
+                .transferAmount(new BigDecimal("200000"))
+                .referenceCode("FT_MULTI_2")
+                .build();
+
+        when(paymentTransactionRepository.existsByTransactionCode("1002")).thenReturn(false);
+
+        boolean result2 = paymentService.processSePayWebhook(request2, VALID_AUTH_HEADER);
+
+        assertTrue(result2, "Lần 2 chuyển đủ tiền phải trả về true");
+        assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng phải chuyển sang PROCESSING");
+        assertEquals(0, new BigDecimal("300000").compareTo(order.getPaidAmount()), "Tổng tiền đã trả phải là 300.000đ");
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    // =========================================================================
+    // TEST CASE 10: Chuyển thừa tiền cho đơn TO_PAY
+    // =========================================================================
+    @Test
+    @DisplayName("Chuyển thừa tiền: Chuyển 350.000đ cho đơn 300.000đ -> PROCESSING và lưu OVERPAID")
+    void processSePayWebhook_OverpaymentOnToPay_ShouldTransitionToProcessingAndRecordOverpaid() {
+        String orderCode = "PW-1726000000993";
+        Order order = Order.builder()
+                .id(993L)
+                .orderCode(orderCode)
+                .status("TO_PAY")
+                .totalAmount(new BigDecimal("300000"))
+                .paidAmount(BigDecimal.ZERO)
+                .build();
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(1003L)
+                .content("Chuyen khoan " + orderCode)
+                .transferAmount(new BigDecimal("350000"))
+                .referenceCode("FT_OVERPAY_993")
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(paymentTransactionRepository.existsByTransactionCode("1003")).thenReturn(false);
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result);
+        assertEquals("PROCESSING", order.getStatus());
+        assertEquals(0, new BigDecimal("350000").compareTo(order.getPaidAmount()));
+        verify(orderRepository, times(1)).save(order);
+
+        ArgumentCaptor<PaymentTransaction> txCaptor = ArgumentCaptor.forClass(PaymentTransaction.class);
+        verify(paymentTransactionRepository, times(1)).save(txCaptor.capture());
+        assertEquals("OVERPAID", txCaptor.getValue().getStatus());
+    }
+
+    // =========================================================================
+    // TEST CASE 11: Khách chuyển thêm tiền khi đơn đã ở PROCESSING/PAID
+    // =========================================================================
+    @Test
+    @DisplayName("Chuyển thêm tiền khi đã thanh toán: Ghi nhận OVERPAID và timeline cảnh báo hoàn tiền")
+    void processSePayWebhook_AdditionalTransferOnAlreadyProcessing_ShouldRecordOverpaidTimelineAndPreserveStatus() {
+        String orderCode = "PW-1726000000994";
+        Order order = Order.builder()
+                .id(994L)
+                .orderCode(orderCode)
+                .status("PROCESSING")
+                .totalAmount(new BigDecimal("300000"))
+                .paidAmount(new BigDecimal("300000"))
+                .build();
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(1004L)
+                .content("Chuyen khoan them " + orderCode)
+                .transferAmount(new BigDecimal("50000"))
+                .referenceCode("FT_EXTRA_994")
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(paymentTransactionRepository.existsByTransactionCode("1004")).thenReturn(false);
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result, "Phải trả về true để SePay không gửi lại webhook");
+        assertEquals("PROCESSING", order.getStatus(), "Trạng thái đơn hàng không được thay đổi");
+        verify(orderRepository, never()).save(order);
+
+        // Kiểm tra lưu giao dịch OVERPAID
+        ArgumentCaptor<PaymentTransaction> txCaptor = ArgumentCaptor.forClass(PaymentTransaction.class);
+        verify(paymentTransactionRepository, times(1)).save(txCaptor.capture());
+        assertEquals("OVERPAID", txCaptor.getValue().getStatus());
+
+        // Kiểm tra lưu OrderTimeline cảnh báo
+        ArgumentCaptor<OrderTimeline> timelineCaptor = ArgumentCaptor.forClass(OrderTimeline.class);
+        verify(orderTimelineRepository, times(1)).save(timelineCaptor.capture());
+        assertTrue(timelineCaptor.getValue().getAction().contains("CẢNH BÁO"));
     }
 }

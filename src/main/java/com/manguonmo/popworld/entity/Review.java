@@ -6,6 +6,8 @@ import lombok.*;
 @Entity
 @Table(name = "reviews", uniqueConstraints = {
     @UniqueConstraint(name = "uk_reviews_user_product", columnNames = {"user_id", "product_id"})
+}, indexes = {
+    @Index(name = "idx_reviews_product_approved_created", columnList = "product_id, approved, created_at")
 })
 @Getter
 @Setter

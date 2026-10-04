@@ -204,7 +204,7 @@
 
                 <!-- Biểu tượng Mystery Box 3D của đúng Series -->
                 <div class="mystery-box-podium-wrap" id="mysteryBoxBtn" onclick="shakeBox()" title="Nhấn để lắc hộp cảm nhận trọng lượng">
-                    <img th:src="${theme != null && theme.smallBoxImgUrl != null ? theme.smallBoxImgUrl : '/images/popnow/small-box.png'}"
+                    <img th:src="${theme != null && theme.singleBoxImgUrl != null ? theme.singleBoxImgUrl : (theme != null && theme.smallBoxImgUrl != null ? theme.smallBoxImgUrl : '/images/popnow/small-box.png')}"
                          th:alt="${product.name}"
                          class="mystery-box-3d-img"
                          onerror="this.onerror=null;this.src='/images/popnow/small-box.png';"

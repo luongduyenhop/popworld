@@ -39,6 +39,9 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     @Value("${cloudinary.folder:popworld/products}")
     private String folder;
 
+    @Value("${cloudinary.local-fallback:true}")
+    private boolean localFallback = true;
+
     @Override
     public CloudinaryUploadResult uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -55,6 +58,10 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         }
 
         if (cloudName == null || cloudName.isBlank() || apiKey == null || apiKey.isBlank()) {
+            if (localFallback) {
+                log.info("Cloudinary API Key chưa cấu hình. Kích hoạt Local Storage Fallback lưu ảnh vào thư mục uploads/images/");
+                return saveLocally(file);
+            }
             throw new BadRequestException("Cloudinary chưa được cấu hình. Vui lòng thiết lập biến môi trường CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.");
         }
 
@@ -86,9 +93,60 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         }
     }
 
+    private CloudinaryUploadResult saveLocally(MultipartFile file) {
+        try {
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads", "images");
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = ".jpg";
+            if (originalFilename != null && originalFilename.lastIndexOf('.') > 0) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf('.'));
+            }
+            String publicId = "local_" + java.util.UUID.randomUUID().toString();
+            String storedFilename = publicId + extension;
+            java.nio.file.Path destination = uploadPath.resolve(storedFilename);
+
+            java.nio.file.Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            String localUrl = "/uploads/images/" + storedFilename;
+            log.info("Lưu trữ ảnh cục bộ thành công: publicId={}, url={}", publicId, localUrl);
+
+            return CloudinaryUploadResult.builder()
+                    .secureUrl(localUrl)
+                    .publicId(publicId)
+                    .build();
+        } catch (IOException e) {
+            log.error("Lỗi khi lưu trữ ảnh cục bộ: {}", e.getMessage(), e);
+            throw new BadRequestException("Không thể lưu trữ file ảnh: " + e.getMessage());
+        }
+    }
+
     @Override
     public void deleteImage(String publicId) {
         if (publicId == null || publicId.isBlank()) {
+            return;
+        }
+
+        if (publicId.startsWith("local_")) {
+            try {
+                java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads", "images");
+                if (java.nio.file.Files.exists(uploadPath)) {
+                    try (var stream = java.nio.file.Files.list(uploadPath)) {
+                        stream.filter(p -> p.getFileName().toString().startsWith(publicId))
+                                .forEach(p -> {
+                                    try {
+                                        java.nio.file.Files.deleteIfExists(p);
+                                        log.info("Đã xóa ảnh lưu trữ cục bộ: {}", p);
+                                    } catch (IOException ignored) {}
+                                });
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Lỗi khi xóa file ảnh cục bộ: {}", e.getMessage());
+            }
             return;
         }
 

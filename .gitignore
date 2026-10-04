@@ -44,5 +44,6 @@ AGENTS.md
 .env
 *.env
 qa_screenshots/
+.agents/
 
 

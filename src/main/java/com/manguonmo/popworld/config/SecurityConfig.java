@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -13,14 +15,18 @@ import org.springframework.security.web.csrf.CsrfFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final RateLimiterService rateLimiterService;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(java.util.Optional<RateLimiterService> rateLimiterService) {
+    public SecurityConfig(java.util.Optional<RateLimiterService> rateLimiterService,
+                          java.util.Optional<UserDetailsService> userDetailsService) {
         this.rateLimiterService = rateLimiterService != null && rateLimiterService.isPresent()
                 ? rateLimiterService.get()
                 : new RateLimiterService();
+        this.userDetailsService = userDetailsService != null ? userDetailsService.orElse(null) : null;
     }
 
     @Bean
@@ -37,11 +43,11 @@ public class SecurityConfig {
                 .addFilterBefore(new RateLimitingFilter(rateLimiterService), CsrfFilter.class)
                 .csrf(csrf -> csrf
                         .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/api/payment/sepay/**", "/api/popnow/simulate-payment")
+                        .ignoringRequestMatchers("/api/payment/sepay/**")
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**").authenticated()
+                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**", "/wishlist", "/wishlist/**", "/api/wishlist", "/api/wishlist/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
@@ -60,10 +66,20 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
-                )
-                .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/403")
                 );
+
+        if (userDetailsService != null) {
+            http.rememberMe(remember -> remember
+                    .userDetailsService(userDetailsService)
+                    .key("popworld-remember-me-secret-key-2026")
+                    .tokenValiditySeconds(86400 * 14)
+                    .rememberMeParameter("remember-me")
+            );
+        }
+
+        http.exceptionHandling(ex -> ex
+                .accessDeniedPage("/403")
+        );
 
         return http.build();
     }

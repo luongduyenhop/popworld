@@ -20,6 +20,7 @@ public class PopNowSeriesTheme implements Serializable {
     private String seriesName;
     private String trayBgUrl;
     private String smallBoxImgUrl;
+    private String singleBoxImgUrl;
     private String trayFrontUrl;
     private String trayShadowUrl;
     private String guideHandUrl;

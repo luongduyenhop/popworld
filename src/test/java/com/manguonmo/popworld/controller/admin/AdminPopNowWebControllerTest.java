@@ -88,9 +88,9 @@ class AdminPopNowWebControllerTest {
     @Test
     @DisplayName("initSlots: Khởi tạo thành công slot mới -> Gửi flash success")
     void initSlots_CreatedNew_Success() {
-        when(popNowAdminService.initializeStandardSlots(10L)).thenReturn(12);
+        when(popNowAdminService.initializeSlots(10L, null)).thenReturn(12);
 
-        String view = controller.initSlots(10L, redirectAttributes);
+        String view = controller.initSlots(10L, null, redirectAttributes);
 
         assertEquals("redirect:/admin/popnow/10", view);
         verify(redirectAttributes).addFlashAttribute(eq("successMessage"), contains("Đã khởi tạo thành công 12 ô hộp"));
@@ -99,9 +99,9 @@ class AdminPopNowWebControllerTest {
     @Test
     @DisplayName("initSlots: Đã đủ 12 slots -> Gửi flash info")
     void initSlots_AlreadyComplete_InfoMessage() {
-        when(popNowAdminService.initializeStandardSlots(10L)).thenReturn(0);
+        when(popNowAdminService.initializeSlots(10L, null)).thenReturn(0);
 
-        String view = controller.initSlots(10L, redirectAttributes);
+        String view = controller.initSlots(10L, null, redirectAttributes);
 
         assertEquals("redirect:/admin/popnow/10", view);
         verify(redirectAttributes).addFlashAttribute(eq("infoMessage"), contains("đã tồn tại đầy đủ"));
@@ -110,9 +110,9 @@ class AdminPopNowWebControllerTest {
     @Test
     @DisplayName("initSlots: Lỗi ngoại lệ -> Gửi flash error")
     void initSlots_Exception_ErrorMessage() {
-        when(popNowAdminService.initializeStandardSlots(10L)).thenThrow(new RuntimeException("DB Connection Timeout"));
+        when(popNowAdminService.initializeSlots(10L, null)).thenThrow(new RuntimeException("DB Connection Timeout"));
 
-        String view = controller.initSlots(10L, redirectAttributes);
+        String view = controller.initSlots(10L, null, redirectAttributes);
 
         assertEquals("redirect:/admin/popnow/10", view);
         verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), contains("Không thể khởi tạo"));

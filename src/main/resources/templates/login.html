@@ -8,6 +8,78 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+    <style>
+        /* POP MART Auth Tabs (Sign In / Register) */
+        .pop-auth-tabs {
+            border-bottom: 2px solid #E0E0E0;
+            gap: 28px;
+        }
+        .pop-auth-tab {
+            padding: 12px 2px;
+            font-weight: 700;
+            font-size: 16px;
+            color: #666666;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            transition: color 0.18s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .pop-auth-tab:hover {
+            color: #000000;
+        }
+        .pop-auth-tab.active {
+            color: #000000 !important;
+            border-bottom-color: #D2001E !important;
+        }
+        .auth-card-popmart {
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 0px !important;
+            box-shadow: none;
+        }
+        .form-control-pop {
+            border-radius: 0px !important;
+            border: 1px solid #CCCCCC;
+            height: 44px;
+            font-size: 14px;
+            padding: 10px 14px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .form-control-pop:focus {
+            border-color: #000000 !important;
+            box-shadow: none !important;
+            outline: none;
+        }
+        .popmart-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 0px !important;
+            border: 1.5px solid #000000;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #FFFFFF;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .popmart-checkbox:checked {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+        }
+        .popmart-checkbox:checked::after {
+            content: '';
+            width: 5px;
+            height: 9px;
+            border: solid #FFFFFF;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
@@ -19,61 +91,139 @@
             <div class="col-12 col-md-8 col-lg-6 col-xl-5">
 
                 <!-- Alert Messages -->
-                <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+                <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show rounded-0 shadow-none mb-4 border-danger" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <span>Email hoặc mật khẩu không chính xác, vui lòng thử lại!</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <div th:if="${param.logout}" class="alert alert-info alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+                <div th:if="${param.logout}" class="alert alert-info alert-dismissible fade show rounded-0 shadow-none mb-4 border-info" role="alert">
                     <i class="bi bi-info-circle-fill me-2"></i>
                     <span>Bạn đã đăng xuất tài khoản thành công!</span>
                     <button type="button" data-bs-dismiss="alert" class="btn-close"></button>
                 </div>
 
-                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-0 shadow-none mb-4 border-success" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i>
                     <span th:text="${successMessage}">Đăng ký thành công</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-0 shadow-none mb-4 border-danger" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <!-- Login Card -->
-                <div class="auth-card p-4 p-sm-5">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bolder mt-2 mb-1">Đăng Nhập</h2>
-                        <p class="text-muted small">Chào mừng bạn quay trở lại với PopWorld Art Toy</p>
+                <!-- POP MART Geometric Auth Card -->
+                <div class="auth-card-popmart p-4 p-sm-5">
+                    
+                    <!-- 2-Tab Switcher (POP MART US SPEC) -->
+                    <div class="pop-auth-tabs d-flex align-items-center mb-4">
+                        <a th:href="@{/login}" class="pop-auth-tab active text-decoration-none">
+                            <span>ĐĂNG NHẬP</span>
+                        </a>
+                        <a th:href="@{/register}" class="pop-auth-tab text-decoration-none">
+                            <span>TẠO TÀI KHOẢN</span>
+                        </a>
+                    </div>
+
+                    <!-- Title & Subtitle -->
+                    <div class="mb-3">
+                        <h1 class="h4 fw-bold text-dark text-uppercase mb-1" style="letter-spacing: 0.5px;">Chào Mừng Trở Lại</h1>
+                        <p class="text-secondary small mb-0">Đăng nhập để quản lý đơn hàng &amp; bộ sưu tập POP NOW của bạn.</p>
+                    </div>
+
+                    <!-- Guest Order Tracking Callout Box -->
+                    <div class="p-3 mb-4 rounded-0 border-start border-4 border-danger bg-light d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="fw-bold small text-dark"><i class="bi bi-truck text-danger me-1"></i>Bạn mua hàng không cần tài khoản?</div>
+                            <div class="text-secondary small" style="font-size: 11px;">Kiểm tra lộ trình giao hàng trực tiếp bằng mã đơn &amp; SĐT.</div>
+                        </div>
+                        <a th:href="@{/order-tracking}" class="btn btn-sm btn-outline-danger rounded-0 fw-bold px-3 text-nowrap" style="font-size: 11px; letter-spacing: 0.5px;">
+                            TRA CỨU NGAY <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </div>
 
                     <form th:action="@{/login}" method="post">
-                        <!-- Email -->
+                        <!-- Email Input -->
                         <div class="mb-3">
-                            <label for="username" class="form-label fw-bold small text-secondary">Email</label>
-                            <input type="email" name="username" id="username" class="form-control form-control-pop" 
-                                   placeholder="name@example.com" required>
+                            <label for="username" class="form-label fw-bold small text-uppercase text-dark mb-1" style="letter-spacing: 0.5px; font-size: 11px;">
+                                Địa Chỉ Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" name="username" id="username" class="form-control form-control-pop w-100" 
+                                   placeholder="name@example.com" required autocomplete="username">
                         </div>
 
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label for="password" class="form-label fw-bold small text-secondary">Mật khẩu</label>
-                            <input type="password" name="password" id="password" class="form-control form-control-pop" 
-                                   placeholder="Nhập mật khẩu" required>
+                        <!-- Password Input -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="password" class="form-label fw-bold small text-uppercase text-dark mb-0" style="letter-spacing: 0.5px; font-size: 11px;">
+                                    Mật Khẩu <span class="text-danger">*</span>
+                                </label>
+                                <a th:href="@{/order-tracking}" class="small text-secondary text-decoration-none" style="font-size: 11px;">
+                                    <i class="bi bi-truck me-1"></i>Tra cứu đơn hàng
+                                </a>
+                            </div>
+                            <div class="position-relative">
+                                <input type="password" name="password" id="password" class="form-control form-control-pop w-100 pe-5" 
+                                       placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
+                                <button type="button" class="btn border-0 position-absolute end-0 top-50 translate-middle-y text-secondary me-2 p-1" 
+                                        id="btnTogglePassword" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu" style="background: transparent;">
+                                    <i class="bi bi-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-pop-submit w-100 text-uppercase mb-3 shadow-sm">
-                            <i class="bi bi-box-arrow-in-right me-2"></i> Đăng Nhập
+                        <!-- Remember Me -->
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <input type="checkbox" name="remember-me" id="rememberMe" class="popmart-checkbox">
+                            <label class="form-check-label small text-secondary" for="rememberMe" style="cursor: pointer; user-select: none;">
+                                Ghi nhớ trạng thái đăng nhập
+                            </label>
+                        </div>
+
+                        <!-- Primary Black Submit Button -->
+                        <button type="submit" class="btn btn-pop-submit w-100 text-uppercase fw-bold shadow-none" 
+                                style="min-height: 48px; font-size: 14px; letter-spacing: 1px; border-radius: 0px;">
+                            ĐĂNG NHẬP
                         </button>
 
-                        <div class="text-center mt-3">
-                            <span class="text-muted small">Chưa có tài khoản? </span>
-                            <a th:href="@{/register}" class="fw-bold text-danger text-decoration-none small">Đăng ký thành viên ngay</a>
+                        <div class="text-center mt-3 mb-2">
+                            <span class="text-secondary small">Chưa có tài khoản POP WORLD? </span>
+                            <a th:href="@{/register}" class="fw-bold text-dark text-decoration-underline small">Đăng ký thành viên ngay</a>
                         </div>
+
+                        <!-- 1-Click Demo Fill Dock (Dành cho hội đồng & kiểm thử) -->
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small fw-bold text-uppercase text-secondary" style="font-size: 11px; letter-spacing: 0.5px;">
+                                    <i class="bi bi-lightning-charge-fill text-danger me-1"></i>Tài Khoản Demo (1-Click)
+                                </span>
+                                <span class="badge bg-black text-white px-2 py-1" style="font-size: 10px; border-radius: 0px; letter-spacing: 0.5px;">EVALUATION</span>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-dark text-start d-flex justify-content-between align-items-center py-2" 
+                                        style="border-radius: 0px; font-size: 12px; border-color: #111111;"
+                                        onclick="fillDemo('admin@popworld.com', 'admin123')">
+                                    <span><i class="bi bi-shield-lock-fill text-danger me-2"></i><strong>Quản Trị Viên</strong> (Admin)</span>
+                                    <span class="badge bg-dark text-white font-monospace" style="border-radius: 0px;">admin@popworld.com</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center py-2" 
+                                        style="border-radius: 0px; font-size: 12px; border-color: #CCCCCC;"
+                                        onclick="fillDemo('user@popworld.com', 'admin123')">
+                                    <span><i class="bi bi-person-fill text-primary me-2"></i><strong>Khách Hàng Thường</strong></span>
+                                    <span class="badge bg-secondary font-monospace" style="border-radius: 0px;">user@popworld.com</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-dark text-start d-flex justify-content-between align-items-center py-2" 
+                                        style="border-radius: 0px; font-size: 12px; border-color: #EAB308;"
+                                        onclick="fillDemo('collector@popworld.com', 'admin123')">
+                                    <span><i class="bi bi-star-fill text-warning me-2"></i><strong>Khách Hàng VIP</strong></span>
+                                    <span class="badge bg-warning text-dark font-monospace" style="border-radius: 0px;">collector@popworld.com</span>
+                                </button>
+                            </div>
+                        </div>
+
                     </form>
                 </div>
 
@@ -85,5 +235,37 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function fillDemo(email, pwd) {
+            const u = document.getElementById('username');
+            const p = document.getElementById('password');
+            if (u && p) {
+                u.value = email;
+                p.value = pwd;
+                u.style.borderColor = '#198754';
+                p.style.borderColor = '#198754';
+                setTimeout(() => {
+                    u.style.borderColor = '';
+                    p.style.borderColor = '';
+                }, 1200);
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const p = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (p && icon) {
+                if (p.type === 'password') {
+                    p.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    p.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            }
+        }
+    </script>
 </body>
 </html>

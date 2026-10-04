@@ -93,10 +93,7 @@ public class PopNowWebController {
     @GetMapping
     public String popNowCatalog(Model model, Principal principal) {
         addCommonAttributes(model);
-        List<Product> products = productService.getProductsByCategorySlug("blind-box");
-        if (products.isEmpty()) {
-            products = productService.getAllActiveProducts();
-        }
+        List<Product> products = productService.getPopNowProducts();
         model.addAttribute("products", products);
         model.addAttribute("pageTitle", "POP NOW - Bóc Hộp Online");
 
@@ -255,7 +252,7 @@ public class PopNowWebController {
     /**
      * Handoff thanh toán: Tạo Order liên kết với phiếu giữ hộp và chuyển đến trang thanh toán VietQR SePay
      */
-    @RequestMapping(value = "/checkout/{reservationCode}", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/checkout/{reservationCode}")
     public String checkoutReservation(@PathVariable String reservationCode,
                                       @RequestParam(required = false, defaultValue = "SEPAY") String paymentMethod,
                                       RedirectAttributes redirectAttributes,

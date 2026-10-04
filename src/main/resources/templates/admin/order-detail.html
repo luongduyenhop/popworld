@@ -113,17 +113,17 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark border" 
+                                    <td class="text-nowrap">
+                                        <span class="badge bg-light text-dark border text-nowrap" 
                                               th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Đơn Lẻ (Single)' : 'Nguyên Bộ (Whole Set)'}">
                                             Hộp Đơn
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="text-nowrap admin-price">
                                         <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                                     </td>
-                                    <td class="text-center fw-bold" th:text="${item.quantity}">1</td>
-                                    <td class="text-end fw-black text-danger" 
+                                    <td class="text-center fw-bold text-nowrap" th:text="${item.quantity}">1</td>
+                                    <td class="text-end fw-black text-danger text-nowrap admin-price" 
                                         th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">
                                         0 đ
                                     </td>
@@ -138,20 +138,20 @@
                     <h6 class="fw-bold mb-3 border-bottom pb-2">Bóc Tách Chi Phí & Thanh Toán</h6>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary">Tiền hàng (Tạm tính):</span>
-                        <span class="fw-bold" th:text="${#numbers.formatDecimal(order.subtotalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
+                        <span class="fw-bold text-nowrap admin-price" th:text="${#numbers.formatDecimal(order.subtotalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary">Phí vận chuyển:</span>
-                        <span class="fw-bold" th:text="${order.shippingFee != null and order.shippingFee > 0 ? #numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Miễn Phí (Freeship)'}"></span>
+                        <span class="fw-bold text-nowrap" th:text="${order.shippingFee != null and order.shippingFee > 0 ? #numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Miễn Phí (Freeship)'}"></span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 text-success" th:if="${order.discountAmount != null and order.discountAmount > 0}">
                         <span>Giảm giá mã Voucher/Coupon:</span>
-                        <span class="fw-bold" th:text="'- ' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        <span class="fw-bold text-nowrap admin-price" th:text="'- ' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fs-5 fw-bold">Tổng thanh toán:</span>
-                        <span class="fs-4 fw-black text-danger" 
+                        <span class="fs-4 fw-black text-danger text-nowrap admin-price" 
                               th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</span>
                     </div>
                 </div>
@@ -219,24 +219,40 @@
                         </button>
                     </div>
 
+                    <!-- Cảnh báo chuyển thừa tiền (Overpayment) -->
+                    <div th:if="${order.paidAmount != null and order.totalAmount != null and order.paidAmount > order.totalAmount}" class="alert alert-warning border border-warning d-flex align-items-center mb-3 py-2 px-3 small rounded-3">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-2"></i>
+                        <div>
+                            <strong class="text-dark">CẢNH BÁO CHUYỂN THỪA TIỀN:</strong> Khách đã chuyển tổng cộng <span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(order.paidAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span> (Thừa <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(order.paidAmount - order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span> so với giá trị đơn hàng). Hãy đối soát và thực hiện hoàn tiền phần thừa cho khách hàng!
+                        </div>
+                    </div>
+
+                    <!-- Cảnh báo chuyển thiếu tiền (Partial Payment) -->
+                    <div th:if="${order.paidAmount != null and order.totalAmount != null and order.paidAmount > 0 and order.paidAmount < order.totalAmount and order.status == 'TO_PAY'}" class="alert alert-info border border-info d-flex align-items-center mb-3 py-2 px-3 small rounded-3">
+                        <i class="bi bi-info-circle-fill text-info fs-4 me-2"></i>
+                        <div>
+                            <strong class="text-dark">THANH TOÁN MỘT PHẦN:</strong> Khách mới thanh toán <span class="fw-bold text-dark" th:text="${#numbers.formatDecimal(order.paidAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span> / <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span> (Còn thiếu <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(order.totalAmount - order.paidAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>). Đơn hàng sẽ tự động duyệt khi khách chuyển đủ.
+                        </div>
+                    </div>
+
                     <!-- Thống kê tài chính hoàn tiền -->
                     <div class="row g-2 mb-2">
                         <div class="col-sm-4">
                             <div class="p-2 border rounded bg-light text-center">
                                 <small class="text-muted d-block">Đã Thanh Toán</small>
-                                <strong class="fs-6 text-dark" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                                <strong class="fs-6 text-dark text-nowrap admin-price" th:text="${order.paidAmount != null and order.paidAmount > 0 ? #numbers.formatDecimal(order.paidAmount, 0, 'COMMA', 0, 'POINT') + ' đ' : (order.paidAt != null ? #numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ')}">0 đ</strong>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-2 border rounded bg-light text-center">
                                 <small class="text-muted d-block">Đã Hoàn Tiền</small>
-                                <strong class="fs-6 text-danger" th:text="${#numbers.formatDecimal(totalRefunded != null ? totalRefunded : 0, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                                <strong class="fs-6 text-danger text-nowrap admin-price" th:text="${#numbers.formatDecimal(totalRefunded != null ? totalRefunded : 0, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-2 border rounded bg-light text-center">
                                 <small class="text-muted d-block">Còn Có Thể Hoàn</small>
-                                <strong class="fs-6 text-primary" th:text="${#numbers.formatDecimal(remainingRefundable != null ? remainingRefundable : 0, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</strong>
+                                <strong class="fs-6 text-primary text-nowrap admin-price" th:text="${order.paidAt != null && remainingRefundable != null ? #numbers.formatDecimal(remainingRefundable, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">0 đ</strong>
                             </div>
                         </div>
                     </div>

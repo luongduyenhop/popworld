@@ -79,7 +79,11 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small" for="recipientPhone">Số điện thoại <span class="text-danger">*</span></label>
                                 <input type="tel" class="form-control rounded-3" name="recipientPhone" id="recipientPhone"
-                                       th:value="${defaultAddress != null ? defaultAddress.recipientPhone : (user != null ? user.phone : '')}" placeholder="Ví dụ: 0987654321" required>
+                                       pattern="^(?:0|\+84)(?:3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$"
+                                       title="Số điện thoại Việt Nam gồm 10 chữ số (VD: 0987654321 hoặc +84987654321)"
+                                       th:value="${defaultAddress != null ? defaultAddress.recipientPhone : (user != null ? user.phone : '')}" 
+                                       placeholder="Ví dụ: 0987654321" required>
+                                <div class="form-text text-muted" style="font-size: 11px;">Số di động 10 số (03x, 05x, 07x, 08x, 09x) để bưu tá liên hệ giao hàng.</div>
                             </div>
 
                             <input type="hidden" name="district" id="district" value="">
@@ -470,6 +474,27 @@
                 checkCoupon();
             }
         });
+
+        // Kiểm tra định dạng số điện thoại Việt Nam trước khi gửi form
+        const checkoutForm = document.querySelector('form[action*="/checkout/place-order"]');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', function (e) {
+                const phoneInput = document.getElementById('recipientPhone');
+                if (phoneInput) {
+                    const phoneVal = phoneInput.value.trim().replace(/\s+/g, '');
+                    const vnPhoneRegex = /^(?:0|\+84)(?:3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\d{7}$/;
+                    if (!vnPhoneRegex.test(phoneVal)) {
+                        e.preventDefault();
+                        alert('Số điện thoại nhận hàng không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số của Việt Nam (ví dụ: 0987654321).');
+                        phoneInput.focus();
+                        phoneInput.classList.add('is-invalid');
+                        return false;
+                    } else {
+                        phoneInput.classList.remove('is-invalid');
+                    }
+                }
+            });
+        }
         /*]]>*/
     </script>
 </body>

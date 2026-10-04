@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${product.name} + ' - PopWorld Art Toy'">Chi Tiết Sản Phẩm - PopWorld</title>
     
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.2')}">
@@ -478,9 +480,10 @@
                             <span class="badge bg-danger text-white px-2 py-1 rounded-1 fw-bold" style="font-size: 10px;" th:if="${product.isFeatured}">HOT</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle" 
-                                    onclick="toggleFavorite(this)" title="Yêu thích" aria-label="Yêu thích">
-                                <i class="bi bi-heart fs-6"></i>
+                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle pop-wishlist-toggle-btn" 
+                                    th:attr="data-product-id=${product.id}"
+                                    onclick="toggleWishlist(this)" title="Yêu thích" aria-label="Yêu thích">
+                                <i th:class="${isWishlisted != null and isWishlisted} ? 'bi bi-heart-fill fs-6 text-danger' : 'bi bi-heart fs-6'"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle" 
                                     onclick="shareProduct()" title="Chia sẻ" aria-label="Chia sẻ">
@@ -508,21 +511,18 @@
                         <i class="bi bi-truck text-dark me-1"></i> Miễn phí vận chuyển cho đơn từ 500.000 ₫
                     </div>
 
-                    <!-- Block 1: Purchase Options (3 Compact Pills) -->
+                    <!-- Block 1: Purchase Options (Giao Tận Nhà & Bóc Online POP NOW) -->
                     <div class="pdp-section-block">
-                        <div class="pdp-section-title">Purchase Options</div>
+                        <div class="pdp-section-title">Hình Thức Đặt Hàng</div>
                         <div class="pdp-options-row">
-                            <button type="button" class="pdp-option-btn active" id="optBtnHome" onclick="selectDeliveryTab('HOME')">
-                                Deliver To Home
+                            <button type="button" class="pdp-option-btn active" id="optBtnHome">
+                                <i class="bi bi-truck me-1"></i> Giao Tận Nhà
                             </button>
                             <a th:if="${product.category != null && product.category.slug == 'blind-box'}" 
                                th:href="@{'/popnow/pick/' + ${product.slug}}" 
                                class="pdp-option-btn text-danger fw-bold" title="Bốc hộp trực tuyến POP NOW">
-                                <i class="bi bi-box-seam me-1"></i> POP NOW
+                                <i class="bi bi-box-seam me-1"></i> Bóc Online POP NOW
                             </a>
-                            <button type="button" class="pdp-option-btn" id="optBtnPickup" onclick="selectDeliveryTab('PICKUP')">
-                                Store Pickup
-                            </button>
                         </div>
                     </div>
 
@@ -560,16 +560,16 @@
                     </div>
 
                     <!-- Block 4: Form Đặt Mua & Cặp Nút Hành Động Song Song (ADD TO CART & BUY NOW) -->
-                    <form th:action="@{/cart/add}" method="post" id="purchaseForm" class="m-0">
+                    <form th:action="@{/cart/buy-now}" method="post" id="purchaseForm" class="m-0">
                         <input type="hidden" name="productId" th:value="${product.id}">
                         <input type="hidden" name="purchaseType" id="cartPurchaseType" value="SINGLE_BOX">
                         <input type="hidden" name="quantity" id="cartQuantity" value="1">
 
                         <div class="pdp-btn-row" th:if="${product.stockQuantity != null && product.stockQuantity > 0}">
-                            <button type="submit" class="pdp-btn-add-cart">
-                                ADD TO CART
+                            <button type="button" class="pdp-btn-add-cart" id="btnAddToCart" onclick="handleAddToCart()">
+                                <i class="bi bi-bag-plus me-1"></i> ADD TO CART
                             </button>
-                            <button type="submit" class="pdp-btn-buy-now" th:formaction="@{/cart/buy-now}">
+                            <button type="submit" class="pdp-btn-buy-now" id="btnBuyNow">
                                 BUY NOW
                             </button>
                         </div>
@@ -581,6 +581,88 @@
                             </button>
                         </div>
                     </form>
+
+                    <!-- Khối 4 Cam Kết Vàng (Trust Badges) -->
+                    <div class="pdp-trust-grid">
+                        <div class="pdp-trust-item">
+                            <i class="bi bi-shield-check pdp-trust-icon text-dark"></i>
+                            <div>
+                                <div class="pdp-trust-heading">100% Chính Hãng</div>
+                                <div class="pdp-trust-subtext">Nguyên seal niêm phong POP MART, phát hiện giả đền 200%.</div>
+                            </div>
+                        </div>
+                        <div class="pdp-trust-item">
+                            <i class="bi bi-truck pdp-trust-icon text-dark"></i>
+                            <div>
+                                <div class="pdp-trust-heading">Freeship Từ 500K</div>
+                                <div class="pdp-trust-subtext">Miễn phí giao hàng toàn quốc khi đạt điều kiện giá trị đơn.</div>
+                            </div>
+                        </div>
+                        <div class="pdp-trust-item">
+                            <i class="bi bi-arrow-repeat pdp-trust-icon text-dark"></i>
+                            <div>
+                                <div class="pdp-trust-heading">Đổi Mới 7 Ngày</div>
+                                <div class="pdp-trust-subtext">Bảo hành 1-1 nếu có lỗi từ nhà sản xuất hoặc hộp vỡ vận chuyển.</div>
+                            </div>
+                        </div>
+                        <div class="pdp-trust-item">
+                            <i class="bi bi-stars pdp-trust-icon text-warning"></i>
+                            <div>
+                                <div class="pdp-trust-heading">Tích Điểm PopPoints</div>
+                                <div class="pdp-trust-subtext">Nhận điểm hội viên ngay sau khi đơn hàng giao thành công.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Khối Accordion Thông Tin & Quy Chuẩn Blind Box -->
+                    <div class="pdp-spec-accordion">
+                        <!-- Accordion 1: Thông số -->
+                        <div class="pdp-accordion-item">
+                            <button type="button" class="pdp-accordion-header-btn" onclick="toggleAccordion('accSpec1', this)" aria-expanded="false">
+                                <span>1. Thông Số &amp; Quy Cách Đóng Gói</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="pdp-accordion-content" id="accSpec1" style="display: none;">
+                                <ul>
+                                    <li><strong>Thương hiệu:</strong> POP MART Official Licensed.</li>
+                                    <li><strong>Chất liệu:</strong> PVC / ABS / Kim loại cao cấp, nước sơn mịn màng, an toàn sức khỏe.</li>
+                                    <li><strong>Kích thước nhân vật:</strong> Khoảng 7.5cm – 10.5cm tùy tạo hình series.</li>
+                                    <li><strong>Hộp đơn (Single box):</strong> Gồm 01 nhân vật ngẫu nhiên kèm thẻ nhân vật (Character Card).</li>
+                                    <li><strong>Nguyên Set (Whole set):</strong> Hộp carton nguyên lốc chứa đầy đủ các hộp con với tem niêm phong.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Accordion 2: Quy tắc Blind Box -->
+                        <div class="pdp-accordion-item">
+                            <button type="button" class="pdp-accordion-header-btn" onclick="toggleAccordion('accSpec2', this)" aria-expanded="false">
+                                <span>2. Quy Tắc Bốc Hộp &amp; Tỷ Lệ Bản Hiếm (Secret)</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="pdp-accordion-content" id="accSpec2" style="display: none;">
+                                <ul>
+                                    <li><strong>Tính ngẫu nhiên:</strong> Tất cả hộp đơn đều được bọc kín không thể soi thấy bên trong trước khi mở.</li>
+                                    <li><strong>Bản hiếm (Secret):</strong> Mỗi series đều có tỷ lệ xuất hiện bản Secret là <strong>1/144</strong> hộp.</li>
+                                    <li><strong>Cam kết Nguyên Set:</strong> Khi mua trọn bộ Whole Set, các nhân vật thường cam kết không bị trùng lặp; nếu có bản Secret sẽ thay thế ngẫu nhiên 1 nhân vật thường.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Accordion 3: Đóng gói & Vận chuyển -->
+                        <div class="pdp-accordion-item">
+                            <button type="button" class="pdp-accordion-header-btn" onclick="toggleAccordion('accSpec3', this)" aria-expanded="false">
+                                <span>3. Quy Chuẩn Đóng Gói &amp; Giao Hàng An Toàn</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="pdp-accordion-content" id="accSpec3" style="display: none;">
+                                <ul>
+                                    <li>Đóng gói tiêu chuẩn Collector: Hộp carton 3 lớp cứng cáp, bọc màng bóng khí chống sốc 360 độ.</li>
+                                    <li>Đơn vị vận chuyển hỏa tốc uy tín toàn quốc: Giao hàng trong 24h - 48h tại nội thành.</li>
+                                    <li>Khách hàng được đồng kiểm ngoại quan nguyên vẹn trước khi nhận hàng.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -596,7 +678,7 @@
             </div>
             <div class="row g-4">
                 <div class="col-6 col-md-3" th:each="p : ${relatedProducts}">
-                    <div class="pop-product-card" th:onclick="'window.location.href=\'' + @{'/products/' + ${p.slug}} + '\''">
+                    <div class="pop-product-card" th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.getAttribute('data-url')">
                         <div class="pop-product-img-box">
                             <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
                             <span class="badge-secret-ratio" th:if="${p.secretRatio != null}">
@@ -661,16 +743,107 @@
             }
         }
 
-        // 2. Tăng giảm số lượng (Quantity Stepper)
+        const maxStock = /*[[${product.stockQuantity != null ? product.stockQuantity : 50}]]*/ 50;
+
+        // 2. Tăng giảm số lượng (Quantity Stepper có ràng buộc tồn kho thực tế)
         function adjustQty(delta) {
             const input = document.getElementById('sharedQuantityInput');
             let val = parseInt(input.value) || 1;
             val += delta;
             if (val < 1) val = 1;
-            if (val > 50) val = 50;
+            if (val > maxStock) {
+                val = maxStock;
+                const warning = document.getElementById('stockLimitWarning');
+                if (warning) {
+                    warning.innerText = 'Số lượng đã đạt tối đa tồn kho (' + maxStock + ' sản phẩm)';
+                    warning.style.display = 'block';
+                    setTimeout(() => { warning.style.display = 'none'; }, 2500);
+                }
+            }
             input.value = val;
-
             document.getElementById('cartQuantity').value = val;
+        }
+
+        // 2.1. Thêm vào giỏ hàng AJAX mượt mà không reload trang
+        async function handleAddToCart() {
+            const btn = document.getElementById('btnAddToCart');
+            const productId = /*[[${product.id}]]*/ 0;
+            const purchaseType = document.getElementById('cartPurchaseType').value;
+            const quantity = parseInt(document.getElementById('cartQuantity').value) || 1;
+            const productName = /*[[${product.name}]]*/ 'Sản phẩm';
+            const mainImageUrl = /*[[${product.mainImageUrl}]]*/ '';
+            const displayedPrice = document.getElementById('displayedPrice')?.innerText || '';
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> ĐANG THÊM...';
+
+            try {
+                const params = new URLSearchParams();
+                params.append('productId', productId);
+                params.append('purchaseType', purchaseType);
+                params.append('quantity', quantity);
+
+                const res = await fetch('/api/cart/items?' + params.toString(), {
+                    method: 'POST',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (res.status === 401 || res.redirected) {
+                    window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.success) {
+                    fetch('/api/cart/summary')
+                        .then(r => r.json())
+                        .then(sumData => {
+                            if (sumData.success && sumData.data) {
+                                window.updateHeaderCartCount(sumData.data.cartCount);
+                            }
+                        })
+                        .catch(() => {});
+
+                    if (window.showPopToast) {
+                        window.showPopToast({
+                            title: 'ĐÃ THÊM VÀO GIỎ HÀNG',
+                            name: productName + (purchaseType === 'WHOLE_SET' ? ' (Whole Set x' + quantity + ')' : ' (x' + quantity + ')'),
+                            price: displayedPrice,
+                            imageUrl: mainImageUrl,
+                            ctaText: 'XEM GIỎ HÀNG',
+                            ctaUrl: '/cart'
+                        });
+                    }
+                } else {
+                    alert(data.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
+                }
+            } catch (err) {
+                console.error('Lỗi thêm giỏ hàng:', err);
+                alert('Lỗi kết nối khi thêm vào giỏ hàng. Vui lòng thử lại!');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        // 2.2. Accordion hiển thị / đóng mở
+        function toggleAccordion(contentId, btn) {
+            const content = document.getElementById(contentId);
+            if (!content) return;
+            const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+            if (isExpanded) {
+                content.style.display = 'none';
+                btn.setAttribute('aria-expanded', 'false');
+            } else {
+                content.style.display = 'block';
+                btn.setAttribute('aria-expanded', 'true');
+            }
         }
 
         // 3. Chọn nhân vật trên thanh Rail Dọc hoặc Lưới All Characters
@@ -718,18 +891,7 @@
             document.getElementById('activeCharBanner').style.display = 'none';
         }
 
-        // 5. Chuyển đổi tab nhận hàng (Deliver To Home vs Store Pickup)
-        function selectDeliveryTab(tab) {
-            const homeBtn = document.getElementById('optBtnHome');
-            const pickupBtn = document.getElementById('optBtnPickup');
-            if (tab === 'HOME') {
-                if (homeBtn) homeBtn.classList.add('active');
-                if (pickupBtn) pickupBtn.classList.remove('active');
-            } else {
-                if (pickupBtn) pickupBtn.classList.add('active');
-                if (homeBtn) homeBtn.classList.remove('active');
-            }
-        }
+        // 5. Hình thức nhận hàng mặc định: Giao tận nhà
 
         // 6. Hiệu ứng kính lúp soi chi tiết theo con trỏ chuột
         const zoomBox = document.getElementById('zoomContainer');
@@ -753,16 +915,54 @@
             });
         }
 
-        // 7. Yêu thích & Chia sẻ
-        function toggleFavorite(btn) {
+        // 7. Yêu thích (Wishlist) & Chia sẻ
+        async function toggleWishlist(btn) {
+            const productId = btn.getAttribute('data-product-id');
+            if (!productId) return;
             const icon = btn.querySelector('i');
-            if (icon.classList.contains('bi-heart')) {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill', 'text-danger');
-            } else {
-                icon.classList.remove('bi-heart-fill', 'text-danger');
-                icon.classList.add('bi-heart');
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                const res = await fetch('/api/wishlist/toggle', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                });
+
+                if (res.status === 401 || res.redirected) {
+                    window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.success) {
+                    if (data.wishlisted) {
+                        icon.className = 'bi bi-heart-fill fs-6 text-danger';
+                    } else {
+                        icon.className = 'bi bi-heart fs-6';
+                    }
+                    // Cập nhật badge số lượng trên header realtime
+                    document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
+                        badge.textContent = data.wishlistCount;
+                    });
+                } else {
+                    if (data.message && data.message.includes('đăng nhập')) {
+                        window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname);
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra');
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi khi cập nhật yêu thích:', err);
             }
+        }
+
+        function toggleFavorite(btn) {
+            toggleWishlist(btn);
         }
 
         function shareProduct() {

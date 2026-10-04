@@ -27,4 +27,16 @@ public interface PopNowAdminService {
     List<BlindBoxSlot> getSlotsByProductId(Long productId);
 
     int initializeStandardSlots(Long productId);
+
+    int initializeSlots(Long productId, Integer slotCount);
+
+    void updateBoxesPerSet(Long productId, Integer boxesPerSet);
+
+    int cleanupExcessAvailableSlots(Long productId, Integer targetCount);
+
+    boolean isExistingSeriesWithStandardItems(Long productId);
+
+    int syncSeriesStandardItems(Long productId, boolean overrideExisting);
+
+    int quickGenerateTemplateItems(Long productId, Integer count);
 }

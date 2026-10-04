@@ -110,7 +110,7 @@
                         <th style="width: 180px;">Khách Hàng</th>
                         <th>Nội Dung & Ảnh Đập Hộp Thực Tế</th>
                         <th style="width: 130px;" class="text-center">Trạng Thái</th>
-                        <th style="width: 160px;" class="text-center">Hành Động</th>
+                        <th style="width: 160px;" class="text-center sticky-action-col">Hành Động</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -184,16 +184,8 @@
                             </div>
                         </td>
 
-                        <!-- Nhận Xét, Số Sao & Ảnh Đập Hộp Thực Tế -->
+                        <!-- Nhận Xét & Ảnh Đập Hộp Thực Tế -->
                         <td>
-                            <!-- Số sao đánh giá -->
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <div class="text-warning small" style="font-size: 0.85rem;">
-                                    <i class="bi bi-star-fill" th:each="star : ${#numbers.sequence(1, r.rating)}"></i><i class="bi bi-star" th:if="${r.rating < 5}" th:each="star : ${#numbers.sequence(r.rating + 1, 5)}"></i>
-                                </div>
-                                <span class="badge bg-light text-dark border px-2 py-0 fw-bold" style="font-size: 0.7rem;" th:text="${r.rating} + ' ★'">5 ★</span>
-                            </div>
-
                             <!-- Lời bình luận -->
                             <div class="small text-dark mb-2" style="white-space: pre-line; max-height: 80px; overflow-y: auto; line-height: 1.4;"
                                  th:text="${r.comment != null and !r.comment.isEmpty() ? r.comment : '(Không có lời bình luận)'}">
@@ -242,7 +234,7 @@
                         </td>
 
                         <!-- Thao Tác Kiểm Duyệt -->
-                        <td class="text-center">
+                        <td class="text-center sticky-action-col">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <!-- Nút Hiện Lại / Ẩn Bài -->
                                 <form th:if="${!r.approved}" th:action="@{'/admin/reviews/' + ${r.id} + '/approve'}" method="post" class="d-inline">
@@ -314,7 +306,7 @@
 
             document.getElementById('lightboxImage').src = fullUrl;
             document.getElementById('lightboxProduct').textContent = product || 'Art Toy PopWorld';
-            document.getElementById('lightboxMeta').textContent = 'Đánh giá bởi: ' + (user || 'Khách hàng') + ' (' + (rating || '5') + ' ★)';
+            document.getElementById('lightboxMeta').textContent = 'Đánh giá bởi: ' + (user || 'Khách hàng');
             document.getElementById('lightboxComment').textContent = comment ? '"' + comment + '"' : '';
 
             const modal = new bootstrap.Modal(document.getElementById('reviewLightboxModal'));

@@ -35,8 +35,14 @@
                 <a th:href="@{/admin/customers}" class="btn btn-outline-secondary rounded-pill px-3">
                     <i class="bi bi-arrow-left me-1"></i> Danh Sách
                 </a>
+                <button th:if="${customer.role == null or !#strings.containsIgnoreCase(customer.role, 'ADMIN')}" 
+                        type="button" class="btn btn-outline-warning text-dark rounded-pill px-3 fw-bold" 
+                        data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                    <i class="bi bi-key-fill me-1"></i> Đổi Mật Khẩu
+                </button>
                 <form th:action="@{'/admin/customers/' + ${customer.id} + '/toggle-status'}" method="post" class="d-inline"
-                      th:onsubmit="'return confirm(\'Bạn có chắc muốn ' + (${customer.enabled} ? 'khóa' : 'mở khóa') + ' tài khoản này?\');'">
+                      th:data-confirm="${customer.enabled ? 'Bạn có chắc muốn khóa tài khoản này?' : 'Bạn có chắc muốn mở khóa tài khoản này?'}"
+                      onsubmit="return confirm(this.getAttribute('data-confirm'));">
                     <button type="submit" 
                             th:class="${customer.enabled ? 'btn btn-outline-danger rounded-pill px-3 fw-bold' : 'btn btn-success rounded-pill px-3 fw-bold'}">
                         <i th:class="${customer.enabled ? 'bi bi-lock me-1' : 'bi bi-unlock me-1'}"></i>
@@ -270,6 +276,147 @@
                 </div>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL ĐẶT LẠI MẬT KHẨU KHÁCH HÀNG (DÀNH CHO ADMIN)                       -->
+        <!-- ========================================================================= -->
+        <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true"
+             th:if="${customer.role == null or !#strings.containsIgnoreCase(customer.role, 'ADMIN')}">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form th:action="@{'/admin/customers/' + ${customer.id} + '/reset-password'}" method="post" id="formResetPassword">
+                        <input type="hidden" name="redirect" value="detail">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-black d-flex align-items-center gap-2" id="resetPasswordModalLabel">
+                                <i class="bi bi-key-fill text-warning fs-4"></i> Đổi Mật Khẩu Khách Hàng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body pt-3">
+                            <div class="alert alert-warning border-0 rounded-3 small mb-3 d-flex align-items-start gap-2">
+                                <i class="bi bi-exclamation-triangle-fill fs-5 text-warning flex-shrink-0"></i>
+                                <div>
+                                    Bạn đang đổi mật khẩu cho khách hàng 
+                                    <strong class="text-dark" th:text="${customer.fullName}">Nguyễn Văn A</strong> 
+                                    (<span th:text="${customer.email}">email@example.com</span>).
+                                    Mật khẩu cũ của khách sẽ bị thay thế ngay lập tức.
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">Mật khẩu mới:</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" id="btnGenPassword" style="font-size: 0.78rem;">
+                                    <i class="bi bi-magic me-1"></i> Tạo ngẫu nhiên
+                                </button>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="password" class="form-control rounded-start-3 font-monospace" id="newPassword" name="newPassword" 
+                                       placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleNewPwd" title="Ẩn/hiện mật khẩu">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary rounded-end-3" type="button" id="btnCopyPassword" title="Sao chép mật khẩu">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+
+                            <label class="form-label small fw-bold text-dark mb-1">Xác nhận mật khẩu mới:</label>
+                            <div class="input-group mb-2">
+                                <input type="password" class="form-control rounded-start-3 font-monospace" id="confirmPassword" name="confirmPassword" 
+                                       placeholder="Nhập lại mật khẩu mới" minlength="6" required>
+                                <button class="btn btn-outline-secondary rounded-end-3" type="button" id="toggleConfirmPwd" title="Ẩn/hiện mật khẩu">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+
+                            <div id="pwdMismatchAlert" class="text-danger small mb-2 d-none">
+                                <i class="bi bi-x-circle me-1"></i> Mật khẩu xác nhận không khớp!
+                            </div>
+                            <div id="pwdCopyFeedback" class="text-success small mb-2 d-none">
+                                <i class="bi bi-check2-circle me-1"></i> Đã sao chép mật khẩu vào bộ nhớ tạm!
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold" id="btnSubmitReset">
+                                <i class="bi bi-check2-circle me-1"></i> Xác Nhận Đổi Mật Khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const btnGen = document.getElementById('btnGenPassword');
+                const btnCopy = document.getElementById('btnCopyPassword');
+                const newPwdInput = document.getElementById('newPassword');
+                const confirmPwdInput = document.getElementById('confirmPassword');
+                const toggleNew = document.getElementById('toggleNewPwd');
+                const toggleConfirm = document.getElementById('toggleConfirmPwd');
+                const mismatchAlert = document.getElementById('pwdMismatchAlert');
+                const copyFeedback = document.getElementById('pwdCopyFeedback');
+                const form = document.getElementById('formResetPassword');
+
+                function generateRandomPassword() {
+                    const num = Math.floor(1000 + Math.random() * 9000);
+                    return 'PopWorld@' + num;
+                }
+
+                if (btnGen && newPwdInput && confirmPwdInput) {
+                    btnGen.addEventListener('click', function () {
+                        const randomPwd = generateRandomPassword();
+                        newPwdInput.value = randomPwd;
+                        confirmPwdInput.value = randomPwd;
+                        newPwdInput.type = 'text';
+                        confirmPwdInput.type = 'text';
+                        if (toggleNew) toggleNew.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                        if (toggleConfirm) toggleConfirm.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                        if (mismatchAlert) mismatchAlert.classList.add('d-none');
+                    });
+                }
+
+                if (btnCopy && newPwdInput) {
+                    btnCopy.addEventListener('click', function () {
+                        if (newPwdInput.value) {
+                            navigator.clipboard.writeText(newPwdInput.value).then(() => {
+                                if (copyFeedback) {
+                                    copyFeedback.classList.remove('d-none');
+                                    setTimeout(() => copyFeedback.classList.add('d-none'), 3000);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                function togglePwdVisibility(input, btn) {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                    } else {
+                        input.type = 'password';
+                        btn.innerHTML = '<i class="bi bi-eye"></i>';
+                    }
+                }
+
+                if (toggleNew && newPwdInput) {
+                    toggleNew.addEventListener('click', () => togglePwdVisibility(newPwdInput, toggleNew));
+                }
+                if (toggleConfirm && confirmPwdInput) {
+                    toggleConfirm.addEventListener('click', () => togglePwdVisibility(confirmPwdInput, toggleConfirm));
+                }
+
+                if (form && newPwdInput && confirmPwdInput) {
+                    form.addEventListener('submit', function (e) {
+                        if (newPwdInput.value !== confirmPwdInput.value) {
+                            e.preventDefault();
+                            if (mismatchAlert) mismatchAlert.classList.remove('d-none');
+                        }
+                    });
+                }
+            });
+        </script>
     </div>
 </div>
 

@@ -128,4 +128,113 @@ class RateLimitingFilterTest {
         String ip = RateLimitingFilter.getClientIp(req);
         assertEquals("203.0.113.195", ip);
     }
+
+    @Test
+    @DisplayName("Login: Cho phép tối đa 10 lần gửi yêu cầu đăng nhập/phút và chặn request thứ 11 với mã 429")
+    void login_shouldAllowUpTo10Requests_andBlock11th() throws ServletException, IOException {
+        String clientIp = "192.168.1.101";
+
+        for (int i = 1; i <= 10; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/login");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("POST", "/login");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("đăng nhập"));
+    }
+
+    @Test
+    @DisplayName("Checkout Place Order: Cho phép tối đa 15 lần đặt hàng/phút và chặn request thứ 16 với mã 429")
+    void checkoutPlaceOrder_shouldAllowUpTo15Requests_andBlock16th() throws ServletException, IOException {
+        String clientIp = "192.168.1.102";
+
+        for (int i = 1; i <= 15; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/checkout/place-order");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("POST", "/checkout/place-order");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("đặt hàng"));
+    }
+
+    @Test
+    @DisplayName("Order Tracking: Cho phép tối đa 15 lần tra cứu/phút và chặn request thứ 16 với mã 429")
+    void orderTracking_shouldAllowUpTo15Requests_andBlock16th() throws ServletException, IOException {
+        String clientIp = "192.168.1.103";
+
+        for (int i = 1; i <= 15; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/order-tracking");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("POST", "/order-tracking");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("tra cứu đơn hàng"));
+    }
+
+    @Test
+    @DisplayName("POP NOW Reserve: Cho phép tối đa 20 lần giữ hộp/phút và chặn request thứ 21 với mã 429 JSON")
+    void popNowReserve_shouldAllowUpTo20Requests_andBlock21st() throws ServletException, IOException {
+        String clientIp = "192.168.1.104";
+
+        for (int i = 1; i <= 20; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/popnow/reserve");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("POST", "/api/popnow/reserve");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("giữ hộp"));
+        assertTrue(blockedRes.getContentAsString().contains("\"success\":false"));
+    }
 }

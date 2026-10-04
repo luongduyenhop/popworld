@@ -250,6 +250,14 @@ public class AccountWebController {
     }
 
     /**
+     * Chuyển hướng người dùng truy cập trực tiếp /account/addresses sang tab Sổ Địa Chỉ
+     */
+    @GetMapping("/account/addresses")
+    public String showAddressBookRedirect() {
+        return "redirect:/account?tab=addresses";
+    }
+
+    /**
      * Thêm địa chỉ mới vào sổ địa chỉ
      */
     @PostMapping("/account/addresses")

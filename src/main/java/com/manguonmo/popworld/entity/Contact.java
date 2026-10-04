@@ -31,7 +31,22 @@ public class Contact extends BaseEntity {
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
 
+    @Column(name = "category", length = 50)
+    private String category;
+
+    @Column(name = "user_id")
+    private Long userId;
+
     @Builder.Default
     @Column(name = "is_processed")
     private Boolean isProcessed = false;
+
+    @Column(name = "admin_note", columnDefinition = "TEXT")
+    private String adminNote;
+
+    @Column(name = "processed_at")
+    private java.time.LocalDateTime processedAt;
+
+    @Column(name = "processed_by", length = 100)
+    private String processedBy;
 }

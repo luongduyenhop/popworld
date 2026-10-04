@@ -66,12 +66,12 @@
                     <thead>
                         <tr>
                             <th style="min-width: 220px;">Khách Hàng</th>
-                            <th>Liên Hệ</th>
-                            <th>Hạng Thành Viên</th>
-                            <th>Tài Sản Điểm & Thẻ</th>
-                            <th>Vai Trò</th>
-                            <th>Trạng Thái</th>
-                            <th class="text-end" style="min-width: 140px;">Hành Động</th>
+                            <th class="text-nowrap">Liên Hệ</th>
+                            <th class="text-nowrap">Hạng Thành Viên</th>
+                            <th class="text-nowrap">Tài Sản Điểm & Thẻ</th>
+                            <th class="text-nowrap">Vai Trò</th>
+                            <th class="text-nowrap">Trạng Thái</th>
+                            <th class="text-end text-nowrap sticky-action-col" style="min-width: 140px;">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,36 +110,36 @@
                             </td>
 
                             <!-- Liên hệ -->
-                            <td>
+                            <td class="text-nowrap">
                                 <div class="text-secondary small" th:text="${cust.email}">user@popworld.com</div>
                                 <div class="fw-semibold text-dark font-monospace small mt-1" 
                                      th:text="${cust.phone != null ? cust.phone : 'Chưa cập nhật SĐT'}">0912345678</div>
                             </td>
 
                             <!-- Hạng Thành Viên -->
-                            <td>
+                            <td class="text-nowrap">
                                 <span th:if="${cust.membershipTier == 'VIP'}" 
-                                      class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
+                                      class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1 text-nowrap">
                                     <i class="bi bi-star-fill me-1"></i> VIP Collector
                                 </span>
                                 <span th:unless="${cust.membershipTier == 'VIP'}" 
-                                      class="badge bg-light text-secondary border rounded-pill px-3 py-1">
+                                      class="badge bg-light text-secondary border rounded-pill px-3 py-1 text-nowrap">
                                     Member
                                 </span>
                             </td>
 
                             <!-- Điểm Tích Lũy & Lucky Points, Hint Cards -->
-                            <td>
+                            <td class="text-nowrap">
                                 <div class="d-flex flex-column gap-1">
                                     <div>
-                                        <span class="fw-bold text-danger" th:text="${cust.rewardPoints != null ? cust.rewardPoints : 0} + ' pts'">0 pts</span>
+                                        <span class="fw-bold text-danger text-nowrap" th:text="${cust.rewardPoints != null ? cust.rewardPoints : 0} + ' pts'">0 pts</span>
                                         <small class="text-muted" style="font-size: 0.72rem;">(Đổi quà)</small>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem;" title="Lucky Points lắc hộp PopNow">
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0 text-nowrap" style="font-size: 0.72rem;" title="Lucky Points lắc hộp PopNow">
                                             <i class="bi bi-lightning-charge-fill text-warning me-1"></i><span th:text="${cust.luckyPoints != null ? cust.luckyPoints : 0}">50</span> LP
                                         </span>
-                                        <span class="badge bg-info-subtle text-dark border border-info-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem;" title="Thẻ bài gợi ý PopNow">
+                                        <span class="badge bg-info-subtle text-dark border border-info-subtle rounded-pill px-2 py-0 text-nowrap" style="font-size: 0.72rem;" title="Thẻ bài gợi ý PopNow">
                                             <i class="bi bi-card-heading text-info me-1"></i><span th:text="${cust.hintCards != null ? cust.hintCards : 0}">1</span> Thẻ
                                         </span>
                                     </div>
@@ -147,37 +147,50 @@
                             </td>
 
                             <!-- Vai Trò -->
-                            <td>
-                                <span th:if="${cust.role == 'ROLE_ADMIN'}" class="badge bg-dark rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                            <td class="text-nowrap">
+                                <span th:if="${cust.role == 'ROLE_ADMIN'}" class="badge bg-dark rounded-pill px-2 py-1 text-nowrap" style="font-size: 0.7rem;">
                                     Admin
                                 </span>
-                                <span th:unless="${cust.role == 'ROLE_ADMIN'}" class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                <span th:unless="${cust.role == 'ROLE_ADMIN'}" class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 text-nowrap" style="font-size: 0.7rem;">
                                     User
                                 </span>
                             </td>
 
                             <!-- Trạng Thái -->
-                            <td>
-                                <span th:if="${cust.enabled}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                            <td class="text-nowrap">
+                                <span th:if="${cust.enabled}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 text-nowrap">
                                     <i class="bi bi-check-circle-fill me-1"></i>Hoạt động
                                 </span>
-                                <span th:unless="${cust.enabled}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                                <span th:unless="${cust.enabled}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 text-nowrap">
                                     <i class="bi bi-lock-fill me-1"></i>Bị khóa
                                 </span>
                             </td>
 
                             <!-- Hành Động -->
-                            <td class="text-end">
-                                <div class="d-flex align-items-center justify-content-end gap-2">
+                            <td class="text-end text-nowrap sticky-action-col" style="min-width: 140px;">
+                                <div class="d-flex align-items-center justify-content-end gap-2 flex-nowrap">
                                     <a th:href="@{'/admin/customers/' + ${cust.id}}" 
-                                       class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold" 
+                                       class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold text-nowrap" 
                                        title="Xem hồ sơ, sổ địa chỉ và lịch sử đơn hàng">
                                         <i class="bi bi-person-lines-fill me-1"></i> Hồ Sơ
                                     </a>
                                     
+                                    <button th:if="${cust.role == null or !#strings.containsIgnoreCase(cust.role, 'ADMIN')}"
+                                            type="button" 
+                                            class="btn btn-sm btn-outline-warning text-dark rounded-circle p-2 btn-reset-cust-pwd"
+                                            th:data-user-id="${cust.id}"
+                                            th:data-user-name="${cust.fullName}"
+                                            th:data-user-email="${cust.email}"
+                                            title="Đổi mật khẩu cho khách hàng"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#resetPasswordListModal">
+                                        <i class="bi bi-key-fill"></i>
+                                    </button>
+
                                     <form th:action="@{'/admin/customers/' + ${cust.id} + '/toggle-status?redirect=list'}" method="post" 
-                                          class="d-inline"
-                                          th:onsubmit="'return confirm(\'Bạn có chắc chắn muốn ' + (${cust.enabled} ? 'khóa' : 'mở khóa') + ' tài khoản ' + ${cust.fullName} + '?\');'">
+                                          class="d-inline m-0"
+                                          th:data-confirm="${cust.enabled ? 'Bạn có chắc chắn muốn khóa tài khoản ' + cust.fullName + '?' : 'Bạn có chắc chắn muốn mở khóa tài khoản ' + cust.fullName + '?'}"
+                                          onsubmit="return confirm(this.getAttribute('data-confirm'));">
                                         <button type="submit" 
                                                 th:class="${cust.enabled ? 'btn btn-sm btn-outline-danger rounded-circle p-2' : 'btn btn-sm btn-outline-success rounded-circle p-2'}" 
                                                 th:title="${cust.enabled ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}">
@@ -191,6 +204,167 @@
                 </table>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL ĐẶT LẠI MẬT KHẨU TỪ DANH SÁCH KHÁCH HÀNG                            -->
+        <!-- ========================================================================= -->
+        <div class="modal fade" id="resetPasswordListModal" tabindex="-1" aria-labelledby="resetPasswordListModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form id="formResetPasswordList" method="post" th:action="@{/admin/customers}">
+                        <input type="hidden" name="redirect" value="list">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-black d-flex align-items-center gap-2" id="resetPasswordListModalLabel">
+                                <i class="bi bi-key-fill text-warning fs-4"></i> Đổi Mật Khẩu Khách Hàng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body pt-3">
+                            <div class="alert alert-warning border-0 rounded-3 small mb-3 d-flex align-items-start gap-2">
+                                <i class="bi bi-exclamation-triangle-fill fs-5 text-warning flex-shrink-0"></i>
+                                <div>
+                                    Bạn đang đổi mật khẩu cho khách hàng 
+                                    <strong id="listModalTargetName" class="text-dark">Khách hàng</strong> 
+                                    (<span id="listModalTargetEmail">email</span>).
+                                    Mật khẩu cũ của khách sẽ bị thay thế ngay lập tức.
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0">Mật khẩu mới:</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" id="btnGenPasswordList" style="font-size: 0.78rem;">
+                                    <i class="bi bi-magic me-1"></i> Tạo ngẫu nhiên
+                                </button>
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="password" class="form-control rounded-start-3 font-monospace" id="listNewPassword" name="newPassword" 
+                                       placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleListNewPwd" title="Ẩn/hiện mật khẩu">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary rounded-end-3" type="button" id="btnCopyPasswordList" title="Sao chép mật khẩu">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+
+                            <label class="form-label small fw-bold text-dark mb-1">Xác nhận mật khẩu mới:</label>
+                            <div class="input-group mb-2">
+                                <input type="password" class="form-control rounded-start-3 font-monospace" id="listConfirmPassword" name="confirmPassword" 
+                                       placeholder="Nhập lại mật khẩu mới" minlength="6" required>
+                                <button class="btn btn-outline-secondary rounded-end-3" type="button" id="toggleListConfirmPwd" title="Ẩn/hiện mật khẩu">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+
+                            <div id="listPwdMismatchAlert" class="text-danger small mb-2 d-none">
+                                <i class="bi bi-x-circle me-1"></i> Mật khẩu xác nhận không khớp!
+                            </div>
+                            <div id="listPwdCopyFeedback" class="text-success small mb-2 d-none">
+                                <i class="bi bi-check2-circle me-1"></i> Đã sao chép mật khẩu vào bộ nhớ tạm!
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold" id="btnSubmitResetList">
+                                <i class="bi bi-check2-circle me-1"></i> Xác Nhận Đổi Mật Khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalEl = document.getElementById('resetPasswordListModal');
+                const form = document.getElementById('formResetPasswordList');
+                const nameSpan = document.getElementById('listModalTargetName');
+                const emailSpan = document.getElementById('listModalTargetEmail');
+                const newPwdInput = document.getElementById('listNewPassword');
+                const confirmPwdInput = document.getElementById('listConfirmPassword');
+                const btnGen = document.getElementById('btnGenPasswordList');
+                const btnCopy = document.getElementById('btnCopyPasswordList');
+                const toggleNew = document.getElementById('toggleListNewPwd');
+                const toggleConfirm = document.getElementById('toggleListConfirmPwd');
+                const mismatchAlert = document.getElementById('listPwdMismatchAlert');
+                const copyFeedback = document.getElementById('listPwdCopyFeedback');
+
+                if (modalEl) {
+                    modalEl.addEventListener('show.bs.modal', function (event) {
+                        const button = event.relatedTarget;
+                        if (!button) return;
+                        const userId = button.getAttribute('data-user-id');
+                        const userName = button.getAttribute('data-user-name');
+                        const userEmail = button.getAttribute('data-user-email');
+
+                        if (form) form.action = '/admin/customers/' + userId + '/reset-password';
+                        if (nameSpan) nameSpan.textContent = userName || 'Khách hàng';
+                        if (emailSpan) emailSpan.textContent = userEmail || '';
+                        if (newPwdInput) newPwdInput.value = '';
+                        if (confirmPwdInput) confirmPwdInput.value = '';
+                        if (mismatchAlert) mismatchAlert.classList.add('d-none');
+                        if (copyFeedback) copyFeedback.classList.add('d-none');
+                    });
+                }
+
+                function generateRandomPassword() {
+                    const num = Math.floor(1000 + Math.random() * 9000);
+                    return 'PopWorld@' + num;
+                }
+
+                if (btnGen && newPwdInput && confirmPwdInput) {
+                    btnGen.addEventListener('click', function () {
+                        const randomPwd = generateRandomPassword();
+                        newPwdInput.value = randomPwd;
+                        confirmPwdInput.value = randomPwd;
+                        newPwdInput.type = 'text';
+                        confirmPwdInput.type = 'text';
+                        if (toggleNew) toggleNew.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                        if (toggleConfirm) toggleConfirm.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                        if (mismatchAlert) mismatchAlert.classList.add('d-none');
+                    });
+                }
+
+                if (btnCopy && newPwdInput) {
+                    btnCopy.addEventListener('click', function () {
+                        if (newPwdInput.value) {
+                            navigator.clipboard.writeText(newPwdInput.value).then(() => {
+                                if (copyFeedback) {
+                                    copyFeedback.classList.remove('d-none');
+                                    setTimeout(() => copyFeedback.classList.add('d-none'), 3000);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                function togglePwdVisibility(input, btn) {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                    } else {
+                        input.type = 'password';
+                        btn.innerHTML = '<i class="bi bi-eye"></i>';
+                    }
+                }
+
+                if (toggleNew && newPwdInput) {
+                    toggleNew.addEventListener('click', () => togglePwdVisibility(newPwdInput, toggleNew));
+                }
+                if (toggleConfirm && confirmPwdInput) {
+                    toggleConfirm.addEventListener('click', () => togglePwdVisibility(confirmPwdInput, toggleConfirm));
+                }
+
+                if (form && newPwdInput && confirmPwdInput) {
+                    form.addEventListener('submit', function (e) {
+                        if (newPwdInput.value !== confirmPwdInput.value) {
+                            e.preventDefault();
+                            if (mismatchAlert) mismatchAlert.classList.remove('d-none');
+                        }
+                    });
+                }
+            });
+        </script>
     </div>
 </div>
 

@@ -300,16 +300,100 @@
         .pm-show-box-item.slot-pos-4 { left: 1.852%;  bottom: 5.612%;  z-index: 12; }
         .pm-show-box-item.slot-pos-5 { left: 25.926%; bottom: 3.571%;  z-index: 13; }
         .pm-show-box-item.slot-pos-6 { left: 50.000%; bottom: 1.531%;  z-index: 14; }
+        .pm-show-box-item.slot-pos-7 { left: 74.074%; bottom: -0.500%; z-index: 15; }
+        .pm-show-box-item.slot-pos-8 { left: 33.500%; bottom: 22.000%; z-index: 8; }
+        .pm-show-box-item.slot-pos-9 { left: 57.500%; bottom: 20.000%; z-index: 9; }
+        .pm-show-box-item.slot-pos-10 { left: 81.500%; bottom: 18.000%; z-index: 10; }
+        .pm-show-box-item.slot-pos-11 { left: 9.500%; bottom: 10.000%; z-index: 11; }
+        .pm-show-box-item.slot-pos-12 { left: 62.000%; bottom: 8.000%; z-index: 13; }
+        .pm-show-box-item.slot-pos-13 { left: 86.000%; bottom: 6.000%; z-index: 14; }
+        .pm-show-box-item.slot-pos-14 { left: 20.000%; bottom: 27.000%; z-index: 7; }
+        .pm-show-box-item.slot-pos-15 { left: 44.000%; bottom: 25.000%; z-index: 8; }
+        .pm-show-box-item.slot-pos-16 { left: 68.000%; bottom: 23.000%; z-index: 9; }
+
+        /* Specific packaging layout overrides for 9-box series (3x3 grid) */
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item {
+            width: calc(var(--tray-w) * 0.22);
+            height: calc(var(--tray-w) * 0.33);
+        }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-1 { left: 19.0%; bottom: 23.0%; z-index: 7; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-2 { left: 43.0%; bottom: 21.0%; z-index: 8; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-3 { left: 67.0%; bottom: 19.0%; z-index: 9; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-4 { left: 10.5%; bottom: 13.0%; z-index: 10; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-5 { left: 34.5%; bottom: 11.0%; z-index: 11; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-6 { left: 58.5%; bottom: 9.0%;  z-index: 12; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-7 { left: 2.0%;  bottom: 3.5%;  z-index: 13; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-8 { left: 26.0%; bottom: 1.8%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-9 .pm-show-box-item.slot-pos-9 { left: 50.0%; bottom: 0.5%;  z-index: 14; }
+
+        /* Specific packaging layout overrides for 12-box series (4x3 grid) - Toàn bộ nằm gọn trong khay */
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item {
+            width: calc(var(--tray-w) * 0.185);
+            height: calc(var(--tray-w) * 0.28);
+        }
+        /* Row 1 (back) */
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-1 { left: 17.0%; bottom: 25.0%; z-index: 6; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-2 { left: 35.0%; bottom: 23.0%; z-index: 7; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-3 { left: 53.0%; bottom: 21.0%; z-index: 8; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-4 { left: 71.0%; bottom: 19.0%; z-index: 9; }
+        /* Row 2 (mid) */
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-5 { left: 9.5%;  bottom: 15.0%; z-index: 10; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-6 { left: 27.5%; bottom: 13.0%; z-index: 11; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-7 { left: 45.5%; bottom: 11.0%; z-index: 12; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-8 { left: 63.5%; bottom: 9.0%;  z-index: 13; }
+        /* Row 3 (front) - z-index <= 14 để mép khay trước (z-index 15) ôm trọn */
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-9  { left: 2.0%;  bottom: 5.0%;  z-index: 13; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-10 { left: 20.0%; bottom: 3.5%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-11 { left: 38.0%; bottom: 2.0%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-12 .pm-show-box-item.slot-pos-12 { left: 56.0%; bottom: 0.5%;  z-index: 14; }
+
+        /* Packaging layout overrides for 8-box series (4x2 grid) */
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item {
+            width: calc(var(--tray-w) * 0.20);
+            height: calc(var(--tray-w) * 0.30);
+        }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-1 { left: 17.0%; bottom: 19.0%; z-index: 9; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-2 { left: 36.0%; bottom: 17.0%; z-index: 10; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-3 { left: 55.0%; bottom: 15.0%; z-index: 11; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-4 { left: 74.0%; bottom: 13.0%; z-index: 12; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-5 { left: 2.0%;  bottom: 5.5%;  z-index: 13; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-6 { left: 21.0%; bottom: 3.8%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-7 { left: 40.0%; bottom: 2.1%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-8 .pm-show-box-item.slot-pos-8 { left: 59.0%; bottom: 0.5%;  z-index: 14; }
+
+        /* Packaging layout overrides for 16-box series (4x4 grid) */
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item {
+            width: calc(var(--tray-w) * 0.16);
+            height: calc(var(--tray-w) * 0.24);
+        }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-1  { left: 21.0%; bottom: 27.0%; z-index: 6; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-2  { left: 36.0%; bottom: 25.5%; z-index: 7; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-3  { left: 51.0%; bottom: 24.0%; z-index: 8; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-4  { left: 66.0%; bottom: 22.5%; z-index: 9; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-5  { left: 14.5%; bottom: 19.0%; z-index: 9; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-6  { left: 29.5%; bottom: 17.5%; z-index: 10; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-7  { left: 44.5%; bottom: 16.0%; z-index: 11; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-8  { left: 59.5%; bottom: 14.5%; z-index: 12; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-9  { left: 8.0%;  bottom: 11.0%; z-index: 11; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-10 { left: 23.0%; bottom: 9.5%;  z-index: 12; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-11 { left: 38.0%; bottom: 8.0%;  z-index: 13; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-12 { left: 53.0%; bottom: 6.5%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-13 { left: 1.5%;  bottom: 3.0%;  z-index: 13; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-14 { left: 16.5%; bottom: 1.8%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-15 { left: 31.5%; bottom: 0.8%;  z-index: 14; }
+        .pm-big-box-container.tray-grid-16 .pm-show-box-item.slot-pos-16 { left: 46.5%; bottom: 0.2%;  z-index: 14; }
 
         /* Interactive Hover & Active Pop-Up (.index_activeBox__dS455) */
         .pm-show-box-item:hover:not(.box-unavailable),
         .pm-show-box-item:focus-visible:not(.box-unavailable) {
             transform: translateY(-24px);
             filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.18));
+            z-index: 25 !important;
         }
         .pm-show-box-item.active-box {
             transform: translateY(-32px) !important;
             filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.24));
+            z-index: 25 !important;
         }
 
         /* Unavailable / Sold box in set — hidden just like POP MART missing box slots */
@@ -945,8 +1029,7 @@
                             <i class="bi bi-arrow-left-right"></i>
                         </div>
                         <div class="pm-box-status-dots" id="boxStatusDots">
-                            <span th:each="slot, iter : ${slots}"
-                                  th:if="${iter.index < 6}"
+                            <span th:each="slot : ${slots}"
                                   class="pm-status-circle"
                                   th:classappend="${slot.status == 'AVAILABLE' ? 'available' : 'Unavailable'}"
                                   th:data-slot-index="${slot.slotIndex}"
@@ -974,7 +1057,8 @@
 
                     <!-- Center Animated Stage -->
                     <div class="series-carousel__product" id="carouselProductStage">
-                        <div class="pm-big-box-container" id="bigBoxContainer">
+                        <div class="pm-big-box-container" id="bigBoxContainer"
+                             th:classappend="${product.boxesPerSet == 9 ? ' tray-grid-9' : (product.boxesPerSet == 12 ? ' tray-grid-12' : (product.boxesPerSet == 8 ? ' tray-grid-8' : (product.boxesPerSet == 16 ? ' tray-grid-16' : ' tray-grid-6')))}">
                             <!-- Layer 1: Ground Drop Shadow -->
                             <img th:src="${theme != null && theme.trayShadowUrl != null ? theme.trayShadowUrl : '/images/popnow/tray-shadow.png'}"
                                  alt=""
@@ -987,9 +1071,8 @@
                                  id="trayBgImg"
                                  class="pm-main-bg-img">
 
-                            <!-- Layer 3: 6 Individual Interactive 3D Blind Boxes inside the tray -->
-                            <div th:each="slot, iter : ${slots}"
-                                 th:if="${iter.index < 6}"
+                            <!-- Layer 3: Interactive 3D Blind Boxes inside the tray -->
+                            <div th:each="slot : ${slots}"
                                  class="pm-show-box-item"
                                  th:classappend="'slot-pos-' + ${slot.slotIndex} + (${slot.status != 'AVAILABLE'} ? ' box-unavailable' : '')"
                                  th:data-slot-index="${slot.slotIndex}"
@@ -1062,7 +1145,7 @@
 
                         <div class="pm-3d-single-box-card" id="single3DBoxCard">
                             <span class="pm-single-box-badge">BOX #<span id="singleBoxBadgeNum">1</span></span>
-                            <img th:src="${theme != null && theme.smallBoxImgUrl != null ? theme.smallBoxImgUrl : '/images/popnow/small-box.png'}"
+                            <img th:src="${theme != null && theme.singleBoxImgUrl != null ? theme.singleBoxImgUrl : (theme != null && theme.smallBoxImgUrl != null ? theme.smallBoxImgUrl : '/images/popnow/small-box.png')}"
                                  th:alt="${product.name}"
                                  id="singleBoxHeroImg"
                                  onerror="this.onerror=null;this.src='/images/popnow/small-box.png';"
@@ -1237,6 +1320,7 @@
         let userLuckyPoints = /*[[${luckyPoints != null ? luckyPoints : 50}]]*/ 50;
         let userHintCards = /*[[${hintCards != null ? hintCards : 1}]]*/ 1;
         let canCheckInToday = /*[[${canCheckInToday}]]*/ false;
+        let totalBoxesInSet = /*[[${product.boxesPerSet != null ? product.boxesPerSet : (slots != null ? slots.size() : 6)}]]*/ 6;
         /*]]>*/
     </script>
     <script th:inline="none">
@@ -1385,7 +1469,7 @@
                             img.src = currentTheme.smallBoxImgUrl;
                         });
                         const heroImg = document.getElementById('singleBoxHeroImg');
-                        if (heroImg) heroImg.src = currentTheme.smallBoxImgUrl;
+                        if (heroImg) heroImg.src = currentTheme.singleBoxImgUrl || currentTheme.smallBoxImgUrl;
                     }
                 }
             },
@@ -1574,9 +1658,10 @@
 
         function navigateAdjacentBox(delta) {
             const current = currentSelectedBoxIndex || 1;
+            const maxBoxes = totalBoxesInSet || 6;
             let next = current + delta;
-            if (next < 1) next = 6;
-            if (next > 6) next = 1;
+            if (next < 1) next = maxBoxes;
+            if (next > maxBoxes) next = 1;
             switchSingleBox(next);
         }
 

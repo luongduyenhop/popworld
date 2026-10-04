@@ -32,8 +32,9 @@
         <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 bg-white">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <img th:if="${product.mainImageUrl != null}" th:src="${product.mainImageUrl}"
-                         alt="Thumbnail" class="rounded-3 border object-fit-cover shadow-sm" style="width: 70px; height: 70px;">
+                    <img th:src="${product.mainImageUrl != null and !product.mainImageUrl.isEmpty() ? product.mainImageUrl : '/images/placeholder.svg'}"
+                         alt="Thumbnail" class="rounded-3 border object-fit-cover shadow-sm" style="width: 70px; height: 70px;"
+                         onerror="this.onerror=null; this.src='/images/placeholder.svg';">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h4 class="fw-black mb-0 text-dark" th:text="${product.name}">Tên Series Art Toy</h4>
@@ -59,49 +60,77 @@
             </div>
         </div>
 
-        <!-- Section 1: Standard 12 Pick-a-Box Slots Grid -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <!-- Section 1: Dynamic Pick-a-Box Slots Grid -->
+        <div class="admin-card mb-4">
+            <div class="admin-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
                     <h6 class="mb-0 fw-bold text-dark">
-                        <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>Khay Hộp 12 Vị Trí (Pick a Box Tray)
+                        <i class="bi bi-grid-3x3-gap-fill text-danger me-2"></i>Khay Hộp Bốc Thăm (Pick a Box Tray)
+                        <span class="badge bg-danger ms-2 rounded-pill" th:text="'Quy cách: Bộ ' + (${product.boxesPerSet != null ? product.boxesPerSet : 12}) + ' hộp'">Bộ 12 hộp</span>
                     </h6>
-                    <small class="text-muted">Quản lý trực quan 12 vị trí bốc hộp. Các ô Đang giữ (HELD) và Đã bán (SOLD) được bảo vệ bất biến.</small>
+                    <small class="text-muted">Quản lý trực quan các vị trí bốc hộp theo quy cách Series. Các ô Đang giữ (HELD) và Đã bán (SOLD) được bảo vệ bất biến.</small>
                 </div>
 
-                <form th:action="@{/admin/popnow/{id}/init-slots(id=${product.id})}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"
-                            onclick="return confirm('Hệ thống sẽ tự động khởi tạo các vị trí ô hộp còn thiếu từ 1 đến 12. Tiếp tục?')">
-                        <i class="bi bi-plus-circle me-1"></i> Khởi Tạo 12 Ô Tiêu Chuẩn
-                    </button>
-                </form>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Form đổi quy cách số hộp -->
+                    <form th:action="@{/admin/popnow/{id}/update-packaging(id=${product.id})}" method="post" class="d-flex align-items-center gap-1 m-0">
+                        <select name="boxesPerSet" class="form-select form-select-sm rounded-pill" style="width: 140px;">
+                            <option value="6" th:selected="${product.boxesPerSet == 6}">Bộ 6 hộp (Mini)</option>
+                            <option value="8" th:selected="${product.boxesPerSet == 8}">Bộ 8 hộp</option>
+                            <option value="9" th:selected="${product.boxesPerSet == 9}">Bộ 9 hộp (Molly)</option>
+                            <option value="12" th:selected="${product.boxesPerSet == 12 || product.boxesPerSet == null}">Bộ 12 hộp (Chuẩn)</option>
+                            <option value="16" th:selected="${product.boxesPerSet == 16}">Bộ 16 hộp (Mega)</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill px-2">Đổi Quy Cách</button>
+                    </form>
+
+                    <!-- Form khởi tạo ô hộp -->
+                    <form th:action="@{/admin/popnow/{id}/init-slots(id=${product.id})}" method="post" class="d-inline m-0">
+                        <input type="hidden" name="slotCount" th:value="${product.boxesPerSet != null ? product.boxesPerSet : 12}">
+                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold"
+                                onclick="return confirm('Hệ thống sẽ tự động khởi tạo các vị trí ô hộp theo đúng quy cách. Tiếp tục?')">
+                            <i class="bi bi-plus-circle me-1"></i> Khởi Tạo Ô Hộp
+                        </button>
+                    </form>
+
+                    <!-- Form dọn dẹp ô trống thừa -->
+                    <form th:if="${#lists.size(slots) > (product.boxesPerSet != null ? product.boxesPerSet : 12)}"
+                          th:action="@{/admin/popnow/{id}/cleanup-slots(id=${product.id})}" method="post" class="d-inline m-0">
+                        <input type="hidden" name="targetCount" th:value="${product.boxesPerSet != null ? product.boxesPerSet : 12}">
+                        <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2 fw-semibold"
+                                onclick="return confirm('Dọn dẹp các ô trống (AVAILABLE) vượt quá quy cách số hộp?')">
+                            <i class="bi bi-scissors me-1"></i> Dọn Ô Thừa
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <div class="card-body p-4">
-                <div th:if="${#lists.isEmpty(slots)}" class="alert alert-warning rounded-4 text-center py-4 mb-0">
+            <div class="admin-card-body">
+                <div th:if="${#lists.isEmpty(slots)}" class="alert alert-warning rounded-2 text-center py-4 mb-0">
                     <i class="bi bi-exclamation-triangle-fill fs-2 text-warning d-block mb-2"></i>
-                    <strong>Series này chưa được khởi tạo khay 12 vị trí bốc hộp!</strong>
-                    <p class="small text-muted mb-3">Khách hàng sẽ không thể thực hiện chọn vị trí ô hộp (Pick a Box) cho đến khi 12 ô được khởi tạo.</p>
-                    <form th:action="@{/admin/popnow/{id}/init-slots(id=${product.id})}" method="post">
+                    <strong>Series này chưa được khởi tạo khay ô hộp bốc thăm!</strong>
+                    <p class="small text-muted mb-3">Khách hàng sẽ không thể thực hiện chọn vị trí ô hộp (Pick a Box) cho đến khi các ô được khởi tạo.</p>
+                    <form th:action="@{/admin/popnow/{id}/init-slots(id=${product.id})}" method="post" class="m-0">
+                        <input type="hidden" name="slotCount" th:value="${product.boxesPerSet != null ? product.boxesPerSet : 12}">
                         <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
-                            <i class="bi bi-magic me-1"></i> Khởi Tạo Ngay 12 Ô Tiêu Chuẩn
+                            <i class="bi bi-magic me-1"></i> Khởi Tạo Ô Hộp Ngay
                         </button>
                     </form>
                 </div>
 
                 <div th:unless="${#lists.isEmpty(slots)}" class="row g-3">
                     <div th:each="slot : ${slots}" class="col-6 col-sm-4 col-md-3 col-lg-2">
-                        <div class="card text-center border rounded-4 p-3 shadow-sm h-100 transition-hover"
+                        <div class="card text-center border rounded-2 p-3 shadow-sm h-100 transition-hover"
                              th:classappend="${slot.status.name() == 'AVAILABLE'} ? 'border-success bg-success-subtle bg-opacity-10' : (${slot.status.name() == 'HELD'} ? 'border-warning bg-warning-subtle bg-opacity-10' : 'border-secondary bg-light')">
                             <div class="fw-black fs-4 mb-1 text-dark" th:text="'#' + ${slot.slotIndex}">#1</div>
                             <div>
-                                <span th:if="${slot.status.name() == 'AVAILABLE'}" class="badge bg-success rounded-pill px-2 py-1 small">
+                                <span th:if="${slot.status.name() == 'AVAILABLE'}" class="badge bg-success rounded-pill px-2 py-1 small text-nowrap">
                                     <i class="bi bi-unlock-fill me-1"></i>Trống
                                 </span>
-                                <span th:if="${slot.status.name() == 'HELD'}" class="badge bg-warning text-dark rounded-pill px-2 py-1 small">
+                                <span th:if="${slot.status.name() == 'HELD'}" class="badge bg-warning text-dark rounded-pill px-2 py-1 small text-nowrap">
                                     <i class="bi bi-hourglass-split me-1"></i>Đang Giữ
                                 </span>
-                                <span th:if="${slot.status.name() == 'SOLD'}" class="badge bg-secondary rounded-pill px-2 py-1 small">
+                                <span th:if="${slot.status.name() == 'SOLD'}" class="badge bg-secondary rounded-pill px-2 py-1 small text-nowrap">
                                     <i class="bi bi-bag-check-fill me-1"></i>Đã Bán
                                 </span>
                             </div>
@@ -116,98 +145,153 @@
         </div>
 
         <!-- Section 2: BlindBoxItems Series Configuration Table -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="admin-card mb-5">
+            <div class="admin-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
-                    <h6 class="mb-0 fw-bold text-dark">
-                        <i class="bi bi-stars text-danger me-2"></i>Danh Sách Mẫu Mô Hình Trong Series (BlindBoxItem)
-                    </h6>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <h6 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-stars text-danger me-2"></i>Danh Sách Mẫu Mô Hình Trong Series (BlindBoxItem)
+                        </h6>
+                        <!-- Badge nhận diện loại Series -->
+                        <span th:if="${isExistingSeries}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-collection-fill me-1"></i>Bộ Sưu Tập Đã Tồn Tại (Chuẩn Series)
+                        </span>
+                        <span th:unless="${isExistingSeries}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-folder-plus me-1"></i>Bộ Sưu Tập Mới (Tự Cấu Hình)
+                        </span>
+                    </div>
                     <small class="text-muted">Cấu hình các nhân vật có thể bốc trúng, cấp độ hiếm và trọng số xác suất Weighted Random.</small>
                 </div>
 
-                <button type="button" class="btn btn-pop-red rounded-pill px-3 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#createItemModal">
-                    <i class="bi bi-plus-lg me-1"></i> Thêm Mô Hình Mới
-                </button>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Nút Đồng bộ / Nạp lại từ Series nếu là Series đã tồn tại -->
+                    <form th:if="${isExistingSeries}" th:action="@{/admin/popnow/{id}/sync-series-items(id=${product.id})}" method="post" class="d-inline m-0"
+                          onsubmit="return confirm('Hệ thống sẽ đồng bộ và nạp lại toàn bộ danh sách mô hình chuẩn theo Series này. Tiếp tục?');">
+                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-bold text-nowrap"
+                                title="Nạp lại hoặc khôi phục danh sách mô hình chuẩn theo Series">
+                            <i class="bi bi-arrow-repeat me-1"></i> Nạp Lại Mô Hình Chuẩn
+                        </button>
+                    </form>
+
+                    <!-- Nút Tạo nhanh bộ mẫu nếu là Series mới -->
+                    <form th:unless="${isExistingSeries}" th:action="@{/admin/popnow/{id}/quick-generate-templates(id=${product.id})}" method="post" class="d-inline m-0"
+                          onsubmit="return confirm('Tự động tạo nhanh bộ mô hình mẫu theo quy cách hộp? Bạn có thể chỉnh sửa tên và ảnh cho từng mô hình sau.');">
+                        <input type="hidden" name="count" th:value="${product.boxesPerSet != null ? product.boxesPerSet : 12}">
+                        <button type="submit" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2 fw-semibold text-nowrap"
+                                title="Tạo nhanh các vị trí mô hình mẫu">
+                            <i class="bi bi-magic me-1"></i> Tạo Nhanh Bộ Mẫu
+                        </button>
+                    </form>
+
+                    <button type="button" class="btn btn-danger rounded-pill px-3 py-2 fw-bold text-nowrap" data-bs-toggle="modal" data-bs-target="#createItemModal">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm Mô Hình Mới
+                    </button>
+                </div>
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr class="small text-uppercase text-muted fw-bold">
-                            <th class="ps-4">Hình Ảnh</th>
-                            <th>Tên Mô Hình</th>
-                            <th>Cấp Độ Hiếm (Rarity)</th>
-                            <th>Trọng Số Xác Suất</th>
-                            <th>Tồn Kho Riêng</th>
-                            <th>Trạng Thái</th>
-                            <th class="text-end pe-4">Thao Tác</th>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" style="width: 80px;">Hình Ảnh</th>
+                            <th style="min-width: 180px;">Tên Mô Hình</th>
+                            <th class="text-nowrap">Cấp Độ Hiếm (Rarity)</th>
+                            <th class="text-nowrap">Trọng Số Xác Suất</th>
+                            <th class="text-nowrap">Tồn Kho Riêng</th>
+                            <th class="text-nowrap">Trạng Thái</th>
+                            <th class="text-end pe-4 text-nowrap sticky-action-col" style="min-width: 140px;">Thao Tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(items)}">
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-box2 fs-1 d-block mb-2 text-secondary"></i>
-                                Chưa có mô hình nào được thêm vào Series này.
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createItemModal">
-                                        + Thêm Mô Hình Đầu Tiên
-                                    </button>
+                                <div th:if="${isExistingSeries}">
+                                    <h6 class="fw-bold text-dark">Chưa có mô hình nào được nạp cho Series này</h6>
+                                    <p class="small text-muted mb-3">Đây là bộ sưu tập đã có trong hệ thống. Bạn có thể nạp tự động đủ danh sách mô hình chuẩn chỉ với 1 cú click.</p>
+                                    <form th:action="@{/admin/popnow/{id}/sync-series-items(id=${product.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                                            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Nạp Đủ Mô Hình Chuẩn Của Series Ngay
+                                        </button>
+                                    </form>
+                                </div>
+                                <div th:unless="${isExistingSeries}">
+                                    <h6 class="fw-bold text-dark">Bộ Sưu Tập Mới: Chưa có mô hình nào</h6>
+                                    <p class="small text-muted mb-3">Vì đây là bộ sưu tập mới, vui lòng thêm bằng tay từng sản phẩm trong bộ hoặc bấm Tạo nhanh bộ mẫu.</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-outline-danger rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createItemModal">
+                                            <i class="bi bi-plus-lg me-1"></i> Thêm Bằng Tay Từng Mô Hình
+                                        </button>
+                                        <form th:action="@{/admin/popnow/{id}/quick-generate-templates(id=${product.id})}" method="post" class="d-inline">
+                                            <input type="hidden" name="count" th:value="${product.boxesPerSet != null ? product.boxesPerSet : 12}">
+                                            <button type="submit" class="btn btn-dark rounded-pill px-3 fw-bold">
+                                                <i class="bi bi-magic me-1"></i> Tạo Nhanh Bộ Mẫu
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
                         <tr th:each="item : ${items}">
                             <td class="ps-4 py-3" style="width: 80px;">
                                 <img th:src="${item.imageUrl}" th:alt="${item.name}"
-                                     class="rounded-3 border object-fit-cover shadow-sm bg-light"
-                                     style="width: 54px; height: 54px;"
-                                     onerror="this.src='/images/placeholder.png'">
+                                     class="rounded-2 border object-fit-cover shadow-sm bg-light"
+                                     style="width: 50px; height: 50px;"
+                                     onerror="this.onerror=null; this.src='/images/placeholder.svg';">
                             </td>
-                            <td>
+                            <td style="min-width: 180px;">
                                 <div class="fw-bold text-dark" th:text="${item.name}">The Monster</div>
                                 <div class="text-muted small font-monospace" th:text="'ID: #' + ${item.id}">#1</div>
                             </td>
-                            <td>
-                                <span th:if="${item.rarity.name() == 'REGULAR'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1">
+                            <td class="text-nowrap">
+                                <span th:if="${item.rarity.name() == 'REGULAR'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1 text-nowrap">
                                     REGULAR
                                 </span>
-                                <span th:if="${item.rarity.name() == 'SECRET'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-bold">
+                                <span th:if="${item.rarity.name() == 'SECRET'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 fw-bold text-nowrap">
                                     <i class="bi bi-star-fill text-warning me-1"></i>SECRET
                                 </span>
-                                <span th:if="${item.rarity.name() == 'SUPER_SECRET'}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 fw-bold">
+                                <span th:if="${item.rarity.name() == 'SUPER_SECRET'}" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 fw-bold text-nowrap">
                                     <i class="bi bi-stars text-danger me-1"></i>SUPER SECRET
                                 </span>
-                                <span th:if="${item.rarity.name() == 'SPECIAL'}" class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-1 fw-bold">
+                                <span th:if="${item.rarity.name() == 'SPECIAL'}" class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-1 fw-bold text-nowrap">
                                     SPECIAL
                                 </span>
                             </td>
-                            <td>
-                                <span class="badge bg-dark rounded-pill px-3 py-1 font-monospace fs-6" th:text="${item.probabilityWeight}">100</span>
-                                <span class="text-muted small ms-1">weight</span>
+                            <td class="text-nowrap">
+                                <span class="badge bg-dark rounded-pill px-3 py-1 font-monospace fs-6 text-nowrap" th:text="${item.probabilityWeight}">100</span>
+                                <span class="text-muted small ms-1 text-nowrap">weight</span>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <span th:if="${item.stockQuantity != null}" class="fw-bold text-dark" th:text="${item.stockQuantity}">10</span>
                                 <span th:unless="${item.stockQuantity != null}" class="text-muted small">Theo Series</span>
                             </td>
-                            <td>
-                                <span th:if="${item.active}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                            <td class="text-nowrap">
+                                <span th:if="${item.active}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 text-nowrap">
                                     <i class="bi bi-check-circle me-1"></i>Hoạt Động
                                 </span>
-                                <span th:unless="${item.active}" class="badge bg-secondary-subtle text-muted border border-secondary-subtle rounded-pill px-2 py-1">
+                                <span th:unless="${item.active}" class="badge bg-secondary-subtle text-muted border border-secondary-subtle rounded-pill px-2 py-1 text-nowrap">
                                     <i class="bi bi-pause-circle me-1"></i>Tạm Dừng
                                 </span>
                             </td>
-                            <td class="text-end pe-4">
-                                <div class="d-inline-flex gap-1">
+                            <td class="text-end pe-4 text-nowrap sticky-action-col" style="min-width: 140px;">
+                                <div class="d-inline-flex gap-1 align-items-center justify-content-end flex-nowrap">
                                     <!-- Nút Sửa mở modal -->
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2"
-                                            th:onclick="'openEditModal(' + ${item.id} + ', \'' + ${#strings.escapeJavaScript(item.name)} + '\', \'' + ${item.rarity.name()} + '\', \'' + ${#strings.escapeJavaScript(item.imageUrl)} + '\', ' + ${item.probabilityWeight} + ', ' + ${item.stockQuantity != null ? item.stockQuantity : 'null'} + ', ' + ${item.active} + ')'"
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 text-nowrap"
+                                            th:data-id="${item.id}"
+                                            th:data-name="${item.name}"
+                                            th:data-rarity="${item.rarity.name()}"
+                                            th:data-image-url="${item.imageUrl}"
+                                            th:data-weight="${item.probabilityWeight}"
+                                            th:data-stock="${item.stockQuantity}"
+                                            th:data-active="${item.active}"
+                                            onclick="openEditModalFromButton(this)"
                                             title="Chỉnh sửa mô hình">
                                         <i class="bi bi-pencil"></i>
                                     </button>
 
                                     <!-- Nút Bật / Tắt kích hoạt -->
-                                    <form th:action="@{/admin/popnow/{pId}/items/{itemId}/toggle(pId=${product.id}, itemId=${item.id})}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-2"
+                                    <form th:action="@{/admin/popnow/{pId}/items/{itemId}/toggle(pId=${product.id}, itemId=${item.id})}" method="post" class="d-inline m-0">
+                                        <button type="submit" class="btn btn-sm rounded-pill px-2 text-nowrap"
                                                 th:classappend="${item.active} ? 'btn-outline-warning' : 'btn-outline-success'"
                                                 th:title="${item.active} ? 'Tắt kích hoạt (Deactivate)' : 'Kích hoạt lại (Activate)'">
                                             <i th:class="${item.active} ? 'bi bi-pause-fill' : 'bi bi-play-fill'"></i>
@@ -215,8 +299,8 @@
                                     </form>
 
                                     <!-- Nút Xóa (An toàn: Chặn xóa nếu có lịch sử sở hữu) -->
-                                    <form th:action="@{/admin/popnow/{pId}/items/{itemId}/delete(pId=${product.id}, itemId=${item.id})}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2"
+                                    <form th:action="@{/admin/popnow/{pId}/items/{itemId}/delete(pId=${product.id}, itemId=${item.id})}" method="post" class="d-inline m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 text-nowrap"
                                                 onclick="return confirm('Bạn có chắc chắn muốn xóa mô hình này? Nếu mô hình đã từng có người chơi bóc trúng trong tủ đồ ảo, hệ thống sẽ ngăn chặn việc xóa để đảm bảo toàn vẹn dữ liệu.')"
                                                 title="Xóa vĩnh viễn (nếu an toàn)">
                                             <i class="bi bi-trash"></i>
@@ -342,10 +426,20 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     const productId = /*[[${product.id}]]*/ 0;
+
+    function openEditModalFromButton(btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const rarity = btn.getAttribute('data-rarity');
+        const imageUrl = btn.getAttribute('data-image-url');
+        const weight = btn.getAttribute('data-weight');
+        const stock = btn.getAttribute('data-stock');
+        const active = btn.getAttribute('data-active') === 'true';
+        openEditModal(id, name, rarity, imageUrl, weight, stock, active);
+    }
 
     function openEditModal(id, name, rarity, imageUrl, weight, stock, active) {
         const form = document.getElementById('editItemForm');

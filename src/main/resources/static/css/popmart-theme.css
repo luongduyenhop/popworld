@@ -5146,3 +5146,481 @@ header.sticky-top,
     pointer-events: none;
     border-color: #E5E5E5;
 }
+
+/* ==========================================================================
+   6. LIVE SEARCH AUTOCOMPLETE DROPDOWN (POP MART US SPEC)
+   ========================================================================== */
+.pop-search-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 360px;
+    max-width: 90vw;
+    background: #FFFFFF;
+    border: 1px solid #111111;
+    border-radius: 0px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    display: none;
+    overflow: hidden;
+}
+
+.pop-search-autocomplete-dropdown.active {
+    display: block;
+    animation: popFadeSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popFadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pop-search-autocomplete-header {
+    padding: 8px 14px;
+    background: #FAFAFA;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #666666;
+    border-bottom: 1px solid #EEEEEE;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pop-search-autocomplete-list {
+    max-height: 380px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pop-search-autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #F3F4F6;
+    text-decoration: none;
+    color: #111111;
+    transition: background 0.15s ease;
+}
+
+.pop-search-autocomplete-item:hover {
+    background: #F9FAFB;
+}
+
+.pop-search-item-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    background: #F5F5F5;
+    flex-shrink: 0;
+    border: 1px solid #EEEEEE;
+}
+
+.pop-search-item-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.pop-search-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pop-search-item-price {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--pop-red, #D2001E);
+}
+
+.pop-search-autocomplete-footer {
+    padding: 10px 14px;
+    background: #000000;
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: block;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.pop-search-autocomplete-footer:hover {
+    background: var(--pop-red, #D2001E);
+    color: #FFFFFF;
+}
+
+.pop-search-empty-state {
+    padding: 24px 16px;
+    text-align: center;
+    color: #888888;
+    font-size: 13px;
+}
+
+/* ==========================================================================
+   7. GLOBAL POP TOAST NOTIFICATION COMPONENT
+   ========================================================================== */
+.pop-toast-container {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .pop-toast-container {
+        top: auto;
+        bottom: 20px;
+        right: 12px;
+        left: 12px;
+    }
+}
+
+.pop-toast {
+    background: #FFFFFF;
+    border: 1.5px solid #000000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    border-radius: 0px;
+    padding: 16px;
+    width: 380px;
+    max-width: 100%;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    animation: popToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.25s ease;
+}
+
+@keyframes popToastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.pop-toast.pop-toast-hiding {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.pop-toast-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #EEEEEE;
+}
+
+.pop-toast-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #10B981;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pop-toast-close {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: #666666;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.pop-toast-close:hover {
+    color: #000000;
+}
+
+.pop-toast-body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.pop-toast-img {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    background: #F5F5F5;
+    flex-shrink: 0;
+    border: 1px solid #E5E7EB;
+}
+
+.pop-toast-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.pop-toast-prod-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pop-toast-prod-meta {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--pop-red, #D2001E);
+}
+
+.pop-toast-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pop-toast-btn-primary {
+    flex: 1;
+    background: #000000;
+    color: #FFFFFF;
+    border: 1px solid #000000;
+    border-radius: 0px;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.pop-toast-btn-primary:hover {
+    background: var(--pop-red, #D2001E);
+    border-color: var(--pop-red, #D2001E);
+    color: #FFFFFF;
+}
+
+.pop-toast-btn-secondary {
+    flex: 1;
+    background: #FFFFFF;
+    color: #111111;
+    border: 1px solid #CCCCCC;
+    border-radius: 0px;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pop-toast-btn-secondary:hover {
+    border-color: #000000;
+    color: #000000;
+    background: #FAFAFA;
+}
+
+/* Header Cart Count Bounce */
+.pop-cart-bounce {
+    animation: popCartBounce 0.4s ease;
+}
+
+@keyframes popCartBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); color: var(--pop-red, #D2001E); }
+    100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   8. PDP TRUST BADGES (4 CAM KẾT VÀNG)
+   ========================================================================== */
+.pdp-trust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #EEEEEE;
+}
+
+.pdp-trust-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 0px;
+}
+
+.pdp-trust-icon {
+    font-size: 20px;
+    color: #111111;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pdp-trust-heading {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #111111;
+    margin-bottom: 2px;
+}
+
+.pdp-trust-subtext {
+    font-size: 11px;
+    color: #6B7280;
+    line-height: 1.35;
+    margin: 0;
+}
+
+/* ==========================================================================
+   9. PDP ACCORDION (THÔNG TIN / QUY TẮC BLIND BOX / ĐỔI TRẢ)
+   ========================================================================== */
+.pdp-spec-accordion {
+    margin-top: 24px;
+    border-top: 1px solid #E5E7EB;
+}
+
+.pdp-accordion-item {
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.pdp-accordion-header-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 16px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--pop-font);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #111111;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.15s ease;
+}
+
+.pdp-accordion-header-btn:hover {
+    color: var(--pop-red, #D2001E);
+}
+
+.pdp-accordion-header-btn i {
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.pdp-accordion-header-btn[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.pdp-accordion-content {
+    padding: 0 4px 18px 4px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #4B5563;
+}
+
+.pdp-accordion-content ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.pdp-accordion-content li {
+    margin-bottom: 6px;
+}
+
+/* ==========================================================================
+   10. QUICK ADD TO CART BUTTON (POP MART CATALOG & HOME CARD)
+   ========================================================================== */
+.pop-catalog-quick-add-btn {
+    position: absolute;
+    top: 42px;
+    right: 8px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.95);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.pop-catalog-quick-add-btn:hover {
+    background-color: var(--pop-red, #D2001E) !important;
+    transform: scale(1.12);
+}
+
+.pop-catalog-quick-add-btn:hover i {
+    color: #FFFFFF !important;
+}
+
+.pop-home-quick-add-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.95);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.pop-home-quick-add-btn:hover {
+    background-color: var(--pop-red, #D2001E) !important;
+    transform: scale(1.12);
+}
+
+.pop-home-quick-add-btn:hover i {
+    color: #FFFFFF !important;
+}

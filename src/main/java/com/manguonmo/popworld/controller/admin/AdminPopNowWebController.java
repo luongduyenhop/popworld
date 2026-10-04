@@ -12,6 +12,7 @@ import com.manguonmo.popworld.service.PopNowAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,6 +24,7 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequestMapping("/admin/popnow")
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminPopNowWebController {
 
@@ -42,30 +44,97 @@ public class AdminPopNowWebController {
         Product product = popNowAdminService.getProductForConfig(productId);
         List<BlindBoxItem> items = popNowAdminService.getItemsByProductId(productId);
         List<BlindBoxSlot> slots = popNowAdminService.getSlotsByProductId(productId);
+        boolean isExistingSeries = popNowAdminService.isExistingSeriesWithStandardItems(productId);
 
         model.addAttribute("product", product);
         model.addAttribute("items", items);
         model.addAttribute("slots", slots);
+        model.addAttribute("isExistingSeries", isExistingSeries);
         model.addAttribute("rarities", RarityType.values());
         model.addAttribute("activeItem", "popnow");
         model.addAttribute("pageTitle", "Cấu Hình Series: " + product.getName());
         return "admin/popnow-detail";
     }
 
-    @PostMapping("/{productId}/init-slots")
-    public String initSlots(@PathVariable Long productId, RedirectAttributes redirectAttributes) {
+    @PostMapping("/{productId}/sync-series-items")
+    public String syncSeriesItems(@PathVariable Long productId,
+                                  @RequestParam(defaultValue = "true") boolean overrideExisting,
+                                  RedirectAttributes redirectAttributes) {
         try {
-            int created = popNowAdminService.initializeStandardSlots(productId);
-            if (created > 0) {
+            int synced = popNowAdminService.syncSeriesStandardItems(productId, overrideExisting);
+            if (synced > 0) {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Đã khởi tạo thành công " + created + " ô hộp mới (vị trí 1-12)!");
+                        "Đã nạp và đồng bộ thành công " + synced + " mô hình chuẩn của Series!");
             } else {
                 redirectAttributes.addFlashAttribute("infoMessage",
-                        "Tất cả 12 ô hộp tiêu chuẩn của Series này đã tồn tại đầy đủ.");
+                        "Các mô hình chuẩn của Series này đã tồn tại đầy đủ trong danh sách.");
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi đồng bộ mô hình chuẩn từ Series: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể nạp mô hình từ Series: " + e.getMessage());
+        }
+        return "redirect:/admin/popnow/" + productId;
+    }
+
+    @PostMapping("/{productId}/quick-generate-templates")
+    public String quickGenerateTemplates(@PathVariable Long productId,
+                                         @RequestParam(required = false) Integer count,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            int created = popNowAdminService.quickGenerateTemplateItems(productId, count);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã tạo nhanh " + created + " mô hình mẫu cho bộ sưu tập mới! Bạn có thể chỉnh sửa tên và ảnh cho từng mô hình.");
+        } catch (Exception e) {
+            log.error("Lỗi khi tạo nhanh mô hình mẫu: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể tạo nhanh mẫu: " + e.getMessage());
+        }
+        return "redirect:/admin/popnow/" + productId;
+    }
+
+    @PostMapping("/{productId}/init-slots")
+    public String initSlots(@PathVariable Long productId,
+                            @RequestParam(required = false) Integer slotCount,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            int created = popNowAdminService.initializeSlots(productId, slotCount);
+            if (created > 0) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Đã khởi tạo thành công " + created + " ô hộp mới cho Series này!");
+            } else {
+                redirectAttributes.addFlashAttribute("infoMessage",
+                        "Các ô hộp của Series này đã tồn tại đầy đủ theo quy cách.");
             }
         } catch (Exception e) {
             log.error("Lỗi khi khởi tạo ô hộp POP NOW: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể khởi tạo ô hộp: " + e.getMessage());
+        }
+        return "redirect:/admin/popnow/" + productId;
+    }
+
+    @PostMapping("/{productId}/update-packaging")
+    public String updatePackaging(@PathVariable Long productId,
+                                  @RequestParam Integer boxesPerSet,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            popNowAdminService.updateBoxesPerSet(productId, boxesPerSet);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã cập nhật quy cách bộ hộp thành " + boxesPerSet + " hộp/set thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật quy cách: " + e.getMessage());
+        }
+        return "redirect:/admin/popnow/" + productId;
+    }
+
+    @PostMapping("/{productId}/cleanup-slots")
+    public String cleanupSlots(@PathVariable Long productId,
+                               @RequestParam Integer targetCount,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            int cleaned = popNowAdminService.cleanupExcessAvailableSlots(productId, targetCount);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã dọn dẹp " + cleaned + " ô trống vượt quá giới hạn " + targetCount + " ô!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể dọn dẹp ô hộp: " + e.getMessage());
         }
         return "redirect:/admin/popnow/" + productId;
     }

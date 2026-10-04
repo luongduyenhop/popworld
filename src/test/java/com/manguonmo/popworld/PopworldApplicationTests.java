@@ -1,11 +1,13 @@
 package com.manguonmo.popworld;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@Disabled("Requires live MySQL instance")
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:application-test.properties")
 class PopworldApplicationTests {
 
 	@Test

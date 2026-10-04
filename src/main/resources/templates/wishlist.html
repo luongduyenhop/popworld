@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+    <title th:text="${pageTitle != null ? pageTitle : 'Danh Sách Yêu Thích - PopWorld Art Toy'}">Danh Sách Yêu Thích - PopWorld</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css(v='3.3')}">
+    <style>
+        .wishlist-hero-section {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 40px 0 32px 0;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .wishlist-title {
+            font-family: var(--pop-font, 'Montserrat', sans-serif);
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .wishlist-subtitle {
+            font-size: 0.9rem;
+            color: #94A3B8;
+            letter-spacing: 0.5px;
+        }
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        @media (max-width: 1200px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+        @media (max-width: 768px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .wishlist-hero-section {
+                padding: 24px 0 20px 0;
+            }
+            .wishlist-title {
+                font-size: 1.4rem;
+            }
+        }
+        .wishlist-card {
+            background: #ffffff;
+            border: 1px solid #EDEDED;
+            border-radius: 0px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .wishlist-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            border-color: #000000;
+        }
+        .wishlist-img-box {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            background-color: #f7f7f7;
+            overflow: hidden;
+        }
+        .wishlist-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .wishlist-card:hover .wishlist-img {
+            transform: scale(1.04);
+        }
+        .wishlist-remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #EDEDED;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D2001E;
+            cursor: pointer;
+            z-index: 3;
+            transition: all 0.2s ease;
+        }
+        .wishlist-remove-btn:hover {
+            background: #D2001E;
+            color: #ffffff;
+            border-color: #D2001E;
+            transform: scale(1.1);
+        }
+        .wishlist-card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .wishlist-product-name {
+            font-family: var(--pop-font, 'Montserrat', sans-serif);
+            font-weight: 700;
+            font-size: 0.9rem;
+            line-height: 1.35;
+            color: #000000;
+            text-decoration: none;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 2.7em;
+            margin-bottom: 8px;
+        }
+        .wishlist-product-name:hover {
+            color: #D2001E;
+        }
+        .wishlist-price {
+            font-family: var(--pop-font, 'Montserrat', sans-serif);
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: #D2001E;
+            margin-bottom: 12px;
+        }
+        .wishlist-btn-add {
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 0px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            width: 100%;
+            margin-top: auto;
+            transition: all 0.2s ease;
+        }
+        .wishlist-btn-add:hover {
+            background-color: #D2001E;
+            border-color: #D2001E;
+            color: #ffffff;
+        }
+        .wishlist-empty-box {
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 0px;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .wishlist-empty-icon {
+            font-size: 4rem;
+            color: #E2E8F0;
+            margin-bottom: 16px;
+        }
+        .btn-pop-black {
+            background: #000000;
+            color: #ffffff;
+            border-radius: 0px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 12px 32px;
+            border: 1px solid #000000;
+            transition: all 0.2s ease;
+        }
+        .btn-pop-black:hover {
+            background: #D2001E;
+            border-color: #D2001E;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body style="background-color: #FAFAFB;">
+
+    <!-- Header Fragment -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <!-- Hero / Header Banner -->
+    <section class="wishlist-hero-section">
+        <div class="container">
+            <h1 class="wishlist-title">MY WISHLIST</h1>
+            <p class="wishlist-subtitle">DANH SÁCH SẢN PHẨM NGHỆ THUẬT BẠN ĐANG THEO DÕI</p>
+        </div>
+    </section>
+
+    <main class="container mb-5">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb" style="font-size: 0.85rem;">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-secondary">Trang Chủ</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">Danh Sách Yêu Thích</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show rounded-0 border-0 mb-4" role="alert" style="background: #10B981; color: white;">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">Thao tác thành công!</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show rounded-0 border-0 mb-4" role="alert" style="background: #D2001E; color: white;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">Đã xảy ra lỗi!</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Wishlist Count Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-black text-dark text-uppercase fs-5" style="letter-spacing: 0.5px;">TẤT CẢ SẢN PHẨM</span>
+                <span class="badge bg-black rounded-0 text-white fw-bold" id="pageWishlistCountBadge" th:text="${wishlistCount != null ? wishlistCount : 0}">0</span>
+            </div>
+            <a th:href="@{/products}" class="text-decoration-none text-dark fw-bold small text-uppercase">
+                <i class="bi bi-arrow-left me-1"></i> TIẾP TỤC MUA SẮM
+            </a>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div th:if="${products == null or products.isEmpty()}" class="wishlist-empty-box" id="wishlistEmptyState">
+            <div class="wishlist-empty-icon">
+                <i class="bi bi-heart"></i>
+            </div>
+            <h3 class="fw-black text-uppercase text-dark mb-2">DANH SÁCH YÊU THÍCH ĐANG TRỐNG</h3>
+            <p class="text-secondary small mb-4 mx-auto" style="max-width: 480px;">
+                Bạn chưa lưu sản phẩm nghệ thuật nào vào danh sách theo dõi. Hãy khám phá kho tàng Art Toy và lưu lại những mẫu blind box yêu thích nhất của bạn!
+            </p>
+            <a th:href="@{/products}" class="btn btn-pop-black">
+                KHÁM PHÁ BỘ SƯU TẬP NGAY
+            </a>
+        </div>
+
+        <!-- WISHLIST PRODUCTS GRID -->
+        <div th:if="${products != null and !products.isEmpty()}" class="wishlist-grid" id="wishlistGrid">
+            <div th:each="product : ${products}" class="wishlist-card" th:id="'wishlist-card-' + ${product.id}">
+                <!-- Image Box -->
+                <div class="wishlist-img-box">
+                    <a th:href="@{'/products/' + ${product.slug}}">
+                        <img th:src="${product.mainImageUrl}" th:alt="${product.name}" class="wishlist-img">
+                    </a>
+                    <!-- Remove Button -->
+                    <button type="button" class="wishlist-remove-btn" 
+                            th:attr="data-product-id=${product.id}"
+                            onclick="removeWishlistItem(this)" 
+                            title="Xóa khỏi danh sách yêu thích" aria-label="Xóa khỏi yêu thích">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
+
+                <!-- Card Body -->
+                <div class="wishlist-card-body">
+                    <a th:href="@{'/products/' + ${product.slug}}" class="wishlist-product-name" th:text="${product.name}">
+                        Tên sản phẩm
+                    </a>
+                    
+                    <div class="wishlist-price" 
+                         th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        350.000 ₫
+                    </div>
+
+                    <!-- Add to Cart AJAX Button -->
+                    <button type="button" class="btn wishlist-btn-add"
+                            th:attr="data-product-id=${product.id}, data-product-name=${product.name}, data-product-price=${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${product.mainImageUrl}"
+                            onclick="addWishlistItemToCart(this)">
+                        <i class="bi bi-bag-plus me-1"></i> THÊM VÀO GIỎ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Wishlist Management Script -->
+    <script>
+        async function addWishlistItemToCart(btn) {
+            const productId = btn.getAttribute('data-product-id');
+            const productName = btn.getAttribute('data-product-name') || 'Sản phẩm';
+            const productPrice = btn.getAttribute('data-product-price') || '';
+            const productImg = btn.getAttribute('data-product-img') || '';
+            if (!productId) return;
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> ĐANG THÊM...';
+
+            try {
+                const params = new URLSearchParams();
+                params.append('productId', productId);
+                params.append('purchaseType', 'SINGLE_BOX');
+                params.append('quantity', 1);
+
+                const res = await fetch('/api/cart/items?' + params.toString(), {
+                    method: 'POST',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                });
+
+                if (res.status === 401 || res.redirected) {
+                    window.location.href = '/login?continue=/wishlist';
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.success) {
+                    fetch('/api/cart/summary')
+                        .then(r => r.json())
+                        .then(sumData => {
+                            if (sumData.success && sumData.data && window.updateHeaderCartCount) {
+                                window.updateHeaderCartCount(sumData.data.cartCount);
+                            }
+                        })
+                        .catch(() => {});
+
+                    if (window.showPopToast) {
+                        window.showPopToast({
+                            title: 'ĐÃ THÊM VÀO GIỎ HÀNG',
+                            name: productName + ' (Single Box x1)',
+                            price: productPrice,
+                            imageUrl: productImg,
+                            ctaText: 'XEM GIỎ HÀNG',
+                            ctaUrl: '/cart'
+                        });
+                    }
+                } else {
+                    alert(data.message || 'Không thể thêm vào giỏ hàng.');
+                }
+            } catch (err) {
+                console.error('Lỗi thêm giỏ hàng từ wishlist:', err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        async function removeWishlistItem(btn) {
+            const productId = btn.getAttribute('data-product-id');
+            if (!productId) return;
+
+            const card = document.getElementById('wishlist-card-' + productId);
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                const res = await fetch('/api/wishlist/toggle', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                });
+
+                if (res.status === 401 || res.redirected) {
+                    window.location.href = '/login?continue=/wishlist';
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.success && !data.wishlisted) {
+                    // Hiệu ứng mờ dần và thu nhỏ
+                    if (card) {
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            card.remove();
+                            // Kiểm tra nếu danh sách trống
+                            const grid = document.getElementById('wishlistGrid');
+                            if (grid && grid.children.length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+
+                    // Cập nhật badge
+                    const pageBadge = document.getElementById('pageWishlistCountBadge');
+                    if (pageBadge) pageBadge.textContent = data.wishlistCount;
+
+                    document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
+                        badge.textContent = data.wishlistCount;
+                    });
+                } else {
+                    alert(data.message || 'Không thể xóa sản phẩm khỏi yêu thích.');
+                }
+            } catch (err) {
+                console.error('Lỗi khi xóa khỏi wishlist:', err);
+            }
+        }
+    </script>
+</body>
+</html>

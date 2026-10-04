@@ -39,6 +39,9 @@ class AdminProductWebControllerTest {
     private SeriesRepository seriesRepository;
 
     @Mock
+    private com.manguonmo.popworld.repository.CharacterIpRepository characterIpRepository;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -71,6 +74,7 @@ class AdminProductWebControllerTest {
     void newProductForm_ShouldReturnFormView() {
         when(categoryService.getAllCategories()).thenReturn(Collections.emptyList());
         when(seriesRepository.findAllByOrderByReleaseDateDesc()).thenReturn(Collections.emptyList());
+        when(characterIpRepository.findAll()).thenReturn(Collections.emptyList());
 
         String view = controller.newProductForm(model);
 
@@ -100,6 +104,7 @@ class AdminProductWebControllerTest {
         when(bindingResult.hasErrors()).thenReturn(true);
         when(categoryService.getAllCategories()).thenReturn(Collections.emptyList());
         when(seriesRepository.findAllByOrderByReleaseDateDesc()).thenReturn(Collections.emptyList());
+        when(characterIpRepository.findAll()).thenReturn(Collections.emptyList());
 
         String view = controller.createProduct(request, bindingResult, model, redirectAttributes);
 
@@ -122,6 +127,7 @@ class AdminProductWebControllerTest {
         when(productService.getProductById(1L)).thenReturn(product);
         when(categoryService.getAllCategories()).thenReturn(Collections.emptyList());
         when(seriesRepository.findAllByOrderByReleaseDateDesc()).thenReturn(Collections.emptyList());
+        when(characterIpRepository.findAll()).thenReturn(Collections.emptyList());
 
         String view = controller.editProductForm(1L, model, redirectAttributes);
 

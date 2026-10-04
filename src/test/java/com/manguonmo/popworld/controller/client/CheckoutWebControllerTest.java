@@ -175,6 +175,19 @@ class CheckoutWebControllerTest {
     }
 
     @Test
+    @DisplayName("placeOrder thất bại khi số điện thoại không hợp lệ: Redirect về /checkout kèm errorMessage")
+    void placeOrder_InvalidPhone_RedirectsToCheckoutWithErrorMessage() {
+        String viewName = checkoutWebController.placeOrder(
+                "Nguyen Van A", "12345", "Hà Nội", "Cầu Giấy",
+                "Dịch Vọng", "123 Cầu Giấy", "COD", null, redirectAttributes, principal
+        );
+
+        assertEquals("redirect:/checkout", viewName);
+        verify(redirectAttributes, times(1)).addFlashAttribute(eq("errorMessage"), contains("Số điện thoại nhận hàng không hợp lệ"));
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
     @DisplayName("showPaymentQrPage: Người dùng khác xem đơn không phải của mình -> Chuyển hướng 403")
     void showPaymentQrPage_OtherUserOrder_RedirectsTo403() {
         User otherOwner = User.builder().id(999L).build();

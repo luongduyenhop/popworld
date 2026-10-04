@@ -12,6 +12,9 @@ import java.util.Optional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    List<Review> findByProductId(Long productId);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "product"})
     List<Review> findByProductIdAndApprovedTrueOrderByCreatedAtDesc(Long productId);
 
     long countByProductIdAndApprovedTrue(Long productId);

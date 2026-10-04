@@ -18,4 +18,13 @@ public interface CouponService {
     // 3. Hoàn lại lượt dùng khi hủy đơn hàng quá 15 phút (Giảm usedCount + Mở lại UserCoupon)
 
     void releaseCoupon(Long couponId, Long userId);
+
+    // 4. Các phương thức quản trị Admin
+    java.util.List<Coupon> getAllCoupons();
+
+    Coupon createCoupon(Coupon coupon);
+
+    Coupon toggleCouponActive(Long id);
+
+    void deleteCoupon(Long id);
 }

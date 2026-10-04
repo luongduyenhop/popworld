@@ -5,6 +5,7 @@ import com.manguonmo.popworld.service.CartService;
 import com.manguonmo.popworld.service.CategoryService;
 import com.manguonmo.popworld.service.CharacterIpService;
 import com.manguonmo.popworld.service.UserService;
+import com.manguonmo.popworld.service.WishlistService;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,15 +19,18 @@ public class GlobalNavbarAdvice {
     private final CharacterIpService characterIpService;
     private final CartService cartService;
     private final UserService userService;
+    private final WishlistService wishlistService;
 
     public GlobalNavbarAdvice(CategoryService categoryService,
                               CharacterIpService characterIpService,
                               CartService cartService,
-                              UserService userService) {
+                              UserService userService,
+                              WishlistService wishlistService) {
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
         this.cartService = cartService;
         this.userService = userService;
+        this.wishlistService = wishlistService;
     }
 
     @ModelAttribute
@@ -52,17 +56,26 @@ public class GlobalNavbarAdvice {
                     if (!model.containsAttribute("cartCount")) {
                         model.addAttribute("cartCount", cartService.getCartCount(user.getId()));
                     }
+                    if (!model.containsAttribute("wishlistCount")) {
+                        model.addAttribute("wishlistCount", wishlistService.getWishlistCount(user.getId()));
+                    }
                     String displayName = (user.getFullName() != null && !user.getFullName().isBlank())
                             ? user.getFullName()
                             : "POPMART MEMBER";
                     model.addAttribute("currentUserDisplayName", displayName);
                     model.addAttribute("currentUserPoints", user.getRewardPoints() != null ? user.getRewardPoints() : 0);
                     model.addAttribute("currentUserTier", user.getMembershipTier() != null ? user.getMembershipTier() : "MEMBER");
+                    model.addAttribute("currentUser", user);
                 }
             } catch (Exception ignored) {
             }
-        } else if (!model.containsAttribute("cartCount")) {
-            model.addAttribute("cartCount", 0);
+        } else {
+            if (!model.containsAttribute("cartCount")) {
+                model.addAttribute("cartCount", 0);
+            }
+            if (!model.containsAttribute("wishlistCount")) {
+                model.addAttribute("wishlistCount", 0);
+            }
         }
     }
 }

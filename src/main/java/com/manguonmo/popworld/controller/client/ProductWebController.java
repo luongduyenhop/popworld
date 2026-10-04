@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.manguonmo.popworld.dto.request.ReviewCreateRequest;
 import com.manguonmo.popworld.dto.response.ReviewResponse;
 import com.manguonmo.popworld.service.ReviewService;
+import com.manguonmo.popworld.service.WishlistService;
 
 import java.math.BigDecimal;
 import com.manguonmo.popworld.dto.response.BlindBoxItemResponse;
@@ -30,6 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
@@ -42,6 +44,7 @@ public class ProductWebController {
     private final UserService userService;
     private final ReviewService reviewService;
     private final PopNowService popNowService;
+    private final WishlistService wishlistService;
 
     public ProductWebController(ProductService productService,
                                 CategoryService categoryService,
@@ -49,7 +52,8 @@ public class ProductWebController {
                                 CartService cartService,
                                 UserService userService,
                                 ReviewService reviewService,
-                                PopNowService popNowService) {
+                                PopNowService popNowService,
+                                WishlistService wishlistService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.characterIpService = characterIpService;
@@ -57,23 +61,27 @@ public class ProductWebController {
         this.userService = userService;
         this.reviewService = reviewService;
         this.popNowService = popNowService;
+        this.wishlistService = wishlistService;
     }
 
     private void addCommonAttributes(Model model) {
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("characterIps", characterIpService.getAllCharacterIps());
         int cartCount = 0;
+        int wishlistCount = 0;
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
                 User user = userService.getUserByEmail(auth.getName());
                 if (user != null) {
                     cartCount = cartService.getCartCount(user.getId());
+                    wishlistCount = (int) wishlistService.getWishlistCount(user.getId());
                 }
             }
         } catch (Exception ignored) {
         }
         model.addAttribute("cartCount", cartCount);
+        model.addAttribute("wishlistCount", wishlistCount);
     }
 
 
@@ -122,6 +130,7 @@ public class ProductWebController {
 
         boolean canReview = false;
         ReviewResponse userReview = null;
+        boolean isWishlisted = false;
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
@@ -129,12 +138,14 @@ public class ProductWebController {
                 if (user != null) {
                     canReview = reviewService.isUserEligibleToReview(user.getId(), product.getId());
                     userReview = reviewService.getUserReviewForProduct(user.getId(), product.getId());
+                    isWishlisted = wishlistService.isWishlisted(user.getId(), product.getId());
                 }
             }
         } catch (Exception ignored) {
         }
         model.addAttribute("canReview", canReview);
         model.addAttribute("userReview", userReview);
+        model.addAttribute("isWishlisted", isWishlisted);
         model.addAttribute("reviewForm", new ReviewCreateRequest());
 
         // Lấy danh sách nhân vật trong series cho Showcase / Figure Styles / All Characters
@@ -269,11 +280,10 @@ public class ProductWebController {
                     .toList();
         }
 
-        // 4. Lọc POP NOW (bóc hộp online / blind box)
+        // 4. Lọc POP NOW (bóc hộp online / blind box chuẩn Pop Mart)
         if (Boolean.TRUE.equals(popNow)) {
             allProducts = allProducts.stream()
-                    .filter(p -> (p.getCategory() != null && "blind-box".equalsIgnoreCase(p.getCategory().getSlug()))
-                            || Boolean.TRUE.equals(p.getIsFeatured()))
+                    .filter(Product::isPopNowEligible)
                     .toList();
         }
 
@@ -368,7 +378,20 @@ public class ProductWebController {
             pageDescription = "Found " + totalItems + " art toy items matching your query.";
         }
 
+        Set<Long> wishlistProductIds = Collections.emptySet();
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                User user = userService.getUserByEmail(auth.getName());
+                if (user != null) {
+                    wishlistProductIds = wishlistService.getWishlistProductIds(user.getId());
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
         model.addAttribute("products", pagedProducts);
+        model.addAttribute("wishlistProductIds", wishlistProductIds);
         model.addAttribute("totalProducts", totalItems);
         model.addAttribute("currentPage", currentPage);
         model.addAttribute("totalPages", totalPages);

@@ -237,7 +237,7 @@
                     </div>
                     <div th:if="${userAddresses == null || userAddresses.isEmpty()}" class="alert alert-warning rounded-3 small mb-3">
                         <i class="bi bi-exclamation-triangle me-1"></i> Bạn chưa lưu địa chỉ nào trong sổ địa chỉ.
-                        <a th:href="@{/account/addresses}" class="fw-bold text-dark d-block mt-1">Thêm địa chỉ giao hàng &rarr;</a>
+                        <a th:href="@{/account(tab='addresses')}" class="fw-bold text-dark d-block mt-1">Thêm địa chỉ giao hàng &rarr;</a>
                     </div>
 
                     <div class="alert alert-info border-0 rounded-3 small text-secondary mb-0">

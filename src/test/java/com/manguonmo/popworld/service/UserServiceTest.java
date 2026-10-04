@@ -4,6 +4,7 @@ import com.manguonmo.popworld.dto.request.RegisterRequest;
 import com.manguonmo.popworld.dto.response.CustomerStatsResponse;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.exception.BadRequestException;
+import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.UserRepository;
 import com.manguonmo.popworld.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -273,6 +274,86 @@ class UserServiceTest {
         assertEquals(0, clamped.getRewardPoints());
         assertEquals(0, clamped.getLuckyPoints());
         assertEquals(0, clamped.getHintCards());
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Thành công đặt lại mật khẩu cho tài khoản người dùng")
+    void adminResetPassword_Success() {
+        User user = User.builder()
+                .id(10L)
+                .email("customer@example.com")
+                .role("ROLE_USER")
+                .password("oldHashedPwd")
+                .build();
+
+        when(userRepository.findById(10L)).thenReturn(java.util.Optional.of(user));
+        when(passwordEncoder.encode("NewSecret123")).thenReturn("encodedNewSecret123");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertDoesNotThrow(() -> userService.adminResetPassword(10L, "NewSecret123", "NewSecret123", "admin@popworld.com"));
+
+        assertEquals("encodedNewSecret123", user.getPassword());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Chặn không cho phép đổi mật khẩu tài khoản ADMIN")
+    void adminResetPassword_TargetIsAdmin_ThrowsBadRequestException() {
+        User adminUser = User.builder()
+                .id(99L)
+                .email("admin@popworld.com")
+                .role("ROLE_ADMIN")
+                .build();
+
+        when(userRepository.findById(99L)).thenReturn(java.util.Optional.of(adminUser));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                userService.adminResetPassword(99L, "NewSecret123", "NewSecret123", "admin@popworld.com"));
+
+        assertTrue(ex.getMessage().contains("Không thể đặt lại mật khẩu cho tài khoản Quản trị viên"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Ném BadRequestException khi mật khẩu dưới 6 ký tự")
+    void adminResetPassword_PasswordTooShort_ThrowsBadRequestException() {
+        User user = User.builder().id(10L).role("ROLE_USER").build();
+        when(userRepository.findById(10L)).thenReturn(java.util.Optional.of(user));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                userService.adminResetPassword(10L, "12345", "12345", "admin@popworld.com"));
+
+        assertTrue(ex.getMessage().contains("ít nhất 6 ký tự"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Ném BadRequestException khi mật khẩu xác nhận không khớp")
+    void adminResetPassword_PasswordMismatch_ThrowsBadRequestException() {
+        User user = User.builder().id(10L).role("ROLE_USER").build();
+        when(userRepository.findById(10L)).thenReturn(java.util.Optional.of(user));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () ->
+                userService.adminResetPassword(10L, "Secret123", "Secret999", "admin@popworld.com"));
+
+        assertTrue(ex.getMessage().contains("không khớp"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Ném ResourceNotFoundException khi không tìm thấy người dùng")
+    void adminResetPassword_UserNotFound_ThrowsResourceNotFoundException() {
+        when(userRepository.findById(404L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                userService.adminResetPassword(404L, "Secret123", "Secret123", "admin@popworld.com"));
+    }
+
+    @Test
+    @DisplayName("adminResetPassword: Ném BadRequestException khi ID người dùng là null")
+    void adminResetPassword_NullUserId_ThrowsBadRequestException() {
+        assertThrows(BadRequestException.class, () ->
+                userService.adminResetPassword(null, "Secret123", "Secret123", "admin@popworld.com"));
     }
 }
 

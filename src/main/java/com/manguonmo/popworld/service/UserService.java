@@ -21,4 +21,5 @@ public interface UserService {
     User getUserById(Long userId);
     User toggleUserStatus(Long userId);
     User adjustUserPoints(Long userId, Integer rewardPointsDelta, Integer luckyPointsDelta, Integer hintCardsDelta);
+    void adminResetPassword(Long targetUserId, String newPassword, String confirmPassword, String adminEmail);
 }

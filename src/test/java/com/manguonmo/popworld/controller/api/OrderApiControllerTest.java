@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.security.Principal;
 import java.util.List;
@@ -131,8 +132,8 @@ public class OrderApiControllerTest {
     }
 
     @Test
-    @DisplayName("getOrderStatus ném BadRequestException khi user khác cố poll trạng thái đơn (IDOR)")
-    public void getOrderStatus_shouldThrowBadRequest_whenOtherUserPolls() {
+    @DisplayName("getOrderStatus ném AccessDeniedException khi user khác cố poll trạng thái đơn (IDOR)")
+    public void getOrderStatus_shouldThrowAccessDenied_whenOtherUserPolls() {
         User owner = User.builder().id(5L).email("owner@popworld.com").role("ROLE_USER").build();
         User attacker = User.builder().id(99L).email("attacker@popworld.com").role("ROLE_USER").build();
         Order order = Order.builder()
@@ -145,7 +146,7 @@ public class OrderApiControllerTest {
         when(orderService.getOrderByCode("PW-789")).thenReturn(order);
         when(userService.getUserByEmail("attacker@popworld.com")).thenReturn(attacker);
 
-        assertThrows(BadRequestException.class, () ->
+        assertThrows(AccessDeniedException.class, () ->
                 orderApiController.getOrderStatus("PW-789", principal));
     }
 
@@ -237,8 +238,8 @@ public class OrderApiControllerTest {
     }
 
     @Test
-    @DisplayName("getOrderDetail(orderCode, principal) ném BadRequestException khi truy cập đơn của người khác (IDOR)")
-    public void getOrderDetail_withPrincipal_shouldThrowBadRequest_whenOtherUser() {
+    @DisplayName("getOrderDetail(orderCode, principal) ném AccessDeniedException khi truy cập đơn của người khác (IDOR)")
+    public void getOrderDetail_withPrincipal_shouldThrowAccessDenied_whenOtherUser() {
         User owner = User.builder().id(5L).email("owner@popworld.com").role("ROLE_USER").build();
         User attacker = User.builder().id(99L).email("attacker@popworld.com").role("ROLE_USER").build();
         Order order = Order.builder().id(20L).orderCode("PW-OWNER").user(owner).build();
@@ -247,7 +248,7 @@ public class OrderApiControllerTest {
         when(orderService.getOrderByCode("PW-OWNER")).thenReturn(order);
         when(userService.getUserByEmail("attacker@popworld.com")).thenReturn(attacker);
 
-        assertThrows(BadRequestException.class, () -> {
+        assertThrows(AccessDeniedException.class, () -> {
             orderApiController.getOrderDetail("PW-OWNER", principal);
         });
     }

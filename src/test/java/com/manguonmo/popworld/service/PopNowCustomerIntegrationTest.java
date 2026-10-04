@@ -5,6 +5,7 @@ import com.manguonmo.popworld.dto.response.BlindBoxSlotResponse;
 import com.manguonmo.popworld.dto.response.OwnedItemResponse;
 import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
+import org.springframework.security.access.AccessDeniedException;
 import com.manguonmo.popworld.mapper.OrderMapper;
 import com.manguonmo.popworld.repository.*;
 import com.manguonmo.popworld.service.impl.OrderServiceImpl;
@@ -257,7 +258,7 @@ class PopNowCustomerIntegrationTest {
 
         when(boxReservationRepository.findByReservationCodeForUpdate("PN-PAID-01")).thenReturn(Optional.of(reservation));
 
-        assertThrows(BadRequestException.class, () ->
+        assertThrows(AccessDeniedException.class, () ->
                 popNowService.unbox(2L, "PN-PAID-01") // User 2 cố gắng unbox
         );
     }

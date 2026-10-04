@@ -21,4 +21,6 @@ public interface RefundRepository extends JpaRepository<Refund, Long> {
 
     @Query("SELECT COALESCE(SUM(r.amount), 0) FROM Refund r WHERE r.order.orderCode = :orderCode AND r.status = 'COMPLETED'")
     BigDecimal sumCompletedRefundAmountByOrderCode(@Param("orderCode") String orderCode);
+
+    List<Refund> findByProcessedAtBetweenAndStatus(java.time.LocalDateTime start, java.time.LocalDateTime end, String status);
 }

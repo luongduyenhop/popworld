@@ -8,9 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    @EntityGraph(attributePaths = {"user", "coupon"})
     Optional<Order> findByOrderCode(String orderCode);
     List<Order> findByStatusOrderByCreatedAtDesc(String status);
     long countByStatus(String status);
@@ -32,4 +36,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Tính tổng doanh thu từ các đơn hàng thành công
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status IN ('DELIVERED', 'SHIPPING', 'PROCESSING', 'PACKED', 'COMPLETED', 'SHIPPED')")
     java.math.BigDecimal calculateTotalRevenue();
+
+    List<Order> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    List<Order> findByCreatedAtBetweenAndStatusIn(LocalDateTime start, LocalDateTime end, List<String> statuses);
 }

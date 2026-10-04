@@ -7,8 +7,10 @@ import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 
 import java.util.List;
+import java.util.Map;
 
 public interface OrderService {
+    Map<Long, List<OrderItem>> getOrderItemsByOrderIds(List<Long> orderIds);
     default Order createOrder(Long userId, String recipientName, String recipientPhone,
                       String provinceCity, String district, String ward,
                       String detailedAddress, String paymentMethod, String couponCode) {

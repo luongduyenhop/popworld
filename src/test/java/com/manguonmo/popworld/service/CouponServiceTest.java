@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -270,6 +271,84 @@ class CouponServiceTest {
             assertBigDecimalEquals("80000", response.getDiscountAmount());
             assertBigDecimalEquals("0", response.getNewTotal());
         }
+
+        @Test
+        @DisplayName("Ném BadRequestException khi áp mã SHIPPING cho đơn hàng đã đạt mốc Freeship tự nhiên (>= 500K)")
+        void calculateDiscount_ThrowsException_WhenShippingCouponAppliedToOrderAlreadyFreeShip() {
+            Coupon shipCoupon = Coupon.builder()
+                    .id(10L)
+                    .code("FREESHIP")
+                    .active(true)
+                    .discountType("SHIPPING")
+                    .discountValue(new BigDecimal("30000"))
+                    .build();
+
+            when(couponRepository.findByCodeAndActiveTrue("FREESHIP"))
+                    .thenReturn(Optional.of(shipCoupon));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> couponService.calculateDiscount("FREESHIP", null, new BigDecimal("500000")));
+            assertTrue(ex.getMessage().contains("miễn phí vận chuyển tự động"));
+        }
+
+        @Test
+        @DisplayName("Thành công: Tính giảm giá mã SHIPPING miễn phí hoàn toàn 30.000đ khi đơn dưới 500K")
+        void calculateDiscount_Success_ShippingCoupon_FullFreeship() {
+            Coupon shipCoupon = Coupon.builder()
+                    .id(11L)
+                    .code("FREESHIP")
+                    .active(true)
+                    .discountType("SHIPPING")
+                    .discountValue(new BigDecimal("30000"))
+                    .build();
+
+            when(couponRepository.findByCodeAndActiveTrue("FREESHIP"))
+                    .thenReturn(Optional.of(shipCoupon));
+
+            CouponDiscountResponse response = couponService.calculateDiscount("FREESHIP", null, new BigDecimal("300000"));
+
+            assertEquals("FREESHIP", response.getCouponCode());
+            assertEquals("SHIPPING", response.getDiscountType());
+            assertBigDecimalEquals("30000", response.getDiscountAmount());
+        }
+
+        @Test
+        @DisplayName("Thành công: Tính giảm giá mã SHIPPING giảm một phần (15.000đ)")
+        void calculateDiscount_Success_ShippingCoupon_PartialDiscount() {
+            Coupon shipCoupon = Coupon.builder()
+                    .id(12L)
+                    .code("SHIP15K")
+                    .active(true)
+                    .discountType("SHIPPING")
+                    .discountValue(new BigDecimal("15000"))
+                    .build();
+
+            when(couponRepository.findByCodeAndActiveTrue("SHIP15K"))
+                    .thenReturn(Optional.of(shipCoupon));
+
+            CouponDiscountResponse response = couponService.calculateDiscount("SHIP15K", null, new BigDecimal("300000"));
+
+            assertBigDecimalEquals("15000", response.getDiscountAmount());
+        }
+
+        @Test
+        @DisplayName("Thành công: Mã SHIPPING có discountValue lớn hơn 30.000đ thì chỉ giảm tối đa 30.000đ")
+        void calculateDiscount_Success_ShippingCoupon_CappedAtStandardShippingFee() {
+            Coupon shipCoupon = Coupon.builder()
+                    .id(13L)
+                    .code("BIGSHIP")
+                    .active(true)
+                    .discountType("SHIPPING")
+                    .discountValue(new BigDecimal("50000"))
+                    .build();
+
+            when(couponRepository.findByCodeAndActiveTrue("BIGSHIP"))
+                    .thenReturn(Optional.of(shipCoupon));
+
+            CouponDiscountResponse response = couponService.calculateDiscount("BIGSHIP", null, new BigDecimal("300000"));
+
+            assertBigDecimalEquals("30000", response.getDiscountAmount());
+        }
     }
 
     // =========================================================================
@@ -316,7 +395,7 @@ class CouponServiceTest {
             when(couponRepository.findByCodeAndActiveTrue("WELCOME"))
                     .thenReturn(Optional.of(coupon));
             when(couponRepository.increaseUsedCount(2L)).thenReturn(1);
-            when(userCouponRepository.findByUserIdAndCouponId(100L, 2L)).thenReturn(Optional.empty());
+            when(userCouponRepository.findByUserIdAndCouponIdForUpdate(100L, 2L)).thenReturn(Optional.empty());
             when(userRepository.getReferenceById(100L)).thenReturn(mockUser);
 
             Coupon result = couponService.applyCoupon("WELCOME", 100L, new BigDecimal("200000"));
@@ -354,7 +433,7 @@ class CouponServiceTest {
             when(couponRepository.findByCodeAndActiveTrue("CLAIMED_CODE"))
                     .thenReturn(Optional.of(coupon));
             when(couponRepository.increaseUsedCount(3L)).thenReturn(1);
-            when(userCouponRepository.findByUserIdAndCouponId(100L, 3L))
+            when(userCouponRepository.findByUserIdAndCouponIdForUpdate(100L, 3L))
                     .thenReturn(Optional.of(existingUserCoupon));
 
             Coupon result = couponService.applyCoupon("CLAIMED_CODE", 100L, new BigDecimal("200000"));
@@ -413,7 +492,7 @@ class CouponServiceTest {
                     .usedAt(LocalDateTime.now().minusMinutes(15))
                     .build();
 
-            when(userCouponRepository.findByUserIdAndCouponId(1L, 10L))
+            when(userCouponRepository.findByUserIdAndCouponIdForUpdate(1L, 10L))
                     .thenReturn(Optional.of(usedUserCoupon));
 
             couponService.releaseCoupon(10L, 1L);
@@ -431,6 +510,88 @@ class CouponServiceTest {
 
             verify(couponRepository, times(1)).decreaseUsedCount(10L);
             verify(userCouponRepository, never()).findByUserIdAndCouponId(anyLong(), anyLong());
+        }
+    }
+
+    // =========================================================================
+    // 4. NHÓM TEST: Admin Coupon Management
+    // =========================================================================
+    @Nested
+    @DisplayName("Kiểm thử Admin Quản lý Coupon")
+    class AdminCouponTests {
+
+        @Test
+        @DisplayName("getAllCoupons: Trả về danh sách tất cả voucher")
+        void getAllCoupons_ReturnsList() {
+            Coupon c1 = Coupon.builder().id(1L).code("POP1").build();
+            Coupon c2 = Coupon.builder().id(2L).code("POP2").build();
+            when(couponRepository.findAll()).thenReturn(List.of(c1, c2));
+
+            List<Coupon> list = couponService.getAllCoupons();
+            assertEquals(2, list.size());
+            verify(couponRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("createCoupon: Thành công tạo mã mới")
+        void createCoupon_Success() {
+            Coupon c = Coupon.builder()
+                    .code("summer2026")
+                    .discountType("PERCENTAGE")
+                    .discountValue(new BigDecimal("15"))
+                    .build();
+
+            when(couponRepository.existsByCode("SUMMER2026")).thenReturn(false);
+            when(couponRepository.save(any(Coupon.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Coupon created = couponService.createCoupon(c);
+            assertNotNull(created);
+            assertEquals("SUMMER2026", created.getCode());
+            assertTrue(created.getActive());
+            assertEquals(0, created.getUsedCount());
+        }
+
+        @Test
+        @DisplayName("createCoupon: Mã đã tồn tại ném BadRequestException")
+        void createCoupon_DuplicateCode_ThrowsException() {
+            Coupon c = Coupon.builder().code("EXISTING").discountValue(new BigDecimal("10")).build();
+            when(couponRepository.existsByCode("EXISTING")).thenReturn(true);
+
+            assertThrows(BadRequestException.class, () -> couponService.createCoupon(c));
+        }
+
+        @Test
+        @DisplayName("toggleCouponActive: Đổi trạng thái active")
+        void toggleCouponActive_Success() {
+            Coupon c = Coupon.builder().id(1L).code("POP1").active(true).build();
+            when(couponRepository.findById(1L)).thenReturn(Optional.of(c));
+            when(couponRepository.save(any(Coupon.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Coupon toggled = couponService.toggleCouponActive(1L);
+            assertFalse(toggled.getActive());
+        }
+
+        @Test
+        @DisplayName("deleteCoupon: Xóa mã nếu chưa có lượt sử dụng")
+        void deleteCoupon_Unused_PhysicalDelete() {
+            Coupon c = Coupon.builder().id(1L).code("UNUSED").usedCount(0).build();
+            when(couponRepository.findById(1L)).thenReturn(Optional.of(c));
+
+            couponService.deleteCoupon(1L);
+            verify(couponRepository).delete(c);
+        }
+
+        @Test
+        @DisplayName("deleteCoupon: Tạm ẩn nếu đã có người sử dụng")
+        void deleteCoupon_Used_SoftDeactivate() {
+            Coupon c = Coupon.builder().id(1L).code("USED").usedCount(5).active(true).build();
+            when(couponRepository.findById(1L)).thenReturn(Optional.of(c));
+            when(couponRepository.save(any(Coupon.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            couponService.deleteCoupon(1L);
+            assertFalse(c.getActive());
+            verify(couponRepository).save(c);
+            verify(couponRepository, never()).delete(any());
         }
     }
 }

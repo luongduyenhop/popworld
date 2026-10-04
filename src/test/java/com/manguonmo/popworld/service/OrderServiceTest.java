@@ -560,11 +560,11 @@ class OrderServiceTest {
     @DisplayName("getAllOrders: Lấy tất cả đơn hàng khi status là ALL hoặc null")
     void getAllOrders_WhenStatusAllOrNull_ShouldReturnAllOrdersSorted() {
         Order mockOrder = Order.builder().id(1L).orderCode("PW-ALL-1").build();
-        OrderItem mockItem = OrderItem.builder().id(11L).build();
+        OrderItem mockItem = OrderItem.builder().id(11L).order(mockOrder).build();
         OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-ALL-1").build();
 
         when(orderRepository.findAll(any(Sort.class))).thenReturn(List.of(mockOrder));
-        when(orderItemRepository.findByOrderId(1L)).thenReturn(List.of(mockItem));
+        when(orderItemRepository.findByOrderIdIn(anyList())).thenReturn(List.of(mockItem));
         when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
 
         List<OrderResponse> result = orderService.getAllOrders("ALL");
@@ -583,7 +583,7 @@ class OrderServiceTest {
         OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-PROC-2").status("PROCESSING").build();
 
         when(orderRepository.findByStatusOrderByCreatedAtDesc("PROCESSING")).thenReturn(List.of(mockOrder));
-        when(orderItemRepository.findByOrderId(2L)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIdIn(anyList())).thenReturn(List.of());
         when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
 
         List<OrderResponse> result = orderService.getAllOrders("PROCESSING");
@@ -602,7 +602,7 @@ class OrderServiceTest {
         OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-SRCH-3").build();
 
         when(orderRepository.searchOrders("0987654321")).thenReturn(List.of(mockOrder));
-        when(orderItemRepository.findByOrderId(3L)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIdIn(anyList())).thenReturn(List.of());
         when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
 
         List<OrderResponse> result = orderService.searchOrders("  0987654321  ");
@@ -620,7 +620,7 @@ class OrderServiceTest {
         OrderResponse mockResponse = OrderResponse.builder().orderCode("PW-FALLBACK").build();
 
         when(orderRepository.findAll(any(Sort.class))).thenReturn(List.of(mockOrder));
-        when(orderItemRepository.findByOrderId(4L)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIdIn(anyList())).thenReturn(List.of());
         when(orderMapper.toResponse(eq(mockOrder), anyList())).thenReturn(mockResponse);
 
         List<OrderResponse> result = orderService.searchOrders("   ");

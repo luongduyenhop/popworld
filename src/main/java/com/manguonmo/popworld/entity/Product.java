@@ -7,7 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = {
+    @Index(name = "idx_products_category_id", columnList = "category_id"),
+    @Index(name = "idx_products_series_id", columnList = "series_id"),
+    @Index(name = "idx_products_active_featured", columnList = "active, is_featured"),
+    @Index(name = "idx_products_active_new_release", columnList = "active, is_new_release"),
+    @Index(name = "idx_products_created_at", columnList = "created_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,6 +52,11 @@ public class Product extends BaseEntity {
     // Quy cách đóng gói (ví dụ: 1 Box / 12 Boxes per Case)
     @Column(name = "packaging_type", length = 50)
     private String packagingType;
+
+    // Số hộp trong 1 bộ sưu tập / set (ví dụ: 6, 8, 9, 12, 16 hộp)
+    @Column(name = "boxes_per_set")
+    @Builder.Default
+    private Integer boxesPerSet = 12;
 
     // Tỉ lệ trúng mẫu hiếm Secret (ví dụ: 1/72 hoặc 1/144)
     @Column(name = "secret_ratio", length = 50)
@@ -102,5 +113,23 @@ public class Product extends BaseEntity {
 
     public String getThumbnailUrl() {
         return getMainImageUrl();
+    }
+
+    /**
+     * Xác định sản phẩm có đủ điều kiện tham gia tính năng bóc hộp trực tuyến POP NOW hay không.
+     * Chỉ chấp nhận các bộ sưu tập hộp mù đang mở bán, loại trừ hoàn toàn phụ kiện và mô hình độc bản Mega.
+     */
+    public boolean isPopNowEligible() {
+        if (!Boolean.TRUE.equals(active)) {
+            return false;
+        }
+        if (category == null) {
+            return false;
+        }
+        String catSlug = category.getSlug() != null ? category.getSlug().toLowerCase() : "";
+        if ("accessories".equals(catSlug) || "mega-collection".equals(catSlug)) {
+            return false;
+        }
+        return "blind-box".equals(catSlug) || (boxesPerSet != null && boxesPerSet > 0);
     }
 }

@@ -84,13 +84,13 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Mã Đơn Hàng</th>
-                            <th>Khách Hàng & Liên Hệ</th>
-                            <th>Địa Chỉ Giao Hàng</th>
-                            <th>Tổng Thanh Toán</th>
-                            <th>Thời Gian</th>
-                            <th>Trạng Thái</th>
-                            <th class="text-end">Hành Động</th>
+                            <th class="text-nowrap">Mã Đơn Hàng</th>
+                            <th style="min-width: 150px;">Khách Hàng & Liên Hệ</th>
+                            <th style="max-width: 240px;">Địa Chỉ Giao Hàng</th>
+                            <th class="text-nowrap">Tổng Thanh Toán</th>
+                            <th class="text-nowrap">Thời Gian</th>
+                            <th class="text-nowrap">Trạng Thái</th>
+                            <th class="text-end text-nowrap sticky-action-col" style="min-width: 170px;">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,48 +101,48 @@
                             </td>
                         </tr>
                         <tr th:each="order : ${orders}">
-                            <td>
-                                <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="fw-bold text-dark text-decoration-none" th:text="${order.orderCode}">PW-123456</a>
+                            <td class="text-nowrap">
+                                <a th:href="@{'/admin/orders/' + ${order.orderCode}}" class="fw-bold text-dark text-decoration-none font-monospace" th:text="${order.orderCode}">PW-123456</a>
                                 <div>
-                                    <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.7rem;" th:text="${order.paymentMethod}">COD</span>
-                                    <span th:if="${order.paidAt != null}" class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">
+                                    <span class="badge bg-light text-secondary border mt-1 text-nowrap" style="font-size: 0.7rem;" th:text="${order.paymentMethod}">COD</span>
+                                    <span th:if="${order.paidAt != null}" class="badge bg-success-subtle text-success border border-success-subtle ms-1 text-nowrap" style="font-size: 0.65rem;">
                                         Đã TT
                                     </span>
                                 </div>
                             </td>
-                            <td>
+                            <td style="min-width: 150px;">
                                 <div class="fw-bold text-dark" th:text="${order.recipientName}">Nguyễn Văn A</div>
-                                <div class="small text-muted" th:text="${order.recipientPhone}">0912345678</div>
+                                <div class="small text-muted font-monospace" th:text="${order.recipientPhone}">0912345678</div>
                             </td>
-                            <td style="max-width: 250px;">
-                                <div class="small text-truncate" 
+                            <td style="max-width: 240px;">
+                                <div class="small admin-cell-wrap-2" 
                                      th:title="${order.detailedAddress + (order.ward != null and !order.ward.trim().isEmpty() ? ', ' + order.ward : '') + (order.district != null and !order.district.trim().isEmpty() and !order.district.equalsIgnoreCase(order.provinceCity) ? ', ' + order.district : '') + ', ' + order.provinceCity}">
                                     <span th:text="${order.detailedAddress}"></span><span th:if="${order.ward != null and !order.ward.trim().isEmpty()}" th:text="', ' + ${order.ward}"></span><span th:if="${order.district != null and !order.district.trim().isEmpty() and !order.district.equalsIgnoreCase(order.provinceCity)}" th:text="', ' + ${order.district}"></span>, 
                                     <strong th:text="${order.provinceCity}"></strong>
                                 </div>
                                 <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
                                     <span th:if="${order.deliveryMethod == 'POP_NOW_CABINET' or (order.detailedAddress != null and #strings.contains(order.detailedAddress, 'Virtual Cabinet'))}" 
-                                          class="badge bg-black text-danger border border-danger-subtle font-monospace" style="font-size: 0.68rem;">
+                                          class="badge bg-black text-danger border border-danger-subtle font-monospace text-nowrap" style="font-size: 0.68rem;">
                                         <i class="bi bi-box2-heart-fill me-1"></i>POP NOW
                                     </span>
-                                    <span th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="badge bg-light text-dark border font-monospace" style="font-size: 0.7rem;" 
+                                    <span th:if="${order.trackingNumber != null and !order.trackingNumber.isEmpty()}" class="badge bg-light text-dark border font-monospace text-nowrap" style="font-size: 0.7rem;" 
                                           th:text="${(order.carrier != null ? order.carrier + ': ' : '') + order.trackingNumber}">GHN-12345</span>
                                 </div>
                             </td>
-                            <td>
-                                <div class="fw-black text-danger fs-6" 
+                            <td class="text-nowrap">
+                                <div class="fw-black text-danger fs-6 admin-price" 
                                      th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
                                     0 đ
                                 </div>
-                                <small class="text-muted" th:if="${order.discountAmount != null and order.discountAmount > 0}">
+                                <small class="text-muted text-nowrap" th:if="${order.discountAmount != null and order.discountAmount > 0}">
                                     Giảm: <span th:text="${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
                                 </small>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <div class="small fw-semibold text-dark" th:text="${#temporals.format(order.createdAt, 'HH:mm')}">14:30</div>
-                                <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}">19/09/2026</small>
+                                <small class="text-muted font-monospace" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}">19/09/2026</small>
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <span th:if="${order.status == 'TO_PAY'}" class="badge-status badge-status-topay">
                                     <i class="bi bi-clock"></i> Chờ thanh toán
                                 </span>
@@ -165,11 +165,11 @@
                                     <i class="bi bi-alarm"></i> Hết hạn
                                 </span>
                             </td>
-                            <td class="text-end">
-                                <div class="d-inline-flex gap-1 align-items-center">
+                            <td class="text-end text-nowrap sticky-action-col" style="min-width: 170px;">
+                                <div class="d-inline-flex gap-1 align-items-center justify-content-end flex-nowrap">
                                     <!-- Nút Đóng gói nếu đang Chờ xử lý (PROCESSING -> PACKED) -->
                                     <form th:if="${order.status == 'PROCESSING'}" 
-                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/pack'}" method="post" class="d-inline">
+                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/pack'}" method="post" class="d-inline m-0">
                                         <button type="submit" class="btn-action-pill btn-action-pack" title="Xác nhận đóng gói & dán tem niêm phong" aria-label="Đóng gói kiểm hàng">
                                             <i class="bi bi-box-seam"></i> Đóng Gói
                                         </button>
@@ -184,7 +184,7 @@
 
                                     <!-- Nút Hoàn tất nếu đang Giao hàng (SHIPPING -> DELIVERED) -->
                                     <form th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" 
-                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline">
+                                          th:action="@{'/admin/orders/' + ${order.orderCode} + '/complete'}" method="post" class="d-inline m-0">
                                         <button type="submit" class="btn-action-pill btn-action-complete" title="Xác nhận giao thành công" aria-label="Xác nhận giao thành công">
                                             <i class="bi bi-check-lg"></i> Hoàn Tất
                                         </button>

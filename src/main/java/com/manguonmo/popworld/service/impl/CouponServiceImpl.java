@@ -59,12 +59,16 @@ public class CouponServiceImpl implements CouponService {
         }
 
         if (userId != null) {
-            UserCoupon userCoupon = userCouponRepository.findByUserIdAndCouponId(userId, coupon.getId())
+            UserCoupon userCoupon = userCouponRepository.findByUserIdAndCouponIdForUpdate(userId, coupon.getId())
                     .orElseGet(() -> UserCoupon.builder()
                             .coupon(coupon)
                             .user(userRepository.getReferenceById(userId))
                             .claimedAt(LocalDateTime.now())
                             .build());
+
+            if (Boolean.TRUE.equals(userCoupon.getIsUsed())) {
+                throw new BadRequestException("Bạn đã sử dụng mã giảm giá này rồi!");
+            }
 
             userCoupon.setIsUsed(true);
             userCoupon.setUsedAt(LocalDateTime.now());
@@ -82,7 +86,7 @@ public class CouponServiceImpl implements CouponService {
         }
         couponRepository.decreaseUsedCount(couponId);
         if (userId != null) {
-            userCouponRepository.findByUserIdAndCouponId(userId, couponId).ifPresent(userCoupon -> {
+            userCouponRepository.findByUserIdAndCouponIdForUpdate(userId, couponId).ifPresent(userCoupon -> {
                 userCoupon.setIsUsed(false);
                 userCoupon.setUsedAt(null);
                 userCouponRepository.save(userCoupon);
@@ -141,11 +145,18 @@ public class CouponServiceImpl implements CouponService {
             }
         }
 
+        // Tầng 7: Kiểm tra điều kiện riêng của mã Giảm phí vận chuyển (SHIPPING)
+        if ("SHIPPING".equalsIgnoreCase(coupon.getDiscountType()) || "FREESHIP".equalsIgnoreCase(coupon.getDiscountType())) {
+            if (subtotal.compareTo(BigDecimal.valueOf(500000)) >= 0) {
+                throw new BadRequestException("Đơn hàng từ 500.000 đ đã được miễn phí vận chuyển tự động, không cần sử dụng mã này!");
+            }
+        }
+
         return coupon;
     }
 
     /**
-     * Tính toán số tiền được giảm theo loại PERCENT hoặc FIXED
+     * Tính toán số tiền được giảm theo loại PERCENT, FIXED hoặc SHIPPING
      */
     private BigDecimal calculateDiscountAmount(Coupon coupon, BigDecimal subtotal) {
         BigDecimal discountAmount;
@@ -159,6 +170,19 @@ public class CouponServiceImpl implements CouponService {
             if (coupon.getMaxDiscountAmount() != null && discountAmount.compareTo(coupon.getMaxDiscountAmount()) > 0) {
                 discountAmount = coupon.getMaxDiscountAmount();
             }
+        } else if ("SHIPPING".equalsIgnoreCase(coupon.getDiscountType()) || "FREESHIP".equalsIgnoreCase(coupon.getDiscountType())) {
+            // Phí vận chuyển tiêu chuẩn là 30.000 đ
+            BigDecimal standardShippingFee = BigDecimal.valueOf(30000);
+            BigDecimal discountVal = coupon.getDiscountValue();
+            if (discountVal == null || discountVal.compareTo(BigDecimal.ZERO) <= 0 || discountVal.compareTo(standardShippingFee) >= 0) {
+                discountAmount = standardShippingFee;
+            } else {
+                discountAmount = discountVal;
+            }
+            // Tiền giảm ship không bao giờ được lớn hơn phí ship thực tế
+            if (discountAmount.compareTo(standardShippingFee) > 0) {
+                discountAmount = standardShippingFee;
+            }
         } else {
             // FIXED hoặc FIXED_AMOUNT
             discountAmount = coupon.getDiscountValue();
@@ -170,5 +194,72 @@ public class CouponServiceImpl implements CouponService {
         }
 
         return discountAmount;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<Coupon> getAllCoupons() {
+        return couponRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Coupon createCoupon(Coupon coupon) {
+        if (coupon == null || coupon.getCode() == null || coupon.getCode().trim().isEmpty()) {
+            throw new BadRequestException("Mã giảm giá không được để trống!");
+        }
+
+        String normalizedCode = coupon.getCode().trim().toUpperCase();
+        if (couponRepository.existsByCode(normalizedCode)) {
+            throw new BadRequestException("Mã giảm giá '" + normalizedCode + "' đã tồn tại trên hệ thống!");
+        }
+        coupon.setCode(normalizedCode);
+
+        if (coupon.getDiscountValue() == null || coupon.getDiscountValue().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Giá trị giảm giá phải lớn hơn 0!");
+        }
+
+        if ("PERCENTAGE".equalsIgnoreCase(coupon.getDiscountType()) || "PERCENT".equalsIgnoreCase(coupon.getDiscountType())) {
+            coupon.setDiscountType("PERCENTAGE");
+            if (coupon.getDiscountValue().compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new BadRequestException("Phần trăm giảm giá không được vượt quá 100%!");
+            }
+        } else if ("SHIPPING".equalsIgnoreCase(coupon.getDiscountType()) || "FREESHIP".equalsIgnoreCase(coupon.getDiscountType())) {
+            coupon.setDiscountType("SHIPPING");
+        } else {
+            coupon.setDiscountType("FIXED_AMOUNT");
+        }
+
+        if (coupon.getUsedCount() == null) {
+            coupon.setUsedCount(0);
+        }
+        if (coupon.getActive() == null) {
+            coupon.setActive(true);
+        }
+
+        return couponRepository.save(coupon);
+    }
+
+    @Override
+    @Transactional
+    public Coupon toggleCouponActive(Long id) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá ID=" + id));
+        coupon.setActive(!Boolean.TRUE.equals(coupon.getActive()));
+        return couponRepository.save(coupon);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCoupon(Long id) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá ID=" + id));
+        if (coupon.getUsedCount() != null && coupon.getUsedCount() > 0) {
+            // Đã có người sử dụng, chuyển sang tạm ẩn để bảo toàn lịch sử đơn hàng
+            coupon.setActive(false);
+            couponRepository.save(coupon);
+        } else {
+            couponRepository.delete(coupon);
+        }
     }
 }

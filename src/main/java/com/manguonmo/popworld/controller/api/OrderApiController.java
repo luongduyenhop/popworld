@@ -12,6 +12,7 @@ import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.service.OrderService;
 import com.manguonmo.popworld.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -59,7 +60,7 @@ public class OrderApiController {
         boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
 
         if (!isAdmin && !isOwner) {
-            throw new BadRequestException("Bạn không có quyền xem thông tin đơn hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem thông tin đơn hàng này.");
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());
@@ -103,7 +104,7 @@ public class OrderApiController {
         boolean isAdmin = user != null && ("ROLE_ADMIN".equals(user.getRole()) || "ADMIN".equals(user.getRole()));
         boolean isOwner = user != null && order.getUser() != null && order.getUser().getId().equals(user.getId());
         if (!isAdmin && !isOwner) {
-            throw new BadRequestException("Bạn không có quyền xem trạng thái đơn hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem thông tin đơn hàng này.");
         }
 
         boolean isPaid = !"TO_PAY".equalsIgnoreCase(order.getStatus()) && !"CANCELLED".equalsIgnoreCase(order.getStatus());
