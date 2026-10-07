@@ -485,14 +485,20 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
             p.setActive(true);
             p = productRepository.save(p);
 
-            // Đảm bảo có ảnh thumbnail
-            if (productImageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId()).isEmpty()) {
+            // Đảm bảo có ảnh thumbnail và cập nhật ảnh mới nhất
+            List<ProductImage> existingImgs = productImageRepository.findByProductIdOrderByDisplayOrderAsc(p.getId());
+            if (existingImgs.isEmpty()) {
                 productImageRepository.save(ProductImage.builder()
                         .product(p)
                         .imageUrl(mainImageUrl)
                         .isThumbnail(true)
                         .displayOrder(0)
                         .build());
+            } else if (mainImageUrl != null) {
+                ProductImage thumb = existingImgs.get(0);
+                thumb.setImageUrl(mainImageUrl);
+                thumb.setIsThumbnail(true);
+                productImageRepository.save(thumb);
             }
         }
         return p;
@@ -684,55 +690,55 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
         List<ItemDef> list = new ArrayList<>();
         switch (slug) {
             case "labubu-the-monsters-fall-in-wild-series":
-                list.add(new ItemDef("Camp Fire Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Fisherman Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Hiker Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Gardener Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Picnic Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Explorer Labubu", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
-                list.add(new ItemDef("Golden Forest King", RarityType.SECRET, "https://prod-america-res.popmart.com/default/20240408_161645_829152__1200x1200.jpg"));
+                list.add(new ItemDef("Datura", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Datura_1800x1800.jpg"));
+                list.add(new ItemDef("Bellflower", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Bellflower_1800x1800.jpg"));
+                list.add(new ItemDef("Cactus", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Cactus_1800x1800.jpg"));
+                list.add(new ItemDef("Monstera Deliciosa", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Monstera_Deliciosa_1800x1800.jpg"));
+                list.add(new ItemDef("Platy Cerium", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Platy_Cerium_1800x1800.jpg"));
+                list.add(new ItemDef("Crotalaria", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Crotalaria_1800x1800.jpg"));
+                list.add(new ItemDef("Golden Forest King", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_The_Monsters_Labubu_Fall_in_Wild_Series_Badge_Gardener_Secret_1800x1800.jpg"));
                 break;
 
             case "labubu-have-a-seat-vinyl-plush-blind-box":
-                list.add(new ItemDef("Dada", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("Ququ", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("Sisi", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("Hehe", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("Zizi", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("Baba", RarityType.REGULAR, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
-                list.add(new ItemDef("DuoDuo Chestnut", RarityType.SECRET, "https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg"));
+                list.add(new ItemDef("Dada", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Dada_1800x1800.png"));
+                list.add(new ItemDef("Ququ", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Ququ_1800x1800.png"));
+                list.add(new ItemDef("Sisi", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Sisi_1800x1800.png"));
+                list.add(new ItemDef("Hehe", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Hehe_1800x1800.png"));
+                list.add(new ItemDef("Zizi", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Zizi_1800x1800.png"));
+                list.add(new ItemDef("Baba", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Baba_1800x1800.png"));
+                list.add(new ItemDef("DuoDuo Chestnut", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/the_monsters_labubu_have_a_seat_vinyl_plush_blind_box_Duoduo_secret_1800x1800.png"));
                 break;
 
             case "skullpanda-city-of-night-series":
-                list.add(new ItemDef("The Neon", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Mist", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Patrol", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Dancer", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Singer", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The DJ", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The City Police", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Navigator", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Driver", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Waiter", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Heartseeker", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("The Barber", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
-                list.add(new ItemDef("Night Walker", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2"));
+                list.add(new ItemDef("Law Executor", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Law_Executor_1800x1800.jpg"));
+                list.add(new ItemDef("Puppet Singer", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Puppet_Singer_1800x1800.jpg"));
+                list.add(new ItemDef("Ardent Youth", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Skullpanda_City_Of_Night_Ardent_Youth_1800x1800.jpg"));
+                list.add(new ItemDef("Scroll Delivery", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Scroll_Delivery_1800x1800.jpg"));
+                list.add(new ItemDef("Pet Cat", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Pet_Cat_1800x1800.jpg"));
+                list.add(new ItemDef("Traveller", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Traveller_1800x1800.jpg"));
+                list.add(new ItemDef("Heart Seeker", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Heart_Seeker_1800x1800.jpg"));
+                list.add(new ItemDef("Naughty Bodyguard", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Naughty_Bodyguard_1800x1800.jpg"));
+                list.add(new ItemDef("DJ Player", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_DJ_Player_1800x1800.jpg"));
+                list.add(new ItemDef("The Princess", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_The_Princess_1800x1800.jpg"));
+                list.add(new ItemDef("Meditator", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Skullpanda_City_Of_Night_Meditator_1800x1800.jpg"));
+                list.add(new ItemDef("Dancer", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Skullpanda_City_Of_Night_Dancer_1800x1800.jpg"));
+                list.add(new ItemDef("Guardian of Night", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/popmart_Skullpanda_City_Of_Night_Guardian_of_Night_secret_1800x1800.jpg"));
                 break;
 
             case "skullpanda-the-warmth-series":
-                list.add(new ItemDef("The Scent", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Day Off", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Drowsiness", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Warmth", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Encounter", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Cozy", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Taste", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Chirping", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Loosening", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Mind", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Care", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Rebirth", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
-                list.add(new ItemDef("The Sun", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2"));
+                list.add(new ItemDef("The Raining Day", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_The_Raining_Day_1800x1800.jpg"));
+                list.add(new ItemDef("The Encounter", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_The_Encounter_1800x1800.jpg"));
+                list.add(new ItemDef("The Day Off", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_The_Day_Off_1800x1800.jpg"));
+                list.add(new ItemDef("Enjoy Oneself", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Enjoy_Oneself_1800x1800.jpg"));
+                list.add(new ItemDef("Mind With The Wind", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Mind_With_The_Wind_1800x1800.jpg"));
+                list.add(new ItemDef("Doodling", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Doodling_1800x1800.jpg"));
+                list.add(new ItemDef("Wandering", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Wandering_1800x1800.jpg"));
+                list.add(new ItemDef("Recall The Past", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Recall_The_Past_1800x1800.jpg"));
+                list.add(new ItemDef("Chirping", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Chirping_1800x1800.jpg"));
+                list.add(new ItemDef("Loosening", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Loosening_1800x1800.jpg"));
+                list.add(new ItemDef("Taste From The Memory", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_Taste_From_The_Memory_1800x1800.jpg"));
+                list.add(new ItemDef("The Scent", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_The_Scent_1800x1800.jpg"));
+                list.add(new ItemDef("The Warmth", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Skullpanda_The_Warmth_Series_The_Warmth_secret_1800x1800.jpg"));
                 break;
 
             case "hirono-little-mischief-series":
@@ -752,84 +758,84 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 break;
 
             case "hirono-the-other-one-series":
-                list.add(new ItemDef("Amnesia", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("The Ghost", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Staring", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Marionette", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Protection", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Being Alive", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Pretending", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Patience", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("The Room", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Vagrant", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Nowhere Safe", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("False", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
-                list.add(new ItemDef("Silent Scream", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2"));
+                list.add(new ItemDef("Amnesia", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Hirono_The_Other_One_Series_Amnesia.png"));
+                list.add(new ItemDef("The Ghost", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/POP_MART_-_Hirono_The_Other_One_Series_Ghost_-_The_Ghost.png"));
+                list.add(new ItemDef("Fox", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Hirono_The_Other_One_Series_The_Fox.png"));
+                list.add(new ItemDef("Staring", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_Staring.png"));
+                list.add(new ItemDef("Marionette", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_Marionette.png"));
+                list.add(new ItemDef("The Monster", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_The_Monster.png"));
+                list.add(new ItemDef("Being Alive", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_Boxing_Alive.png"));
+                list.add(new ItemDef("Nowhere Safe", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Hirono_The_Other_One_Series_Nowhere_Safe.png"));
+                list.add(new ItemDef("Vagrant", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Hirono_The_Other_One_Series_Vagrancy.png"));
+                list.add(new ItemDef("The Crow", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_The_Crow.png"));
+                list.add(new ItemDef("Raving", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_Hirono_The_Other_One_Series_Raving.png"));
+                list.add(new ItemDef("Cuckoo", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_series_Cuckoo.png"));
+                list.add(new ItemDef("Silent Scream", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/popmart_hirono_the_other_one_Dreaming_secret.png"));
                 break;
 
             case "mega-space-molly-100-series-2":
-                list.add(new ItemDef("Space Molly Bananaman", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Melting", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Basquiat", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Keith Haring", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Heartfelt", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Mint Chocolate", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Toffee", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Cheerleader", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Glacier", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
-                list.add(new ItemDef("Space Molly Galactic Star", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
+                list.add(new ItemDef("Space Molly Bananaman", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/87221d51f26e77a08e388addbd6f0b51_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Melting", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/05f23838846685b9e6eac31ed835a68a_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Basquiat", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/926e3484a7587c8e39cafdb56a4f2196_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Keith Haring", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/3722d791b1b966bca0b8155f276c6779_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Heartfelt", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/eb114a19a00b495b7cb8073688755c9a_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Mint Chocolate", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/39ee4912734cf17a743fbbeec4ed4d71_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Toffee", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/ef7eb9f5b66d45a85b120836bfe2334a_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Cheerleader", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/107db3269a7c1bef66ae07d03e673a42_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Glacier", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/c726a28c0554c6126a1fcc5f957de382_1800x1800.jpg"));
+                list.add(new ItemDef("Space Molly Galactic Star", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/be5597caf043c8bec9b8a74a06fd5778_1800x1800.jpg"));
                 break;
 
             case "dimoo-retro-series":
-                list.add(new ItemDef("Arcade Gamer", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Cassette Player", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Film Camera", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Vinyl DJ", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Game Boy", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Vintage Radio", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Roller Skate", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Neon Dancer", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("VHS Tape", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Polaroid Snap", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Boombox", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("8-Bit Hero", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Golden Walkman", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
+                list.add(new ItemDef("Angel", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Angel_1800x1800.jpg"));
+                list.add(new ItemDef("Devil", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Devil_1800x1800.jpg"));
+                list.add(new ItemDef("Flamingo", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Flamingo_1800x1800.jpg"));
+                list.add(new ItemDef("Elk", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Elk_1800x1800.jpg"));
+                list.add(new ItemDef("Little Green Dragon", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Little_Green_Dragon_1800x1800.jpg"));
+                list.add(new ItemDef("Joker", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Joker_1800x1800.jpg"));
+                list.add(new ItemDef("Magician", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Magician_1800x1800.jpg"));
+                list.add(new ItemDef("Rocky Overlord", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Rocky_Overlord_1800x1800.jpg"));
+                list.add(new ItemDef("Pajamas Rabbit", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Pajamas_Rabbit_1800x1800.jpg"));
+                list.add(new ItemDef("Rocky King", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Rodky_King_1800x1800.jpg"));
+                list.add(new ItemDef("Snowy Owl", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Snowy_Owl_1800x1800.jpg"));
+                list.add(new ItemDef("Snowball", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Snowball_1800x1800.jpg"));
+                list.add(new ItemDef("Golden Walkman", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/popmart_dimoo_retro_series_Dark_Night_secret_1800x1800.jpg"));
                 break;
 
             case "crybaby-crying-parade-series":
-                list.add(new ItemDef("Crying Duck", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Love Balloon", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Raincoat Bunny", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Melancholy Clown", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Tearful Flower", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Sad Bear", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Blue Marshmallow", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Heartbroken Angel", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Sweet Sorrow", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Droplet Fairy", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Ribbon Crier", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Velvet Tear", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Golden Duckling", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
+                list.add(new ItemDef("The Letter", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blind_box_popmart_The_Letter_1800x1800.jpg"));
+                list.add(new ItemDef("The Drummer", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_The_Drummer_1800x1800.jpg"));
+                list.add(new ItemDef("Peace Please", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_Peace_Please_1800x1800.jpg"));
+                list.add(new ItemDef("Monkey", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_Monkey_1800x1800.jpg"));
+                list.add(new ItemDef("Long Legged Clown", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_Long_Legged_Clown_1800x1800.jpg"));
+                list.add(new ItemDef("Keep Go Go", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_Keep_Go_Go_1800x1800.jpg"));
+                list.add(new ItemDef("Good Girl", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_Good_Girl_1800x1800.jpg"));
+                list.add(new ItemDef("Free Lion", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_popmart_Free_Lion_1800x1800.jpg"));
+                list.add(new ItemDef("Fall", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_popmart_fall_1800x1800.jpg"));
+                list.add(new ItemDef("Yes Can Can", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_popmart_yes_can_can_1800x1800.jpg"));
+                list.add(new ItemDef("Ugly Duckling", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_popmart_blindbox_ugly_duckling_1800x1800.jpg"));
+                list.add(new ItemDef("The Trumpet", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_popmart_blindbox_The_Trumpet_1800x1800.jpg"));
+                list.add(new ItemDef("The Saddest King", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/crybaby_crying_parade_series_blindbox_popmart_The_Saddest_King_secret_1800x1800.jpg"));
                 break;
 
             case "crybaby-sad-club-series":
-                list.add(new ItemDef("Cry Baby Duck", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Crying Cat", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Tearful Rabbit", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Little Blue Girl", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Lonely Ghost", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Rainy Cloud", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
-                list.add(new ItemDef("Rainbow Tear", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
+                list.add(new ItemDef("Big Cleaning Day", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_Big_Cleaning_Day_1800x1800.jpg"));
+                list.add(new ItemDef("Teardrops On The Pillow", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_Teardrops_On_The_Pillow_1800x1800.jpg"));
+                list.add(new ItemDef("The Hottest Day Of Summer", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_The_Hottest_Day_Of_Summer_1800x1800.jpg"));
+                list.add(new ItemDef("Withering Flower", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_Withering_Flower_1800x1800.jpg"));
+                list.add(new ItemDef("Teardrop Bowl", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_Teardrop_Bowl_1800x1800.jpg"));
+                list.add(new ItemDef("Devastated", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_Devastated_1800x1800.jpg"));
+                list.add(new ItemDef("A Sad Show", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Crybaby_Sad_Clunb_Series_Scene_Sets_A_Sad_Show_Secret_1800x1800.jpg"));
                 break;
 
             case "dimoo-dating-series":
-                list.add(new ItemDef("Movie Night", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("First Date", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Sweet Bouquet", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Coffee Chat", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Park Stroll", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Amusement Ride", RarityType.REGULAR, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
-                list.add(new ItemDef("Eternal Love", RarityType.SECRET, "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
+                list.add(new ItemDef("Ice Cream", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Ice_Cream_1800x1800.jpg"));
+                list.add(new ItemDef("Marshmallow", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Marshmallow_1800x1800.jpg"));
+                list.add(new ItemDef("Love Theatre", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Love_Theatre_1800x1800.jpg"));
+                list.add(new ItemDef("Love Fountain", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Love_Fountain_1800x1800.jpg"));
+                list.add(new ItemDef("Joyriding Bumper Car", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Joyriding_Bumper_Car_1800x1800.jpg"));
+                list.add(new ItemDef("Record Anniversary", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Record_Anniversary_1800x1800.jpg"));
+                list.add(new ItemDef("Photo Prop Wall", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Photo_Prop_Wall_secret_1800x1800.jpg"));
                 break;
         }
         return list;

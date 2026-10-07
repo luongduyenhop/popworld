@@ -183,10 +183,25 @@ public class ProductWebController {
             @RequestParam(required = false) Boolean popNow,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) Boolean featured,
+            @RequestParam(required = false) Boolean newRelease,
             @RequestParam(defaultValue = "1") int page,
             Model model) {
-        String catSlug = (slug != null && !slug.isBlank()) ? slug : category;
-        return buildCatalogModel(catSlug, character, keyword, sort, popNow, inStock, priceRange, page, model);
+        String catSlug = category;
+        if (slug != null && !slug.isBlank()) {
+            if ("trending".equalsIgnoreCase(slug) || "trending-now".equalsIgnoreCase(slug)) {
+                featured = true;
+                if ("recommend".equalsIgnoreCase(sort)) sort = "best_selling";
+            } else if ("latest-drops".equalsIgnoreCase(slug) || "new-arrivals".equalsIgnoreCase(slug)) {
+                newRelease = true;
+                if ("recommend".equalsIgnoreCase(sort)) sort = "latest";
+            } else if ("iconic_series".equalsIgnoreCase(slug) || "iconic-series".equalsIgnoreCase(slug)) {
+                featured = true;
+            } else if (catSlug == null || catSlug.isBlank()) {
+                catSlug = slug;
+            }
+        }
+        return buildCatalogModel(catSlug, character, keyword, sort, popNow, inStock, priceRange, featured, newRelease, page, model);
     }
 
     @GetMapping("/categories/{slug}")
@@ -198,9 +213,11 @@ public class ProductWebController {
             @RequestParam(required = false) Boolean popNow,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) Boolean featured,
+            @RequestParam(required = false) Boolean newRelease,
             @RequestParam(defaultValue = "1") int page,
             Model model) {
-        return buildCatalogModel(slug, character, keyword, sort, popNow, inStock, priceRange, page, model);
+        return buildCatalogModel(slug, character, keyword, sort, popNow, inStock, priceRange, featured, newRelease, page, model);
     }
 
     @GetMapping("/characters/{id}")
@@ -212,9 +229,11 @@ public class ProductWebController {
             @RequestParam(required = false) Boolean popNow,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) Boolean featured,
+            @RequestParam(required = false) Boolean newRelease,
             @RequestParam(defaultValue = "1") int page,
             Model model) {
-        return buildCatalogModel(category, id, keyword, sort, popNow, inStock, priceRange, page, model);
+        return buildCatalogModel(category, id, keyword, sort, popNow, inStock, priceRange, featured, newRelease, page, model);
     }
 
     @GetMapping("/search")
@@ -226,9 +245,11 @@ public class ProductWebController {
             @RequestParam(required = false) Boolean popNow,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) Boolean featured,
+            @RequestParam(required = false) Boolean newRelease,
             @RequestParam(defaultValue = "1") int page,
             Model model) {
-        return buildCatalogModel(category, character, keyword, sort, popNow, inStock, priceRange, page, model);
+        return buildCatalogModel(category, character, keyword, sort, popNow, inStock, priceRange, featured, newRelease, page, model);
     }
 
     private String buildCatalogModel(
@@ -239,6 +260,8 @@ public class ProductWebController {
             Boolean popNow,
             Boolean inStock,
             String priceRange,
+            Boolean featured,
+            Boolean newRelease,
             int page,
             Model model) {
         addCommonAttributes(model);
@@ -314,6 +337,18 @@ public class ProductWebController {
             }
         }
 
+        // 6.5. Lọc theo Featured (Trending) & New Release (Latest Drops)
+        if (Boolean.TRUE.equals(featured)) {
+            allProducts = allProducts.stream()
+                    .filter(p -> Boolean.TRUE.equals(p.getIsFeatured()))
+                    .toList();
+        }
+        if (Boolean.TRUE.equals(newRelease)) {
+            allProducts = allProducts.stream()
+                    .filter(p -> Boolean.TRUE.equals(p.getIsNewRelease()))
+                    .toList();
+        }
+
         // 7. Sắp xếp (Sorting)
         List<Product> sortedList = new java.util.ArrayList<>(allProducts);
         String activeSort = (sort != null && !sort.isBlank()) ? sort.toLowerCase() : "recommend";
@@ -355,7 +390,15 @@ public class ProductWebController {
         String pageDescription = "Explore the complete designer art toy universe and official blind boxes.";
         String bannerTheme = "banner-theme-default";
 
-        if (selectedCategory != null) {
+        if (Boolean.TRUE.equals(featured) && selectedCategory == null && selectedCharacter == null) {
+            pageTitle = "TRENDING & FEATURED";
+            pageDescription = "Top các mẫu Art Toy, Blind Box được cộng đồng săn đón và bán chạy nhất.";
+            bannerTheme = "banner-theme-mega";
+        } else if (Boolean.TRUE.equals(newRelease) && selectedCategory == null && selectedCharacter == null) {
+            pageTitle = "LATEST DROPS & NEW ARRIVALS";
+            pageDescription = "Các bộ sưu tập mới ra mắt và chuẩn bị mở bán đón đầu xu hướng.";
+            bannerTheme = "banner-theme-blindbox";
+        } else if (selectedCategory != null) {
             pageTitle = selectedCategory.getName().toUpperCase();
             pageDescription = (selectedCategory.getDescription() != null && !selectedCategory.getDescription().isBlank())
                     ? selectedCategory.getDescription()
@@ -366,6 +409,8 @@ public class ProductWebController {
                 bannerTheme = "banner-theme-blindbox";
             } else if (categorySlug.contains("mega")) {
                 bannerTheme = "banner-theme-mega";
+            } else if (categorySlug.contains("accessories")) {
+                bannerTheme = "banner-theme-default";
             }
         } else if (selectedCharacter != null) {
             pageTitle = selectedCharacter.getName().toUpperCase() + " COLLECTION";
@@ -405,6 +450,8 @@ public class ProductWebController {
         model.addAttribute("selectedPopNow", popNow);
         model.addAttribute("selectedInStock", inStock);
         model.addAttribute("selectedPriceRange", priceRange);
+        model.addAttribute("selectedFeatured", featured);
+        model.addAttribute("selectedNewRelease", newRelease);
         model.addAttribute("keyword", keyword);
 
         model.addAttribute("pageTitle", pageTitle);

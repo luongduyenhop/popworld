@@ -80,6 +80,9 @@ class AdminRbacSecurityChallengeTest {
     private SeriesRepository seriesRepository;
 
     @MockitoBean
+    private com.manguonmo.popworld.repository.CharacterIpRepository characterIpRepository;
+
+    @MockitoBean
     private ReportService reportService;
 
     @MockitoBean

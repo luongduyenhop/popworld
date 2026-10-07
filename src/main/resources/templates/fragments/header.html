@@ -66,14 +66,14 @@
 
                     <!-- 1. NEW & FEATURED (Mega-Menu Panel 1: 3x2 Promotional Banner Cards) -->
                     <li class="nav-item pop-nav-mega-item" id="nav-item-new-featured">
-                        <a class="nav-link pop-nav-mega-link" th:href="@{/categories/blind-box}">
+                        <a class="nav-link pop-nav-mega-link" th:href="@{/collections/trending}">
                             <span>NEW &amp; FEATURED</span>
                             <i class="bi bi-chevron-down pop-nav-chevron"></i>
                         </a>
                         <div class="pop-mega-panel" aria-label="New and Featured Menu">
                             <div class="pop-mega-featured-grid">
                                 <!-- Card 1: TRENDING -->
-                                <a th:href="@{/categories/blind-box}" class="pop-featured-banner-card">
+                                <a th:href="@{/collections/trending}" class="pop-featured-banner-card">
                                     <div class="pop-featured-banner-visual" style="background: linear-gradient(135deg, #FFD54F 0%, #F5B041 100%);">
                                         <div class="pop-featured-banner-copy">
                                             <span class="pop-featured-tag">HOT</span>
@@ -87,7 +87,7 @@
                                 </a>
 
                                 <!-- Card 2: LATEST DROPS -->
-                                <a th:href="@{/categories/blind-box}" class="pop-featured-banner-card">
+                                <a th:href="@{/collections/latest-drops}" class="pop-featured-banner-card">
                                     <div class="pop-featured-banner-visual" style="background: linear-gradient(135deg, #2C1810 0%, #5D2A2C 100%);">
                                         <div class="pop-featured-banner-copy">
                                             <span class="pop-featured-tag">NEW DROP</span>
@@ -101,7 +101,7 @@
                                 </a>
 
                                 <!-- Card 3: NEW ARRIVALS -->
-                                <a th:href="@{/categories/blind-box}" class="pop-featured-banner-card">
+                                <a th:href="@{/products(newRelease='true')}" class="pop-featured-banner-card">
                                     <div class="pop-featured-banner-visual" style="background: linear-gradient(135deg, #E8F5E9 0%, #B9F6CA 100%);">
                                         <div class="pop-featured-banner-copy">
                                             <span class="pop-featured-tag">NEW</span>
@@ -175,48 +175,12 @@
                                     <div class="pop-mega-square-title" th:text="${ip.name == 'Labubu' ? 'THE MONSTERS' : ip.name}">THE MONSTERS</div>
                                 </a>
 
-                                <!-- Additional Curated Iconic POP MART Characters (Row 2) -->
-                                <a th:href="@{/characters/1}" class="pop-mega-square-tile">
-                                    <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2" alt="LABUBU">
-                                    </div>
-                                    <div class="pop-mega-square-title">LABUBU</div>
-                                </a>
-
-                                <a th:href="@{/search(keyword='Skullpanda')}" class="pop-mega-square-tile">
-                                    <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/products/7170/images/51201/skullpanda_mare_tmb__44889.1662154606.500.750.jpg?c=2" alt="PUCKY">
-                                    </div>
-                                    <div class="pop-mega-square-title">PUCKY</div>
-                                </a>
-
-                                <a th:href="@{/search(keyword='Hirono')}" class="pop-mega-square-tile">
-                                    <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6245/39276/hirono_all2__76002.1658930757.jpg?c=2" alt="HACIPUPU">
-                                    </div>
-                                    <div class="pop-mega-square-title">HACIPUPU</div>
-                                </a>
-
-                                <a th:href="@{/search(keyword='Molly')}" class="pop-mega-square-tile">
-                                    <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" alt="PEACH RIOT">
-                                    </div>
-                                    <div class="pop-mega-square-title">PEACH RIOT</div>
-                                </a>
-
-                                <a th:href="@{/search(keyword='Dimoo')}" class="pop-mega-square-tile">
-                                    <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2" alt="ZSIGA">
-                                    </div>
-                                    <div class="pop-mega-square-title">ZSIGA</div>
-                                </a>
-
-                                <!-- ALL Tile (2x2 Grid Icon inside #F5F5F5 Square) -->
-                                <a th:href="@{/search(keyword='')}" class="pop-mega-square-tile">
+                                <!-- ALL Characters Tile -->
+                                <a th:href="@{/products}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box pop-mega-all-icon-box">
                                         <i class="bi bi-grid"></i>
                                     </div>
-                                    <div class="pop-mega-square-title">ALL</div>
+                                    <div class="pop-mega-square-title">TẤT CẢ</div>
                                 </a>
                             </div>
                         </div>
@@ -238,52 +202,52 @@
                         </a>
                         <div class="pop-mega-panel" aria-label="Categories Menu">
                             <div class="pop-mega-tile-grid">
-                                <!-- Tile 1: ART FIGURES -->
+                                <!-- Tile 1: BLIND BOX -->
                                 <a th:href="@{/categories/blind-box}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/7169/51202/hirono_mischief_tmb__85325.1661682805.jpg?c=2" alt="ART FIGURES">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5473/29602/monsterscamping_bb__83659.1649553079.jpg?c=2" alt="Hộp Mù Blind Box">
                                     </div>
-                                    <div class="pop-mega-square-title">ART FIGURES</div>
+                                    <div class="pop-mega-square-title">HỘP MÙ BLIND BOX</div>
                                 </a>
 
-                                <!-- Tile 2: BLIND BOX -->
-                                <a th:href="@{/categories/blind-box}" class="pop-mega-square-tile">
+                                <!-- Tile 2: MEGA COLLECTION -->
+                                <a th:href="@{/categories/mega-collection}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5473/29602/monsterscamping_bb__83659.1649553079.jpg?c=2" alt="BLIND BOX">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2" alt="Mega Collection">
                                     </div>
-                                    <div class="pop-mega-square-title">BLIND BOX</div>
+                                    <div class="pop-mega-square-title">MEGA COLLECTION</div>
                                 </a>
 
                                 <!-- Tile 3: PLUSH DOLLS -->
                                 <a th:href="@{/categories/plush-doll}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2" alt="PLUSH DOLLS">
+                                        <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" alt="Búp Bê & Gấu Bông">
                                     </div>
-                                    <div class="pop-mega-square-title">PLUSH DOLLS</div>
+                                    <div class="pop-mega-square-title">BÚP BÊ &amp; VINYL PLUSH</div>
                                 </a>
 
-                                <!-- Tile 4: MEGA COLLECTION -->
-                                <a th:href="@{/categories/mega-collection}" class="pop-mega-square-tile">
+                                <!-- Tile 4: PHỤ KIỆN & TRƯNG BÀY -->
+                                <a th:href="@{/categories/accessories}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2" alt="MEGA">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/9174/71701/IMG_2037_2__97318.1697657311.JPG?c=2" alt="Phụ Kiện Trưng Bày">
                                     </div>
-                                    <div class="pop-mega-square-title">MEGA</div>
+                                    <div class="pop-mega-square-title">PHỤ KIỆN &amp; TRƯNG BÀY</div>
                                 </a>
 
-                                <!-- Tile 5: PLUSH PENDANTS -->
-                                <a th:href="@{/categories/plush-doll}" class="pop-mega-square-tile">
+                                <!-- Tile 5: POP NOW LIVE -->
+                                <a th:href="@{/popnow}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box">
-                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" alt="PLUSH PENDANTS">
+                                        <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/7169/51202/hirono_mischief_tmb__85325.1661682805.jpg?c=2" alt="POP NOW Online">
                                     </div>
-                                    <div class="pop-mega-square-title">PLUSH PENDANTS</div>
+                                    <div class="pop-mega-square-title">BÓC HỘP POP NOW</div>
                                 </a>
 
-                                <!-- Tile 6: ALL (2x2 Grid Icon Tile) -->
-                                <a th:href="@{/search(keyword='')}" class="pop-mega-square-tile">
+                                <!-- Tile 6: TẤT CẢ (ALL) -->
+                                <a th:href="@{/products}" class="pop-mega-square-tile">
                                     <div class="pop-mega-square-box pop-mega-all-icon-box">
                                         <i class="bi bi-grid"></i>
                                     </div>
-                                    <div class="pop-mega-square-title">ALL</div>
+                                    <div class="pop-mega-square-title">TẤT CẢ SẢN PHẨM</div>
                                 </a>
                             </div>
                         </div>
