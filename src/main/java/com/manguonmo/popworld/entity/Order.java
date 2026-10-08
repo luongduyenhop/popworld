@@ -50,7 +50,7 @@ public class Order extends BaseEntity {
 
     @Builder.Default
     @Column(name = "delivery_method", length = 50)
-    private String deliveryMethod = "Standard";
+    private String deliveryMethod = "Tiêu chuẩn";
 
     @Column(name = "subtotal_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotalAmount;
@@ -130,4 +130,15 @@ public class Order extends BaseEntity {
 
     @Column(name = "note", length = 255)
     private String note;
+
+    public String getStatusDescription() {
+        if (status == null) {
+            return "";
+        }
+        try {
+            return OrderStatus.valueOf(status).getDescription();
+        } catch (IllegalArgumentException e) {
+            return status;
+        }
+    }
 }

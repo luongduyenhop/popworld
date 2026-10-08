@@ -92,8 +92,8 @@
                         <div class="text-end">
                             <span class="badge px-3 py-2 fs-6 fw-bold text-uppercase"
                                   th:classappend="${order.status == 'DELIVERED' ? 'bg-success' : (order.status == 'CANCELLED' ? 'bg-danger' : (order.status == 'SHIPPING' ? 'bg-primary' : 'bg-warning text-dark'))}"
-                                  th:text="${order.status}">
-                                PROCESSING
+                                  th:text="${order.statusDescription}">
+                                Đang xử lý
                             </span>
                             <div class="small text-white-50 mt-1" th:text="'Thanh toán: ' + ${order.paymentMethod}"></div>
                         </div>

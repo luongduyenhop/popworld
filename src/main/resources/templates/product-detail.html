@@ -110,23 +110,23 @@
                 <section class="mb-5" th:if="${characters != null && !characters.isEmpty()}">
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                         <div>
-                            <h4 class="fw-black text-uppercase mb-0" style="letter-spacing: -0.5px;">All Characters</h4>
+                            <h4 class="fw-black text-uppercase mb-0" style="letter-spacing: -0.5px;">Toàn Bộ Nhân Vật</h4>
                             <small class="text-secondary">Trọn bộ nhân vật trong series (<span th:text="${characters.size()}">0</span> mẫu)</small>
                         </div>
-                        <span class="badge bg-light text-dark border rounded-pill px-3 py-1 small fw-bold">Official Blind Box</span>
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-1 small fw-bold">Hộp Mù Chính Hãng</span>
                     </div>
 
                     <div class="pdp-characters-grid">
                         <div th:each="c : ${characters}" class="pdp-character-card"
-                             th:onclick="selectMainFigure(/*[[${c.imageUrl}]]*/ '', /*[[${c.name}]]*/ '', /*[[${c.isSecret ? 'SECRET EDITION' : 'REGULAR'}]]*/ '', document.getElementById('thumb-char-' + /*[[${c.id}]]*/ 0))">
+                             th:onclick="selectMainFigure(/*[[${c.imageUrl}]]*/ '', /*[[${c.name}]]*/ '', /*[[${c.isSecret ? 'SECRET EDITION' : 'BẢN THƯỜNG'}]]*/ '', document.getElementById('thumb-char-' + /*[[${c.id}]]*/ 0))">
                             <div class="pdp-character-card-img">
                                 <img th:src="${c.imageUrl}" th:alt="${c.name}">
                             </div>
                             <div class="pdp-character-name" th:text="${c.name}">Tên nhân vật</div>
                             <div class="pdp-character-badge" 
                                  th:classappend="${c.isSecret} ? 'text-warning fw-black' : 'text-secondary'"
-                                 th:text="${c.isSecret} ? 'SECRET EDITION' : 'REGULAR'">
-                                REGULAR
+                                 th:text="${c.isSecret} ? 'BẢN HIẾM SECRET' : 'BẢN THƯỜNG'">
+                                BẢN THƯỜNG
                             </div>
                         </div>
                     </div>
@@ -198,11 +198,11 @@
                             <div class="pdp-spec-value" th:text="${product.material != null ? product.material : 'PVC / ABS / Vải bông Plush cao cấp'}">PVC / ABS</div>
                         </div>
                         <div class="pdp-spec-row">
-                            <div class="pdp-spec-label">Packaging</div>
+                            <div class="pdp-spec-label">Quy cách đóng gói</div>
                             <div class="pdp-spec-value" th:text="${product.packagingType != null ? product.packagingType : 'Hộp đơn bảo mật / Thùng nguyên bộ'}">1 Box / 12 Boxes Case</div>
                         </div>
                         <div class="pdp-spec-row">
-                            <div class="pdp-spec-label">Age</div>
+                            <div class="pdp-spec-label">Độ tuổi phù hợp</div>
                             <div class="pdp-spec-value">15+ (Dành cho nhà sưu tập Art Toy)</div>
                         </div>
                     </div>
@@ -210,11 +210,11 @@
 
                 <!-- KHỐI 5: SO SÁNH QUY CÁCH ĐÓNG GÓI (SINGLE BOX VS WHOLE SETS) -->
                 <section class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
-                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom" style="letter-spacing: -0.5px;">Packaging Specifications</h5>
+                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom" style="letter-spacing: -0.5px;">Quy Chuẩn Đóng Gói</h5>
                     <div class="pdp-pack-compare-grid">
                         <div class="pdp-pack-compare-card">
                             <div class="pdp-pack-compare-title">
-                                <i class="bi bi-box text-dark"></i> Single Box
+                                <i class="bi bi-box text-dark"></i> Hộp Lẻ (Single Box)
                             </div>
                             <div class="pdp-pack-compare-desc">
                                 Một hộp đóng gói kín bí mật (Blind Box). Màng co mờ và túi bạc bọc kín bên trong, không thể biết nhân vật nào trước khi mở seal. Thích hợp trải nghiệm sự bất ngờ!
@@ -222,7 +222,7 @@
                         </div>
                         <div class="pdp-pack-compare-card">
                             <div class="pdp-pack-compare-title">
-                                <i class="bi bi-boxes text-dark"></i> Whole Sets
+                                <i class="bi bi-boxes text-dark"></i> Nguyên Set (Cả Bộ)
                             </div>
                             <div class="pdp-pack-compare-desc">
                                 Một thùng nguyên seal chứa trọn bộ các hộp lẻ. Cam kết không trùng lặp các nhân vật thông thường. Có tỷ lệ mở trúng mẫu hiếm bí ẩn (Secret Edition).
@@ -258,7 +258,7 @@
 
                 <!-- KHỐI 6: CÂU CHUYỆN BỘ SƯU TẬP (STORYTELLING & DESCRIPTION) -->
                 <section class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
-                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom" style="letter-spacing: -0.5px;">Series Story & Details</h5>
+                    <h5 class="fw-black text-uppercase mb-3 pb-2 border-bottom" style="letter-spacing: -0.5px;">Câu Chuyện &amp; Chi Tiết Bộ Sưu Tập</h5>
                     <div class="text-secondary leading-relaxed" style="font-size: 14.5px; line-height: 1.7;" th:text="${product.description}">
                         Giới thiệu chi tiết câu chuyện tác phẩm nghệ thuật Art Toy...
                     </div>
@@ -271,7 +271,7 @@
                     <div class="pdp-reviews-header">
                         <div>
                             <h4 class="pdp-reviews-title">
-                                REVIEWS
+                                ĐÁNH GIÁ TỪ COLLECTORS
                                 <span class="pdp-reviews-count-badge" th:text="'(' + ${reviewsCount} + ')'">(0)</span>
                             </h4>
                             <p class="pdp-reviews-subtext">Trải nghiệm mở hộp thực tế từ các Collector PopMart</p>
@@ -502,7 +502,7 @@
                             350.000 ₫
                         </div>
                         <div class="pdp-reward-points">
-                            Estimated <span id="displayedPoints" th:text="'+' + ${estimatedPoints}">+350</span> Points
+                            Tích lũy ước tính <span id="displayedPoints" th:text="'+' + ${estimatedPoints}">+350</span> Điểm
                         </div>
                     </div>
 
@@ -520,7 +520,7 @@
                             </button>
                             <a th:if="${product.category != null && product.category.slug == 'blind-box'}" 
                                th:href="@{'/popnow/pick/' + ${product.slug}}" 
-                               class="pdp-option-btn text-danger fw-bold" title="Bốc hộp trực tuyến POP NOW">
+                               class="pdp-option-btn text-danger fw-bold" title="Bóc hộp trực tuyến POP NOW">
                                 <i class="bi bi-box-seam me-1"></i> Bóc Online POP NOW
                             </a>
                         </div>
@@ -528,16 +528,16 @@
 
                     <!-- Block 2: Size / Quy Cách Hộp (2 Compact Pills) -->
                     <div class="pdp-section-block">
-                        <div class="pdp-section-title">Size</div>
+                        <div class="pdp-section-title">Quy Cách Đóng Gói</div>
                         <div class="pdp-size-row">
                             <button type="button" class="pdp-size-btn active" id="sizeBtnSingle" onclick="selectVariant('SINGLE_BOX')">
-                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Single box">
-                                <span class="pdp-size-name">Single box</span>
+                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Hộp Lẻ (Single Box)">
+                                <span class="pdp-size-name">Hộp Lẻ (Single Box)</span>
                             </button>
                             <button type="button" class="pdp-size-btn" id="sizeBtnWhole" 
                                     th:if="${product.wholeSetPrice != null}" onclick="selectVariant('WHOLE_SET')">
-                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Whole Set">
-                                <span class="pdp-size-name">Whole Set</span>
+                                <img th:src="${product.mainImageUrl}" class="pdp-size-img" alt="Nguyên Set (Cả Bộ)">
+                                <span class="pdp-size-name">Nguyên Set (Cả Bộ)</span>
                             </button>
                         </div>
                     </div>
@@ -545,7 +545,7 @@
                     <!-- Block 3: Quantity & Tình Trạng Tồn Kho -->
                     <div class="pdp-section-block">
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <div class="pdp-section-title mb-0">Quantity</div>
+                            <div class="pdp-section-title mb-0">Số Lượng</div>
                             <div class="small fw-semibold" 
                                  th:classappend="${product.stockQuantity != null && product.stockQuantity > 0 ? 'text-success' : 'text-danger'}"
                                  style="font-size: 11.5px;">
@@ -567,17 +567,17 @@
 
                         <div class="pdp-btn-row" th:if="${product.stockQuantity != null && product.stockQuantity > 0}">
                             <button type="button" class="pdp-btn-add-cart" id="btnAddToCart" onclick="handleAddToCart()">
-                                <i class="bi bi-bag-plus me-1"></i> ADD TO CART
+                                <i class="bi bi-bag-plus me-1"></i> THÊM VÀO GIỎ
                             </button>
                             <button type="submit" class="pdp-btn-buy-now" id="btnBuyNow">
-                                BUY NOW
+                                MUA NGAY
                             </button>
                         </div>
 
                         <!-- Trạng thái tạm hết hàng -->
                         <div th:unless="${product.stockQuantity != null && product.stockQuantity > 0}" class="mt-3">
                             <button type="button" class="btn btn-secondary w-100 py-3 fw-bold rounded-1" disabled>
-                                TẠM HẾT HÀNG (OUT OF STOCK)
+                                TẠM HẾT HÀNG
                             </button>
                         </div>
                     </form>
@@ -672,7 +672,7 @@
         <!-- ========================================== -->
         <section class="mt-5 pt-4" th:if="${!relatedProducts.isEmpty()}">
             <div class="d-flex align-items-center justify-content-between mb-4">
-                <h3 class="fw-black text-uppercase mb-0" style="letter-spacing: -0.5px;">You May Also Like</h3>
+                <h3 class="fw-black text-uppercase mb-0" style="letter-spacing: -0.5px;">Gợi Ý Cho Bạn</h3>
                 <a th:if="${product.category != null}" th:href="@{'/categories/' + ${product.category.slug}}" 
                    class="text-decoration-none text-dark fw-bold small">Xem tất cả <i class="bi bi-arrow-right"></i></a>
             </div>

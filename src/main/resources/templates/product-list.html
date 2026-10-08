@@ -201,42 +201,42 @@
                             <!-- Sort Dropdown (POP MART US Style) -->
                             <div class="pop-sort-wrap dropdown">
                                 <button class="pop-sort-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Sort By - <span th:text="${selectedSort == 'price_asc' ? 'Price: low-high' : (selectedSort == 'price_desc' ? 'Price: high-low' : (selectedSort == 'latest' ? 'Latest arrival' : (selectedSort == 'best_selling' ? 'Best selling' : 'Recommend')))}">Recommend</span>
+                                    Sắp xếp: <span th:text="${selectedSort == 'price_asc' ? 'Giá: Thấp đến Cao' : (selectedSort == 'price_desc' ? 'Giá: Cao đến Thấp' : (selectedSort == 'latest' ? 'Mới nhất' : (selectedSort == 'best_selling' ? 'Bán chạy nhất' : 'Gợi ý')))}">Gợi ý</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end pop-sort-menu">
                                     <li>
                                         <a class="pop-sort-item" th:classappend="${selectedSort == 'recommend'} ? 'active' : ''" 
                                            href="javascript:applyFilterParam('sort', 'recommend')">
                                             <input type="radio" name="sortRadio" th:checked="${selectedSort == 'recommend'}" readonly>
-                                            Recommend
+                                            Gợi ý
                                         </a>
                                     </li>
                                     <li>
                                         <a class="pop-sort-item" th:classappend="${selectedSort == 'latest'} ? 'active' : ''" 
                                            href="javascript:applyFilterParam('sort', 'latest')">
                                             <input type="radio" name="sortRadio" th:checked="${selectedSort == 'latest'}" readonly>
-                                            Latest arrival
+                                            Mới nhất
                                         </a>
                                     </li>
                                     <li>
                                         <a class="pop-sort-item" th:classappend="${selectedSort == 'best_selling'} ? 'active' : ''" 
                                            href="javascript:applyFilterParam('sort', 'best_selling')">
                                             <input type="radio" name="sortRadio" th:checked="${selectedSort == 'best_selling'}" readonly>
-                                            Best selling
+                                            Bán chạy nhất
                                         </a>
                                     </li>
                                     <li>
                                         <a class="pop-sort-item" th:classappend="${selectedSort == 'price_asc'} ? 'active' : ''" 
                                            href="javascript:applyFilterParam('sort', 'price_asc')">
                                             <input type="radio" name="sortRadio" th:checked="${selectedSort == 'price_asc'}" readonly>
-                                            Price: low-high
+                                            Giá: Thấp đến Cao
                                         </a>
                                     </li>
                                     <li>
                                         <a class="pop-sort-item" th:classappend="${selectedSort == 'price_desc'} ? 'active' : ''" 
                                            href="javascript:applyFilterParam('sort', 'price_desc')">
                                             <input type="radio" name="sortRadio" th:checked="${selectedSort == 'price_desc'}" readonly>
-                                            Price: high-low
+                                            Giá: Cao đến Thấp
                                         </a>
                                     </li>
                                 </ul>

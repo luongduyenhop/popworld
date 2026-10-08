@@ -183,9 +183,9 @@
                 <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-4 border mb-3 shadow-sm">
                     <div class="d-flex align-items-center gap-3">
                         <input class="popmart-checkbox" type="checkbox" id="selectAllCheckbox" 
-                               th:checked="${allSelected}" onchange="toggleSelectAll(this)" aria-label="Select all">
+                               th:checked="${allSelected}" onchange="toggleSelectAll(this)" aria-label="Chọn tất cả">
                         <label class="fw-bold text-dark cursor-pointer user-select-none mb-0" for="selectAllCheckbox" style="font-size: 0.95rem;">
-                            Select all (<span id="selectedCountText" th:text="${selectedCount}">0</span>/<span th:text="${cartItems.size()}">0</span>)
+                            Chọn tất cả (<span id="selectedCountText" th:text="${selectedCount}">0</span>/<span th:text="${cartItems.size()}">0</span>)
                         </label>
                     </div>
                 </div>
@@ -231,8 +231,8 @@
                                     Tên sản phẩm
                                 </a>
                             </h6>
-                            <div class="text-muted small mb-2" th:text="${item.purchaseType == 'WHOLE_SET' ? 'Nguyên Thùng (Whole set)' : 'Hộp Đơn (Single box)'}">
-                                Single box
+                            <div class="text-muted small mb-2" th:text="${item.purchaseType == 'WHOLE_SET' ? 'Nguyên Set (Cả Bộ)' : 'Hộp Lẻ (Single Box)'}">
+                                Hộp Lẻ (Single Box)
                             </div>
                             <div class="fw-black text-dark fs-6"
                                  th:text="${#numbers.formatDecimal(item.purchaseType == 'WHOLE_SET' && item.product.wholeSetPrice != null ? item.product.wholeSetPrice : item.product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -264,7 +264,7 @@
                 <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top: 105px;">
                     <!-- Subtotal -->
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted" style="font-size: 0.95rem;">Subtotal</span>
+                        <span class="text-muted" style="font-size: 0.95rem;">Tạm tính</span>
                         <span class="fw-bold fs-6 text-dark" id="summarySubtotal"
                               th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                             0 đ
@@ -273,7 +273,7 @@
 
                     <!-- Shipping -->
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <span class="text-muted" style="font-size: 0.95rem;">Shipping</span>
+                        <span class="text-muted" style="font-size: 0.95rem;">Phí vận chuyển</span>
                         <span class="text-muted small" id="summaryShipping"
                               th:text="${isFreeShipping ? 'MIỄN PHÍ' : 'Tính ở bước tiếp theo'}">
                             Tính ở bước tiếp theo
@@ -283,7 +283,7 @@
                     <!-- Total(N) -->
                     <div class="d-flex justify-content-between align-items-baseline mb-3">
                         <span class="fw-bold text-dark fs-5">
-                            Total(<span id="summarySelectedCount" th:text="${selectedCount}">0</span>)
+                            Tổng cộng (<span id="summarySelectedCount" th:text="${selectedCount}">0</span>)
                         </span>
                         <span class="fs-4 fw-black text-dark" id="summaryTotal"
                               th:text="${#numbers.formatDecimal(totalAmount != null ? totalAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -310,7 +310,7 @@
                     <div class="d-grid mb-2">
                         <a th:href="@{/checkout}" id="btnCheckout" class="btn btn-dark py-3 fw-black text-uppercase tracking-wider rounded-3 text-center"
                            th:classappend="${selectedCount == 0} ? 'disabled opacity-50' : ''">
-                            CHECK OUT
+                            TIẾN HÀNH THANH TOÁN
                         </a>
                     </div>
                     <small class="text-danger d-block text-center mt-1" id="checkoutWarning" th:style="${selectedCount == 0} ? 'display:block;' : 'display:none;'">
@@ -322,7 +322,7 @@
 
         <!-- You May Also Like Section (Chuẩn POP MART) -->
         <div th:if="${recommendedProducts != null && !recommendedProducts.isEmpty()}" class="my-5 pt-4 border-top">
-            <h5 class="fw-black text-uppercase text-dark mb-4">You May Also Like</h5>
+            <h5 class="fw-black text-uppercase text-dark mb-4">Gợi Ý Cho Bạn</h5>
             <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
                 <div class="col" th:each="rec : ${recommendedProducts}" th:if="${recStat.index < 5}">
                     <div class="pop-recommend-card h-100 p-2 d-flex flex-column">
@@ -382,7 +382,7 @@
                 btnCheckout.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>ĐANG ĐỒNG BỘ...';
                 btnCheckout.classList.add('disabled', 'opacity-75');
             } else {
-                btnCheckout.innerHTML = 'CHECK OUT';
+                btnCheckout.innerHTML = 'TIẾN HÀNH THANH TOÁN';
                 btnCheckout.classList.remove('opacity-75');
                 recalculateCart();
             }

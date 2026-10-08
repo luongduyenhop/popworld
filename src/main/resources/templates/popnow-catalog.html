@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
-    <title>POP NOW - Discover your figure right after purchase! | POP MART</title>
+    <title>POP NOW - Mở hộp trực tuyến &amp; biết ngay nhân vật sau khi mua | PopWorld</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -319,20 +319,20 @@
                     <span>POP NOW!</span>
                 </div>
                 <div class="pm-popnow-logo-sub">
-                    Discover your figure right after purchase!
+                    Mở hộp trực tuyến &amp; biết ngay nhân vật sau khi mua!
                 </div>
                 <div class="pm-popnow-hero-actions">
                     <button type="button" class="pm-popnow-hero-btn" data-bs-toggle="modal" data-bs-target="#dailyTasksModal">
-                        <span class="pm-lucky-points-pill">Lucky Points</span>
-                        Daily Tasks
+                        <span class="pm-lucky-points-pill">Điểm May Mắn</span>
+                        Nhiệm Vụ Hàng Ngày
                     </button>
                     <button type="button" class="pm-popnow-hero-btn" data-bs-toggle="modal" data-bs-target="#howToPlayModal">
-                        How to Play
+                        Hướng Dẫn Chơi
                     </button>
                     <a th:if="${!products.isEmpty()}"
                        th:href="@{'/popnow/pick/' + ${products.get(0).slug}}"
                        class="pm-popnow-hero-btn">
-                        Try Your Luck
+                        Thử Vận May Ngay
                     </a>
                 </div>
             </div>
@@ -349,19 +349,19 @@
     <section class="pm-popnow-steps-strip">
         <div class="pm-popnow-step-item">
             <span class="pm-popnow-step-circle">1</span>
-            <span>Pop It</span>
+            <span>Chọn Hộp</span>
             <span class="pm-popnow-step-icon-badge"><i class="bi bi-box2-heart-fill"></i></span>
         </div>
         <div class="pm-popnow-step-arrow"></div>
         <div class="pm-popnow-step-item">
             <span class="pm-popnow-step-circle">2</span>
-            <span>Shake It</span>
+            <span>Lắc Hộp</span>
             <span class="pm-popnow-step-icon-badge"><i class="bi bi-dice-5-fill"></i></span>
         </div>
         <div class="pm-popnow-step-arrow"></div>
         <div class="pm-popnow-step-item">
             <span class="pm-popnow-step-circle">3</span>
-            <span>Unbox Now</span>
+            <span>Khui Hộp Ngay</span>
             <span class="pm-popnow-step-icon-badge"><i class="bi bi-stars"></i></span>
         </div>
     </section>
@@ -370,10 +370,10 @@
     <section class="pm-popnow-filter-bar">
         <label class="pm-local-express-check">
             <input type="checkbox" id="localExpressFilter" onchange="filterSeriesGrid()">
-            <span>Local Express</span>
+            <span>Giao Hỏa Tốc</span>
         </label>
         <button type="button" class="pm-character-filter-btn" onclick="toggleCharacterFilter()">
-            <span>Character</span>
+            <span>Nhân Vật</span>
             <i class="bi bi-sliders"></i>
         </button>
     </section>
@@ -400,13 +400,13 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 p-3 shadow-lg">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-black"><i class="bi bi-stars text-warning me-1"></i> POP NOW — Daily Tasks</h5>
+                    <h5 class="modal-title fw-black"><i class="bi bi-stars text-warning me-1"></i> POP NOW — Nhiệm Vụ Hàng Ngày</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="p-3 rounded-4 bg-light mb-3 d-flex justify-content-between align-items-center border">
                         <div>
-                            <span class="fw-bold text-dark d-block">My Lucky Points:</span>
+                            <span class="fw-bold text-dark d-block">Điểm May Mắn Của Tôi:</span>
                             <small class="text-secondary">Dùng để đổi Thẻ Gợi Ý (Hint Card)</small>
                         </div>
                         <span class="badge bg-warning text-dark fs-5 fw-black px-3 py-2 rounded-pill shadow-sm" id="catalogLuckyPointsBadge" th:text="${luckyPoints != null ? luckyPoints : 0} + ' PTS'">50 PTS</span>
@@ -454,13 +454,13 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 p-3">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-black">How to Play POP NOW</h5>
+                    <h5 class="modal-title fw-black">Hướng Dẫn Bóc Hộp POP NOW</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body small text-secondary">
-                    <p class="mb-2"><strong class="text-dark">1. Pick A Box:</strong> Select any blind box from the open 3D display tray or click <em>Pick One to Shake</em>.</p>
-                    <p class="mb-2"><strong class="text-dark">2. Shake for Hints:</strong> Your selected box pops up and is reserved for 5 minutes. Click <em>Shake for Hints</em> to eliminate characters that are NOT inside the box!</p>
-                    <p class="mb-0"><strong class="text-dark">3. Unbox Now:</strong> Complete checkout to unbox your mystery figure immediately online.</p>
+                    <p class="mb-2"><strong class="text-dark">1. Chọn Hộp Mù:</strong> Nhấp chọn bất kỳ hộp mù nào trên khay trưng bày 3D hoặc bấm <em>Chọn Ngẫu Nhiên 1 Hộp</em>.</p>
+                    <p class="mb-2"><strong class="text-dark">2. Lắc Hộp Tìm Manh Mối:</strong> Hộp được chọn sẽ nổi bật và giữ chỗ cho bạn trong 5 phút. Bấm <em>Lắc Hộp Tìm Manh Mối</em> để loại trừ các nhân vật chắc chắn KHÔNG nằm trong hộp!</p>
+                    <p class="mb-0"><strong class="text-dark">3. Khui Hộp Trực Tuyến:</strong> Hoàn tất thanh toán để bóc tem niêm phong và chiêm ngưỡng mô hình của bạn ngay trên màn hình.</p>
                 </div>
             </div>
         </div>

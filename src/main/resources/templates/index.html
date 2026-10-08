@@ -42,10 +42,10 @@
                             <h1 class="pop-hero-title mb-3">THE MONSTERS FALL IN WILD SERIES</h1>
                             <div class="pop-hero-cta-group">
                                 <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-hero-btn-shop">
-                                    <i class="bi bi-bag me-1"></i> SHOP NOW
+                                    <i class="bi bi-bag me-1"></i> MUA NGAY
                                 </a>
                                 <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
-                                    <i class="bi bi-box-seam me-1"></i> POP NOW
+                                    <i class="bi bi-box-seam me-1"></i> BÓC POP NOW
                                 </a>
                             </div>
                         </div>
@@ -60,10 +60,10 @@
                             <h1 class="pop-hero-title mb-3">SKULLPANDA CITY OF NIGHT SERIES</h1>
                             <div class="pop-hero-cta-group">
                                 <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-hero-btn-shop">
-                                    <i class="bi bi-bag me-1"></i> SHOP NOW
+                                    <i class="bi bi-bag me-1"></i> MUA NGAY
                                 </a>
                                 <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
-                                    <i class="bi bi-box-seam me-1"></i> POP NOW
+                                    <i class="bi bi-box-seam me-1"></i> BÓC POP NOW
                                 </a>
                             </div>
                         </div>
@@ -78,10 +78,10 @@
                             <h1 class="pop-hero-title mb-3">MEGA SPACE MOLLY 400% &amp; 1000%</h1>
                             <div class="pop-hero-cta-group">
                                 <a th:href="@{/categories/mega-collection}" class="pop-hero-btn-shop">
-                                    <i class="bi bi-bag me-1"></i> SHOP NOW
+                                    <i class="bi bi-bag me-1"></i> MUA NGAY
                                 </a>
                                 <a th:href="@{/popnow}" class="pop-hero-btn-popnow">
-                                    <i class="bi bi-box-seam me-1"></i> POP NOW
+                                    <i class="bi bi-box-seam me-1"></i> BÓC POP NOW
                                 </a>
                             </div>
                         </div>
@@ -118,7 +118,7 @@
                             </div>
                             <div class="pop-triptych-overlay">
                                 <div class="pop-triptych-title">THE MONSTERS<br>FALL IN WILD SERIES</div>
-                                <span class="pop-triptych-btn">VIEW MORE</span>
+                                <span class="pop-triptych-btn">XEM CHI TIẾT</span>
                             </div>
                         </a>
                     </div>
@@ -130,7 +130,7 @@
                             </div>
                             <div class="pop-triptych-overlay">
                                 <div class="pop-triptych-title">SKULLPANDA<br>CITY OF NIGHT SERIES</div>
-                                <span class="pop-triptych-btn">VIEW MORE</span>
+                                <span class="pop-triptych-btn">XEM CHI TIẾT</span>
                             </div>
                         </a>
                     </div>
@@ -142,7 +142,7 @@
                             </div>
                             <div class="pop-triptych-overlay">
                                 <div class="pop-triptych-title">MEGA SPACE MOLLY<br>GALLERY SERIES</div>
-                                <span class="pop-triptych-btn">VIEW MORE</span>
+                                <span class="pop-triptych-btn">XEM CHI TIẾT</span>
                             </div>
                         </a>
                     </div>
@@ -156,7 +156,7 @@
         <section class="pop-shelf-section">
             <div class="container-fluid px-lg-5 px-3">
                 <div class="pop-shelf-header">
-                    <h2 class="pop-shelf-title">POP NOW - ONLINE UNBOXING SHELF</h2>
+                    <h2 class="pop-shelf-title">POP NOW - KỆ BÓC HỘP TRỰC TUYẾN</h2>
                     <p class="pop-shelf-subtitle">Trải nghiệm chọn khay, lắc hộp, thử vận may trúng Secret trực tuyến ngay hôm nay</p>
                 </div>
                 
@@ -165,9 +165,9 @@
                         <img th:src="${p.mainImageUrl}" th:alt="${p.name}" class="pop-shelf-box-img">
                         <div class="pop-shelf-series-name" th:text="${p.name}">Tên Series Hộp Mù</div>
                         <div class="pop-shelf-price-tag" 
-                             th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫ / PICK'">350.000 ₫ / PICK</div>
+                             th:text="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫ / LƯỢT'">350.000 ₫ / LƯỢT</div>
                         <a th:href="@{/popnow}" class="pop-shelf-pick-btn">
-                            <i class="bi bi-dice-5-fill me-1"></i> PICK NOW
+                            <i class="bi bi-dice-5-fill me-1"></i> BÓC NGAY
                         </a>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                 <div class="mb-4">
                     <div class="d-flex align-items-center mb-2">
                         <span class="fw-black text-uppercase small tracking-wide me-3 text-secondary">
-                            <i class="bi bi-fire text-danger me-1"></i> POPULAR SEARCHES:
+                            <i class="bi bi-fire text-danger me-1"></i> TÌM KIẾM PHỔ BIẾN:
                         </span>
                     </div>
                     <div class="pop-search-pills-row">
@@ -219,7 +219,7 @@
                 </div>
 
                 <!-- Theme Cards 4-grid -->
-                <div class="pop-theme-section-title">EXPLORE BY THEME</div>
+                <div class="pop-theme-section-title">KHÁM PHÁ THEO CHỦ ĐỀ</div>
                 <div class="row g-3 g-lg-4">
                     <div class="col-6 col-md-3">
                         <a th:href="@{/categories/plush-doll}" class="pop-theme-card" style="background: linear-gradient(135deg, #F3ECE7 0%, #E5DACF 100%);">
@@ -312,15 +312,15 @@
         <!-- 6. SPECIAL OFFERS & CAMPAIGNS (CHIẾN DỊCH ĐỘC QUYỀN 4 CỘT)                 -->
         <!-- ========================================================================== -->
         <section class="container-fluid px-lg-5 px-3 py-5" style="background: #FAFAFA;">
-            <div class="pop-theme-section-title">EXCLUSIVE CAMPAIGNS &amp; OFFERS</div>
+            <div class="pop-theme-section-title">CHIẾN DỊCH &amp; ƯU ĐÃI ĐỘC QUYỀN</div>
             <div class="row g-4">
                 <!-- Offer 1 -->
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="pop-offer-card">
                         <img src="https://prod-america-res.popmart.com/default/20240408_161327_778318__1200x1200.jpg" class="pop-offer-card-img" alt="The Monsters Exhibition">
                         <div class="p-3 bg-white">
-                            <div class="pop-offer-card-title">THE MONSTERS 10TH ANNIVERSARY</div>
-                            <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-offer-card-btn">DISCOVER NOW</a>
+                            <div class="pop-offer-card-title">KỶ NIỆM 10 NĂM THE MONSTERS</div>
+                            <a th:href="@{/products/labubu-the-monsters-fall-in-wild-series}" class="pop-offer-card-btn">KHÁM PHÁ NGAY</a>
                         </div>
                     </div>
                 </div>
@@ -329,8 +329,8 @@
                     <div class="pop-offer-card">
                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/6595/43410/skullpanda_cityofnight_tmb__70108.1647110047.jpg?c=2" class="pop-offer-card-img" alt="Hirono & Skullpanda">
                         <div class="p-3 bg-white">
-                            <div class="pop-offer-card-title">DARK AESTHETICS COLLECTION</div>
-                            <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-offer-card-btn">EXPLORE</a>
+                            <div class="pop-offer-card-title">BỘ SƯU TẬP NGHỆ THUẬT GOTHIC</div>
+                            <a th:href="@{/products/skullpanda-city-of-night-series}" class="pop-offer-card-btn">KHÁM PHÁ</a>
                         </div>
                     </div>
                 </div>
@@ -339,8 +339,8 @@
                     <div class="pop-offer-card">
                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2" class="pop-offer-card-img" alt="POP NOW Experience">
                         <div class="p-3 bg-white">
-                            <div class="pop-offer-card-title">POP NOW UNBOXING EXPERIENCE</div>
-                            <a th:href="@{/popnow}" class="pop-offer-card-btn">PLAY NOW</a>
+                            <div class="pop-offer-card-title">TRẢI NGHIỆM BÓC HỘP POP NOW</div>
+                            <a th:href="@{/popnow}" class="pop-offer-card-btn">TRẢI NGHIỆM NGAY</a>
                         </div>
                     </div>
                 </div>
@@ -350,13 +350,13 @@
                         <div class="d-flex align-items-center justify-content-center text-white" style="height: 360px; background: linear-gradient(135deg, #111111 0%, #2A2A2A 100%);">
                             <div class="text-center p-4">
                                 <i class="bi bi-shield-check text-warning fs-1 mb-3"></i>
-                                <div class="h5 fw-bold mb-2">VIP REWARDS CLUB</div>
+                                <div class="h5 fw-bold mb-2">CÂU LẠC BỘ VIP REWARDS</div>
                                 <p class="small text-secondary mb-0">Tích lũy Lucky Points, đổi Hint Cards và nhận quà tri ân</p>
                             </div>
                         </div>
                         <div class="p-3 bg-white">
-                            <div class="pop-offer-card-title">POPWORLD VIP MEMBERSHIP</div>
-                            <a th:href="@{/account}" class="pop-offer-card-btn">VIEW PROFILE</a>
+                            <div class="pop-offer-card-title">ĐẶC QUYỀN HỘI VIÊN POPWORLD VIP</div>
+                            <a th:href="@{/account}" class="pop-offer-card-btn">XEM HỒ SƠ</a>
                         </div>
                     </div>
                 </div>
@@ -423,7 +423,7 @@
                             <div class="pop-card-body">
                                 <!-- Launch Time Tag -->
                                 <div class="pop-launch-tag">
-                                    <span>LAUNCH</span>
+                                    <span>MỞ BÁN</span>
                                     <span th:text="${iterStat.index % 2 == 0 ? '10.02 07:00' : 'VỪA LÊN KỆ'}">10.02 07:00</span>
                                 </div>
 
@@ -436,7 +436,7 @@
                                 <!-- Notify Me / Buy Action -->
                                 <div class="mt-2 pt-1 border-top d-flex gap-2">
                                     <button type="button" class="pop-notify-btn flex-grow-1" th:data-name="${p.name}" onclick="notifyProductLaunch(this.dataset.name)">
-                                        <i class="bi bi-bell"></i> NOTIFY ME
+                                        <i class="bi bi-bell"></i> NHẬN THÔNG BÁO
                                     </button>
                                     <a th:href="@{'/products/' + ${p.slug}}" class="btn btn-outline-dark btn-sm d-flex align-items-center" style="border-radius: 2px;">
                                         <i class="bi bi-arrow-right"></i>

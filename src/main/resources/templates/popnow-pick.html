@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
-    <title th:text="'POP NOW - ' + ${product.name} + ' | POP MART'">POP NOW - Pick A Box</title>
+    <title th:text="'POP NOW - ' + ${product.name} + ' | PopWorld'">POP NOW - Chọn Hộp Mù</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -963,18 +963,18 @@
     <div class="pm-pick-stepper-wrap">
         <div class="pm-pick-stepper">
             <div class="pm-pick-step-node active" id="stepNodePick">
-                <img th:src="@{/images/popnow/step-pick.png}" alt="Pick A Box" class="pm-step-icon">
-                <span class="pm-step-text">Pick A Box</span>
+                <img th:src="@{/images/popnow/step-pick.png}" alt="Chọn Hộp" class="pm-step-icon">
+                <span class="pm-step-text">Chọn Hộp</span>
             </div>
             <img th:src="@{/images/popnow/step-arrow.png}" alt="" class="pm-pick-step-arrow">
             <div class="pm-pick-step-node" id="stepNodeShake">
-                <img th:src="@{/images/popnow/step-shake.png}" alt="Shake for Hints" class="pm-step-icon">
-                <span class="pm-step-text">Shake for Hints</span>
+                <img th:src="@{/images/popnow/step-shake.png}" alt="Lắc Hộp" class="pm-step-icon">
+                <span class="pm-step-text">Lắc Hộp</span>
             </div>
             <img th:src="@{/images/popnow/step-arrow.png}" alt="" class="pm-pick-step-arrow">
             <div class="pm-pick-step-node" id="stepNodeUnbox">
-                <img th:src="@{/images/popnow/step-unbox.png}" alt="Unbox Now" class="pm-step-icon">
-                <span class="pm-step-text">Unbox Now</span>
+                <img th:src="@{/images/popnow/step-unbox.png}" alt="Khui Hộp Ngay" class="pm-step-icon">
+                <span class="pm-step-text">Khui Hộp Ngay</span>
             </div>
         </div>
     </div>
@@ -996,7 +996,7 @@
                 <header class="series-carousel__header">
                     <a th:href="@{/popnow}" class="series-carousel__back" id="linkExploreMore">
                         <span class="series-carousel__back-arrow" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
-                        <span class="series-carousel__back-text">Explore More Series</span>
+                        <span class="series-carousel__back-text">Khám Phá Các Series Khác</span>
                     </a>
 
                     <!-- Series Quick Switcher Dropdown -->
@@ -1005,7 +1005,7 @@
                             <i class="bi bi-box2-heart me-1"></i> <span th:text="${product.name}">Series</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2" style="min-width: 290px; max-height: 400px; overflow-y: auto;">
-                            <li class="dropdown-header text-uppercase fw-black text-secondary" style="font-size: 10px;">Select Blind Box Series</li>
+                            <li class="dropdown-header text-uppercase fw-black text-secondary" style="font-size: 10px;">Chọn Bộ Series Hộp Mù</li>
                             <li th:each="serProd : ${allSeriesProducts}">
                                 <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2"
                                    th:classappend="${serProd.id == product.id ? 'active fw-bold' : ''}"
@@ -1019,13 +1019,13 @@
 
                     <button type="button" class="series-carousel__back" id="btnBackToSet" style="display: none;" onclick="backToSetView()">
                         <span class="series-carousel__back-arrow" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
-                        <span class="series-carousel__back-text">Back to Set</span>
+                        <span class="series-carousel__back-text">Quay Lại Cả Set</span>
                     </button>
 
                     <!-- Box Status 1..6 Mini-Map (Stage 2) -->
                     <div class="pm-box-status-widget" id="boxStatusWidget" style="display: none;">
                         <div class="pm-box-status-title">
-                            <span>Box Status</span>
+                            <span>Trạng Thái Hộp</span>
                             <i class="bi bi-arrow-left-right"></i>
                         </div>
                         <div class="pm-box-status-dots" id="boxStatusDots">
@@ -1122,12 +1122,12 @@
                      =========================================================== -->
                 <div class="pm-stage-single-container" id="stageSingleBoxView">
                     <div class="pm-reserving-timer-bar">
-                        Reserving Time: <span id="countdownTimer">05:00</span>
+                        Thời gian giữ hộp: <span id="countdownTimer">05:00</span>
                     </div>
 
                     <!-- Speech Bubble: "The box is NOT ..." -->
                     <div class="pm-not-me-speech-bubble" id="notMeSpeechBubble">
-                        <div class="pm-not-me-title">The box is NOT</div>
+                        <div class="pm-not-me-title">Hộp chắc chắn KHÔNG PHẢI là:</div>
                         <div class="pm-not-me-names" id="notMeNamesList">
                             <div>Loyalty</div>
                             <div>Love</div>
@@ -1144,7 +1144,7 @@
                         </button>
 
                         <div class="pm-3d-single-box-card" id="single3DBoxCard">
-                            <span class="pm-single-box-badge">BOX #<span id="singleBoxBadgeNum">1</span></span>
+                            <span class="pm-single-box-badge">HỘP #<span id="singleBoxBadgeNum">1</span></span>
                             <img th:src="${theme != null && theme.singleBoxImgUrl != null ? theme.singleBoxImgUrl : (theme != null && theme.smallBoxImgUrl != null ? theme.smallBoxImgUrl : '/images/popnow/small-box.png')}"
                                  th:alt="${product.name}"
                                  id="singleBoxHeroImg"
@@ -1168,11 +1168,11 @@
                     <div class="pm-single-box-pills">
                         <button type="button" class="pm-pill-action-btn" id="btnHintCardOpen" onclick="openHintCardModal()">
                             <i class="bi bi-lightbulb-fill text-warning fs-6"></i>
-                            <span>HINT CARD <span class="badge bg-warning text-dark rounded-pill ms-1" id="hintCardCountBadge" th:text="${hintCards != null ? hintCards : 0}">1</span></span>
+                            <span>THẺ GỢI Ý <span class="badge bg-warning text-dark rounded-pill ms-1" id="hintCardCountBadge" th:text="${hintCards != null ? hintCards : 0}">1</span></span>
                         </button>
                         <button type="button" class="pm-pill-action-btn" id="btnShakeForHints" onclick="triggerShakeForHints()">
                             <i class="bi bi-box-seam text-danger fs-6"></i>
-                            <span>Shake for Hints</span>
+                            <span>Lắc Hộp Tìm Manh Mối</span>
                         </button>
                     </div>
                 </div>
@@ -1200,18 +1200,18 @@
                      th:text="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                     350,000 ₫
                 </div>
-                <div class="pm-right-shipping">Free shipping over 500,000 ₫</div>
+                <div class="pm-right-shipping">Miễn phí vận chuyển cho đơn từ 500.000 ₫</div>
 
                 <!-- MODE A: Stage 1 — Pick One to Shake -->
                 <div id="rightPanelSetMode">
                     <button type="button" class="pm-btn-pick-one-shake" onclick="pickRandomAvailableBox()">
-                        Pick One to Shake
+                        Chọn Ngẫu Nhiên 1 Hộp Để Lắc
                     </button>
                     <button type="button" class="pm-btn-buy-multiple" onclick="pickRandomAvailableBox()">
-                        <span>Buy Multiple Boxes</span>
+                        <span>Chọn Mua Nhiều Hộp</span>
                     </button>
-                    <div class="pm-no-dup-note">No duplicates if picking from the SAME SET</div>
-                    <a class="pm-how-to-play" onclick="alert('1. Click any box in the 3D tray (or Pick One to Shake)\n2. Shake the box to eliminate characters\n3. Unbox online immediately!')">How to Play</a>
+                    <div class="pm-no-dup-note">Đảm bảo không trùng lặp nhân vật khi chọn từ CÙNG MỘT SET</div>
+                    <a class="pm-how-to-play" onclick="alert('1. Bấm vào bất kỳ hộp nào trong khay 3D (hoặc bấm Chọn Ngẫu Nhiên 1 Hộp Để Lắc)\n2. Lắc hộp để loại trừ nhân vật (NOT ME)\n3. Thanh toán và bóc hộp trực tuyến ngay lập tức!')">Hướng Dẫn Chơi</a>
                 </div>
 
                 <!-- MODE B: Stage 2 — Checkout actions -->
@@ -1221,19 +1221,19 @@
                         <input type="hidden" name="paymentMethod" value="SEPAY">
                         <div class="pm-single-cta-grid">
                             <button type="button" class="pm-btn-add-cart-outline" onclick="submitPopNowCheckout()">
-                                ADD TO CART
+                                THÊM VÀO GIỎ
                             </button>
                             <button type="button" class="pm-btn-buy-now-black" onclick="submitPopNowCheckout()">
-                                BUY NOW
+                                MUA &amp; BÓC NGAY
                             </button>
                         </div>
                     </form>
                     <div class="pm-shipping-accordion" data-bs-toggle="collapse" data-bs-target="#shippingDetailsCollapse">
-                        <span>Shipping &amp; After-Sales Service</span>
+                        <span>Chính Sách Vận Chuyển &amp; Hậu Mãi</span>
                         <i class="bi bi-chevron-down"></i>
                     </div>
                     <div class="collapse pt-2 small text-secondary" id="shippingDetailsCollapse">
-                        Orders placed through POP NOW are unboxed online immediately after payment and shipped sealed from our official warehouse within 3–5 business days.
+                        Đơn hàng đặt qua POP NOW sẽ được bóc tem mở hộp trực tuyến ngay sau khi thanh toán và được đóng gói niêm phong chuyển phát từ kho chính hãng trong 1–3 ngày làm việc.
                     </div>
                 </div>
 
@@ -1259,8 +1259,8 @@
                 </div>
             </div>
             <div class="pm-probability-link">
-                <a href="javascript:void(0)" onclick="alert('Regular figure probability: 1/6 each. Secret figure probability: 1/72.')">
-                    Click here to check Probability Rules
+                <a href="javascript:void(0)" onclick="alert('Quy tắc xác suất: Mỗi mẫu thường có xác suất 1/6 (hoặc theo quy chuẩn series). Mẫu hiếm Secret có xác suất 1/72 hoặc 1/144.')">
+                    Xem Quy Tắc &amp; Tỷ Lệ Trúng Thưởng Secret
                 </a>
             </div>
         </div>

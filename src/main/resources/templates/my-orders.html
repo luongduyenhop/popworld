@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders - POP MART Official Store</title>
+    <title>Đơn Hàng Của Tôi - PopWorld</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -39,15 +39,15 @@
                     <!-- Profile Card -->
                     <div class="pop-user-card position-relative">
                         <!-- Floating + points yellow ribbon tag -->
-                        <div class="pop-floating-plus-points" onclick="switchAccountPanel('POINTS')" role="button">+ points</div>
+                        <div class="pop-floating-plus-points" onclick="switchAccountPanel('POINTS')" role="button">+ Tích điểm</div>
 
                         <div class="pop-user-topbar">
                             <div class="d-flex align-items-center gap-2">
-                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit profile</a>
-                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Account settings</a>
+                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#editProfileModal">Chỉnh sửa hồ sơ</a>
+                                <a href="javascript:void(0)" class="pop-profile-top-link" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Cài đặt tài khoản</a>
                             </div>
                             <form th:action="@{/logout}" method="post" class="m-0 p-0 d-inline">
-                                <button type="submit" class="pop-profile-top-link border-0 bg-transparent p-0">Sign out</button>
+                                <button type="submit" class="pop-profile-top-link border-0 bg-transparent p-0">Đăng xuất</button>
                             </form>
                         </div>
 
@@ -64,30 +64,30 @@
                                 <div class="pop-user-title mb-0">
                                     <span class="d-block fw-bold text-dark text-truncate" style="max-width: 140px; font-size: 0.95rem;"
                                           th:text="${user != null && user.nickname != null && !user.nickname.isBlank() ? user.nickname : (user != null ? user.fullName : 'Hội viên')}">
-                                        POPMART MEMBER
+                                        THÀNH VIÊN POP MART
                                     </span>
                                     <span class="d-block text-secondary text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;"
-                                          th:text="${user != null && user.membershipTier == 'VIP' ? 'POPMART VIP' : 'POPMART MEMBER'}">
-                                        POPMART MEMBER
+                                          th:text="${user != null && user.membershipTier == 'VIP' ? 'POPMART VIP' : 'THÀNH VIÊN POP MART'}">
+                                        THÀNH VIÊN POP MART
                                     </span>
                                 </div>
                             </div>
-                            <i class="bi bi-upc-scan pop-barcode-icon" title="Member Barcode ID" role="button"
+                            <i class="bi bi-upc-scan pop-barcode-icon" title="Mã vạch hội viên" role="button"
                                data-bs-toggle="modal" data-bs-target="#memberBarcodeModal"></i>
                         </div>
 
                         <div class="pop-user-benefits">
                             <div class="pop-benefit-item">
-                                <span class="pop-benefit-label">MY POINTS</span>
+                                <span class="pop-benefit-label">ĐIỂM CỦA TÔI</span>
                                 <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-benefit-val" id="sidebarMyPointsVal">
                                     <span th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</span>
                                     <i class="bi bi-chevron-right" style="font-size: 0.72rem;"></i>
                                 </a>
                             </div>
                             <div class="pop-benefit-item">
-                                <span class="pop-benefit-label">MORE BENEFITS</span>
+                                <span class="pop-benefit-label">QUYỀN LỢI HỘI VIÊN</span>
                                 <a href="javascript:void(0)" onclick="switchAccountPanel('REWARDS')" class="pop-benefit-val" style="font-size: 12px;">
-                                    <span>MEMBER REWARDS</span>
+                                    <span>ĐỔI THƯỞNG HỘI VIÊN</span>
                                     <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
                                 </a>
                             </div>
@@ -97,26 +97,26 @@
                     <!-- 2x2 Metrics Card: COUPONS / LUCKY POINTS / HINT CARD -->
                     <div class="pop-metrics-grid-card">
                         <div class="pop-metrics-cell pop-metrics-border-right pop-metrics-border-bottom"
-                             role="button" data-bs-toggle="modal" data-bs-target="#myCouponsModal" title="Xem danh sách Coupons" style="cursor: pointer;">
+                             role="button" data-bs-toggle="modal" data-bs-target="#myCouponsModal" title="Xem danh sách Mã giảm giá" style="cursor: pointer;">
                             <div class="pop-metric-number" th:text="${couponsCount != null ? couponsCount : 0}">0</div>
-                            <div class="pop-metric-label">COUPONS <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
+                            <div class="pop-metric-label">MÃ GIẢM GIÁ <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
                         <div class="pop-metrics-cell pop-metrics-border-bottom" id="sidebarCellLuckyPoints"
-                             role="button" onclick="switchAccountPanel('LUCKY_POINTS')" title="Xem My Lucky Points" style="cursor: pointer;">
+                             role="button" onclick="switchAccountPanel('LUCKY_POINTS')" title="Xem Điểm May Mắn" style="cursor: pointer;">
                             <div class="pop-metric-number" id="sidebarLuckyPoints" th:text="${user.luckyPoints != null ? user.luckyPoints : 0}">0</div>
-                            <div class="pop-metric-label">LUCKY POINTS <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
+                            <div class="pop-metric-label">ĐIỂM MAY MẮN <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
                         <div class="pop-metrics-cell pop-metrics-border-right pt-3" id="sidebarCellHintCard"
-                             role="button" onclick="switchAccountPanel('HINT_CARD')" title="Xem Hint Cards" style="cursor: pointer;">
+                             role="button" onclick="switchAccountPanel('HINT_CARD')" title="Xem Thẻ Gợi Ý" style="cursor: pointer;">
                             <div class="pop-metric-number" id="sidebarHintCards" th:text="${user.hintCards != null ? user.hintCards : 0}">0</div>
-                            <div class="pop-metric-label">HINT CARD <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
+                            <div class="pop-metric-label">THẺ GỢI Ý <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i></div>
                         </div>
                         <div class="pop-metrics-cell pt-3"></div>
                     </div>
 
                     <!-- Orders Menu & Delivery Mode Toggle Card -->
                     <div class="pop-side-menu-card">
-                        <div class="pop-side-menu-title" role="button" onclick="switchAccountPanel('ORDERS')">My Orders</div>
+                        <div class="pop-side-menu-title" role="button" onclick="switchAccountPanel('ORDERS')">Đơn Hàng Của Tôi</div>
 
                         <!-- Delivery vs Virtual Cabinet Toggle -->
                         <div class="pop-delivery-toggle">
@@ -147,8 +147,8 @@
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-ticket-perforated"></i>
                                     <div>
-                                        <div class="pop-side-nav-name">My Exhibition Orders</div>
-                                        <div class="pop-side-nav-desc">Manage your exhibition orders</div>
+                                        <div class="pop-side-nav-name">Vé Triển Lãm &amp; Sự Kiện</div>
+                                        <div class="pop-side-nav-desc">Quản lý vé &amp; đơn sự kiện</div>
                                     </div>
                                 </div>
                                 <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
@@ -158,8 +158,8 @@
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-geo-alt"></i>
                                     <div>
-                                        <div class="pop-side-nav-name">Address Book</div>
-                                        <div class="pop-side-nav-desc">Manage your order address</div>
+                                        <div class="pop-side-nav-name">Sổ Địa Chỉ</div>
+                                        <div class="pop-side-nav-desc">Quản lý địa chỉ nhận hàng</div>
                                     </div>
                                 </div>
                                 <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
@@ -169,8 +169,8 @@
                                 <div class="pop-side-nav-content">
                                     <i class="bi bi-gift"></i>
                                     <div>
-                                        <div class="pop-side-nav-name">Earned Rewards</div>
-                                        <div class="pop-side-nav-desc">Manage your earned rewards</div>
+                                        <div class="pop-side-nav-name">Phần Thưởng Đã Nhận</div>
+                                        <div class="pop-side-nav-desc">Quản lý quà thưởng hội viên</div>
                                     </div>
                                 </div>
                                 <i class="bi bi-chevron-right pop-side-nav-arrow"></i>
@@ -191,67 +191,67 @@
                 <section id="accountPanelRewards" class="pop-account-main-panel"
                          th:style="${activeAccountTab == 'REWARDS' ? 'display: block;' : 'display: none;'}">
                     <!-- 1. My Rewards Dual Black Cards -->
-                    <h2 class="pop-rewards-section-title">My Rewards</h2>
+                    <h2 class="pop-rewards-section-title">Phần Thưởng Của Tôi</h2>
                     <div class="pop-rewards-black-row">
                         <!-- Left Black Card: Points Balance & Points History Link -->
                         <div class="pop-reward-black-card pop-reward-black-points">
-                            <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-reward-history-link">Points History</a>
+                            <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-reward-history-link">Lịch Sử Điểm Thưởng</a>
                             <div class="pop-reward-gold-number" id="rewardsBigPointsNum"
                                  th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</div>
-                            <div class="pop-reward-points-caption">Points</div>
+                            <div class="pop-reward-points-caption">Điểm</div>
                         </div>
 
                         <!-- Right Black Card: 3 Benefit Quick Links -->
                         <div class="pop-reward-black-card pop-reward-black-menu">
                             <a href="javascript:void(0)" onclick="switchAccountPanel('POINTS')" class="pop-reward-black-menu-item">
                                 <span class="pop-reward-dark-circle"><i class="bi bi-award"></i></span>
-                                <span class="pop-reward-black-menu-text">POP POINTS &gt;</span>
+                                <span class="pop-reward-black-menu-text">ĐIỂM POP POINT &gt;</span>
                             </a>
                             <a href="javascript:void(0)" onclick="document.getElementById('birthdayRewardsAnchor').scrollIntoView({behavior:'smooth'})" class="pop-reward-black-menu-item">
                                 <span class="pop-reward-dark-circle"><i class="bi bi-cake2"></i></span>
-                                <span class="pop-reward-black-menu-text">BIRTHDAY REWARDS &gt;</span>
+                                <span class="pop-reward-black-menu-text">QUÀ SINH NHẬT &gt;</span>
                             </a>
                             <a th:href="@{/popnow}" class="pop-reward-black-menu-item">
                                 <span class="pop-reward-dark-circle"><i class="bi bi-flag-fill"></i></span>
-                                <span class="pop-reward-black-menu-text">COMMUNITY EVENTS &gt;</span>
+                                <span class="pop-reward-black-menu-text">SỰ KIỆN CỘNG ĐỒNG &gt;</span>
                             </a>
                         </div>
                     </div>
 
                     <!-- 2. Earn points Section -->
-                    <h2 class="pop-rewards-section-title mt-4 pt-2">Earn points</h2>
+                    <h2 class="pop-rewards-section-title mt-4 pt-2">Tích Luỹ Điểm Thưởng</h2>
                     <div class="pop-earn-points-row">
                         <!-- Card 1: Place an Order -->
                         <div class="pop-earn-card">
                             <div>
-                                <div class="pop-earn-card-title">Place an Order</div>
-                                <div class="pop-earn-card-red">1 Point for every $1.00</div>
+                                <div class="pop-earn-card-title">Đặt Mua Đơn Hàng</div>
+                                <div class="pop-earn-card-red">Tích điểm theo giá trị đơn hàng</div>
                             </div>
                             <div class="text-end mt-4">
-                                <a th:href="@{/categories/blind-box}" class="pop-earn-black-btn">SHOP NOW</a>
+                                <a th:href="@{/categories/blind-box}" class="pop-earn-black-btn">MUA NGAY</a>
                             </div>
                         </div>
 
                         <!-- Card 2: Review -->
                         <div class="pop-earn-card">
                             <div>
-                                <div class="pop-earn-card-title">Review</div>
-                                <div class="pop-earn-card-line">Review <span class="text-danger">+5 Points</span></div>
-                                <div class="pop-earn-card-line">Review + Photo <span class="text-danger">+10 Points</span></div>
+                                <div class="pop-earn-card-title">Đánh Giá Sản Phẩm</div>
+                                <div class="pop-earn-card-line">Đánh giá <span class="text-danger">+5 Điểm</span></div>
+                                <div class="pop-earn-card-line">Đánh giá kèm ảnh <span class="text-danger">+10 Điểm</span></div>
                             </div>
                             <div class="text-end mt-3">
-                                <a href="javascript:void(0)" onclick="switchAccountPanel('ORDERS')" class="pop-earn-black-btn">WRITE NOW</a>
+                                <a href="javascript:void(0)" onclick="switchAccountPanel('ORDERS')" class="pop-earn-black-btn">VIẾT ĐÁNH GIÁ</a>
                             </div>
                         </div>
                     </div>
 
                     <!-- 3. Birthday Rewards Section (Complete POP MART US Spec) -->
                     <div id="birthdayRewardsAnchor">
-                        <h2 class="pop-rewards-section-title mt-4 pt-2">Birthday Rewards</h2>
+                        <h2 class="pop-rewards-section-title mt-4 pt-2">Quà Sinh Nhật Hội Viên</h2>
                         <!-- If birthday isn't set -->
                         <div th:if="${user == null || user.birthday == null}" class="pop-birthday-notice-bar">
-                            <span>Your birthday isn't set! Update it now to receive your special birthday gift.</span>
-                            <button type="button" class="pop-birthday-go-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">GO</button>
+                            <span>Bạn chưa cập nhật ngày sinh! Cập nhật ngay để nhận quà sinh nhật đặc biệt.</span>
+                            <button type="button" class="pop-birthday-go-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">CẬP NHẬT</button>
                         </div>
                         <!-- If birthday IS set -->
                         <div th:if="${user != null && user.birthday != null}" class="pop-birthday-notice-bar" style="background: #E8F5E9; border-color: #C8E6C9;">
@@ -267,17 +267,17 @@
                         <!-- Birthday Gift Set Full Redemption Card (Matches 1st column width) -->
                         <div class="pop-birthday-redeem-wrapper">
                             <div class="pop-birthday-gift-card">
-                                <div class="pop-birthday-gift-badge">BIRTHDAY GIFT SET</div>
+                                <div class="pop-birthday-gift-badge">BỘ QUÀ SINH NHẬT</div>
                                 <div class="pop-birthday-gift-showcase">
                                     <div class="pop-birthday-showcase-item">
                                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5291/26567/monstersart_tmb__15808.1617230212.jpg?c=2"
                                              alt="Fuzzy Backpack">
-                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Fuzzy Backpack-Membership Exclusive</div>
+                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Fuzzy Backpack - Quà Tặng Độc Quyền</div>
                                     </div>
                                     <div class="pop-birthday-showcase-item">
                                         <img src="https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/5473/29602/monsterscamping_bb__83659.1649553079.jpg?c=2"
                                              alt="Coffee Cup">
-                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Coffee Cup-Membership Exclusive</div>
+                                        <div class="pop-birthday-mini-caption">THE MONSTERS<br>Coffee Cup - Quà Tặng Độc Quyền</div>
                                     </div>
                                 </div>
                                 <div class="pop-birthday-monsters-footer">
@@ -286,27 +286,27 @@
                             </div>
 
                             <div class="pop-redeem-item-title">
-                                Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack &amp; Coffee...
+                                Bộ Quà Sinh Nhật Hội Viên - THE MONSTERS Fuzzy Backpack &amp; Coffee Cup...
                             </div>
                             <div class="pop-redeem-meta-row">
                                 <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                   onclick="showRewardDetailToast('Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack & Coffee Cup', 899)">view details</a>
-                                <span class="pop-redeem-points-val">899 Points</span>
+                                   onclick="showRewardDetailToast('Bộ Quà Sinh Nhật Hội Viên - THE MONSTERS Fuzzy Backpack & Coffee Cup', 899)">Xem chi tiết</a>
+                                <span class="pop-redeem-points-val">899 Điểm</span>
                             </div>
                             <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                  onsubmit="return confirm('Bạn có chắc chắn muốn đổi bộ quà sinh nhật này với 899 POP Points?');">
-                                <input type="hidden" name="rewardTitle" value="Membership Birthday Gift Set - THE MONSTERS Fuzzy Backpack & Coffee Cup">
+                                  onsubmit="return confirm('Bạn có chắc chắn muốn đổi bộ quà sinh nhật này với 899 Điểm POP Points?');">
+                                <input type="hidden" name="rewardTitle" value="Bộ Quà Sinh Nhật Hội Viên - THE MONSTERS Fuzzy Backpack & Coffee Cup">
                                 <input type="hidden" name="pointsCost" value="899">
-                                <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                             </form>
                         </div>
 
                         <!-- Full-width white info bar: Learn more to claim your exclusive birthday gift. -->
                         <a href="javascript:void(0)" class="pop-birthday-learn-more-bar"
-                           onclick="showRewardDetailToast('Birthday Gift Claim Rules: Set your birthday in Edit Profile and redeem with 899 POP Points during your birthday month!', 899)">
+                           onclick="showRewardDetailToast('Quy định đổi quà sinh nhật: Cập nhật ngày sinh tại mục Chỉnh Sửa Hồ Sơ và đổi quà với 899 Điểm trong tháng sinh nhật của bạn!', 899)">
                             <div class="d-flex align-items-center gap-3">
                                 <i class="bi bi-shop" style="font-size: 18px; color: #000000;"></i>
-                                <span>Learn more to claim your exclusive birthday gift.</span>
+                                <span>Tìm hiểu thêm để nhận quà sinh nhật độc quyền.</span>
                             </div>
                             <i class="bi bi-chevron-right" style="font-size: 13px; color: #000000;"></i>
                         </a>
@@ -314,7 +314,7 @@
 
                     <!-- 4. Member Rewards Point-Redemption Catalog (Matches Screenshot 3: 4-Column Grid) -->
                     <div id="memberRewardsCatalogAnchor" class="mt-4 pt-3">
-                        <h2 class="pop-rewards-section-title mb-3">Member Rewards</h2>
+                        <h2 class="pop-rewards-section-title mb-3">Danh Mục Đổi Quà Hội Viên</h2>
                         <div class="pop-member-redeem-grid">
 
                             <!-- Reward 1: THE MONSTERS Forest Fairy Tale Series - Pendant (429 Points) -->
@@ -326,14 +326,14 @@
                                 <div class="pop-redeem-item-title">THE MONSTERS Forest Fairy Tale Series - Pendant</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('THE MONSTERS Forest Fairy Tale Series - Pendant', 429)">view details</a>
-                                    <span class="pop-redeem-points-val">429 Points</span>
+                                       onclick="showRewardDetailToast('THE MONSTERS Forest Fairy Tale Series - Pendant', 429)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">429 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi THE MONSTERS Pendant với 429 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi THE MONSTERS Pendant với 429 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="THE MONSTERS Forest Fairy Tale Series - Pendant">
                                     <input type="hidden" name="pointsCost" value="429">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -346,14 +346,14 @@
                                 <div class="pop-redeem-item-title">Apple of My Eye Series Felt Storage Box (Green)</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Green)', 595)">view details</a>
-                                    <span class="pop-redeem-points-val">595 Points</span>
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Green)', 595)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">595 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Felt Storage Box (Green) với 595 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Felt Storage Box (Green) với 595 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="Apple of My Eye Series Felt Storage Box (Green)">
                                     <input type="hidden" name="pointsCost" value="595">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -366,14 +366,14 @@
                                 <div class="pop-redeem-item-title">Apple of My Eye Series Felt Storage Box (Red)</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Red)', 595)">view details</a>
-                                    <span class="pop-redeem-points-val">595 Points</span>
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Felt Storage Box (Red)', 595)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">595 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Felt Storage Box (Red) với 595 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Felt Storage Box (Red) với 595 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="Apple of My Eye Series Felt Storage Box (Red)">
                                     <input type="hidden" name="pointsCost" value="595">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -386,14 +386,14 @@
                                 <div class="pop-redeem-item-title">CRYBABY CRYING FOR LOVE SERIES-Jewelry Box</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('CRYBABY CRYING FOR LOVE SERIES-Jewelry Box', 689)">view details</a>
-                                    <span class="pop-redeem-points-val">689 Points</span>
+                                       onclick="showRewardDetailToast('CRYBABY CRYING FOR LOVE SERIES-Jewelry Box', 689)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">689 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi CRYBABY Jewelry Box với 689 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi CRYBABY Jewelry Box với 689 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="CRYBABY CRYING FOR LOVE SERIES-Jewelry Box">
                                     <input type="hidden" name="pointsCost" value="689">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -406,14 +406,14 @@
                                 <div class="pop-redeem-item-title">Apple of My Eye Series Cushion</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('Apple of My Eye Series Cushion', 1279)">view details</a>
-                                    <span class="pop-redeem-points-val">1279 Points</span>
+                                       onclick="showRewardDetailToast('Apple of My Eye Series Cushion', 1279)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">1279 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Cushion với 1279 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi Apple of My Eye Cushion với 1279 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="Apple of My Eye Series Cushion">
                                     <input type="hidden" name="pointsCost" value="1279">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -426,14 +426,14 @@
                                 <div class="pop-redeem-item-title">THE MONSTERS - The Naughty Cashier Vinyl Plush Doll</div>
                                 <div class="pop-redeem-meta-row">
                                     <a href="javascript:void(0)" class="pop-redeem-view-details"
-                                       onclick="showRewardDetailToast('THE MONSTERS - The Naughty Cashier Vinyl Plush Doll', 2999)">view details</a>
-                                    <span class="pop-redeem-points-val">2999 Points</span>
+                                       onclick="showRewardDetailToast('THE MONSTERS - The Naughty Cashier Vinyl Plush Doll', 2999)">Xem chi tiết</a>
+                                    <span class="pop-redeem-points-val">2999 Điểm</span>
                                 </div>
                                 <form th:action="@{/account/redeem-reward}" method="post" class="w-100"
-                                      onsubmit="return confirm('Bạn có muốn đổi THE MONSTERS Naughty Cashier với 2999 POP Points?');">
+                                      onsubmit="return confirm('Bạn có muốn đổi THE MONSTERS Naughty Cashier với 2999 Điểm POP Points?');">
                                     <input type="hidden" name="rewardTitle" value="THE MONSTERS - The Naughty Cashier Vinyl Plush Doll">
                                     <input type="hidden" name="pointsCost" value="2999">
-                                    <button type="submit" class="pop-redeem-black-btn w-100">REDEEM</button>
+                                    <button type="submit" class="pop-redeem-black-btn w-100">ĐỔI THƯỞNG</button>
                                 </form>
                             </div>
 
@@ -447,8 +447,8 @@
                 <section id="accountPanelPoints" class="pop-account-main-panel"
                          th:style="${activeAccountTab == 'POINTS' ? 'display: block;' : 'display: none;'}">
                     <div class="d-flex align-items-center justify-content-between mb-2" style="max-width: 920px;">
-                        <h2 class="pop-rewards-section-title mb-0">My Points</h2>
-                        <a href="javascript:void(0)" class="pop-points-faq-link" data-bs-toggle="modal" data-bs-target="#rewardsModal">FAQs</a>
+                        <h2 class="pop-rewards-section-title mb-0">Điểm Của Tôi</h2>
+                        <a href="javascript:void(0)" class="pop-points-faq-link" data-bs-toggle="modal" data-bs-target="#rewardsModal">Hỏi đáp</a>
                     </div>
 
                     <!-- Full-width Black Points Banner -->
@@ -456,21 +456,21 @@
                         <div class="d-flex align-items-baseline gap-2">
                             <span class="pop-my-points-gold-num" id="myPointsBannerNum"
                                   th:text="${user != null && user.rewardPoints != null ? user.rewardPoints : 0}">0</span>
-                            <span class="pop-my-points-unit">Points</span>
+                            <span class="pop-my-points-unit">Điểm</span>
                         </div>
                         <button type="button" onclick="switchAccountPanel('REWARDS')" class="pop-my-rewards-peach-btn">
-                            MY REWARDS
+                            QUÀ CỦA TÔI
                         </button>
                     </div>
 
                     <!-- Points History Table Section -->
                     <div style="max-width: 920px;" class="mt-4 pt-2">
-                        <h2 class="pop-rewards-section-title">Points History</h2>
+                        <h2 class="pop-rewards-section-title">Lịch Sử Điểm Thưởng</h2>
                         <div class="pop-points-history-card">
                             <div class="pop-points-history-header">
-                                <div>Time</div>
-                                <div>Remarks</div>
-                                <div class="text-end">Points</div>
+                                <div>Thời gian</div>
+                                <div>Nội dung</div>
+                                <div class="text-end">Điểm</div>
                             </div>
 
                             <!-- List transactions if pointHistory is not empty -->
@@ -489,7 +489,7 @@
                                 <div class="pop-points-empty-circle">
                                     <i class="bi bi-award"></i>
                                 </div>
-                                <div class="pop-points-empty-label">Data Not Found</div>
+                                <div class="pop-points-empty-label">Chưa có biến động điểm thưởng</div>
                             </div>
                         </div>
                     </div>
@@ -500,27 +500,27 @@
                 <!-- ===================================================================== -->
                 <section id="accountPanelOrders" class="pop-orders-hub"
                          th:style="${activeAccountTab == 'ORDERS' ? 'display: block;' : 'display: none;'}">
-                    <h2 class="pop-orders-header-title">My Orders</h2>
+                    <h2 class="pop-orders-header-title">Đơn Hàng Của Tôi</h2>
 
                     <!-- Underline Tabs (Decision 1A: To Pay, Processing, Shipped, Completed, Cancel) -->
                     <div class="pop-orders-underline-tabs">
                         <button class="pop-underline-tab active" data-target-status="TO_PAY" onclick="filterOrders('TO_PAY', this)">
-                            To Pay
+                            Chờ thanh toán
                         </button>
                         <button class="pop-underline-tab" data-target-status="PROCESSING" onclick="filterOrders('PROCESSING', this)">
-                            Processing
+                            Đang xử lý
                         </button>
                         <button class="pop-underline-tab" data-target-status="SHIPPING" onclick="filterOrders('SHIPPING', this)">
-                            Shipping
+                            Đang giao hàng
                         </button>
                         <button class="pop-underline-tab" data-target-status="DELIVERED" onclick="filterOrders('DELIVERED', this)">
-                            Delivered
+                            Đã giao hàng
                         </button>
                         <button class="pop-underline-tab" data-target-status="CANCELLED" onclick="filterOrders('CANCELLED', this)">
-                            Cancel
+                            Đã hủy
                         </button>
                         <button class="pop-underline-tab text-muted" data-target-status="ALL" onclick="filterOrders('ALL', this)" style="margin-left: auto;">
-                            All Orders (<span id="totalOrdersCount" th:text="${orders != null ? orders.size() : 0}">0</span>)
+                            Tất cả đơn hàng (<span id="totalOrdersCount" th:text="${orders != null ? orders.size() : 0}">0</span>)
                         </button>
                     </div>
 
@@ -554,7 +554,7 @@
                         <div class="pop-empty-icon-box">
                             <i class="bi bi-file-earmark-text"></i>
                         </div>
-                        <p class="pop-empty-text">You don't have any orders yet.</p>
+                        <p class="pop-empty-text">Bạn chưa có đơn hàng nào.</p>
                     </div>
 
                     <!-- Orders Cards List -->
@@ -566,34 +566,34 @@
                                 <!-- Card Header: Mã đơn + Thời gian + Status Badge -->
                                 <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
                                     <div class="d-flex align-items-center flex-wrap gap-2">
-                                        <span class="text-secondary small fw-bold">ORDER ID:</span>
+                                        <span class="text-secondary small fw-bold">MÃ ĐƠN HÀNG:</span>
                                         <span class="fw-bold font-monospace text-dark" th:text="${order.orderCode}">PW-123456</span>
                                         <span class="text-muted small ms-2">
-                                            <i class="bi bi-clock me-1"></i>
+                                             <i class="bi bi-clock me-1"></i>
                                             <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
                                         </span>
                                     </div>
                                     <div>
                                         <span th:if="${order.status == 'TO_PAY'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
-                                            <i class="bi bi-clock me-1"></i> To Pay
+                                            <i class="bi bi-clock me-1"></i> Chờ thanh toán
                                         </span>
                                         <span th:if="${order.status == 'PROCESSING'}" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
-                                            <i class="bi bi-hourglass-split me-1"></i> Processing
+                                            <i class="bi bi-hourglass-split me-1"></i> Đang xử lý
                                         </span>
                                         <span th:if="${order.status == 'PACKED'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
-                                            <i class="bi bi-box-seam me-1"></i> Packed
+                                            <i class="bi bi-box-seam me-1"></i> Đã đóng gói
                                         </span>
                                         <span th:if="${order.status == 'SHIPPING' or order.status == 'SHIPPED'}" class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-1">
-                                            <i class="bi bi-truck me-1"></i> Shipping
+                                            <i class="bi bi-truck me-1"></i> Đang giao hàng
                                         </span>
                                         <span th:if="${order.status == 'DELIVERED' or order.status == 'COMPLETED'}" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
-                                            <i class="bi bi-check2-circle me-1"></i> Delivered
+                                            <i class="bi bi-check2-circle me-1"></i> Đã giao hàng
                                         </span>
                                         <span th:if="${order.status == 'CANCELLED'}" class="badge bg-light text-secondary border rounded-pill px-3 py-1">
-                                            <i class="bi bi-x-circle me-1"></i> Cancelled
+                                            <i class="bi bi-x-circle me-1"></i> Đã hủy
                                         </span>
                                         <span th:if="${order.status == 'EXPIRED'}" class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1">
-                                            <i class="bi bi-alarm me-1"></i> Expired
+                                            <i class="bi bi-alarm me-1"></i> Hết hạn
                                         </span>
                                     </div>
                                 </div>
@@ -611,11 +611,11 @@
                                                 </h6>
                                                 <div class="small text-muted">
                                                     <span class="badge bg-light text-dark border" 
-                                                          th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Single Box' : 'Whole Set'}">
-                                                        Single Box
+                                                          th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Lẻ' : 'Nguyên Set (Cả Bộ)'}">
+                                                        Hộp Lẻ
                                                     </span>
-                                                    <span class="ms-2">Qty: <strong th:text="${item.quantity}">1</strong></span>
-                                                    <span class="ms-2">| Price: <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span></span>
+                                                    <span class="ms-2">Số lượng: <strong th:text="${item.quantity}">1</strong></span>
+                                                    <span class="ms-2">| Đơn giá: <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span></span>
                                                 </div>
                                             </div>
                                             <div class="text-end fw-bold text-dark fs-6 ps-2" th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -627,13 +627,13 @@
                                     <!-- Lý do hủy đơn nếu Cancelled -->
                                     <div th:if="${order.status == 'CANCELLED'}" class="alert alert-light border rounded-3 py-2 px-3 small my-2 text-muted">
                                         <i class="bi bi-info-circle me-1"></i>
-                                        <strong>Note:</strong> <span th:text="${order.note != null && !order.note.isEmpty() ? order.note : 'Order cancelled.'}">Lý do hủy</span>
+                                        <strong>Ghi chú:</strong> <span th:text="${order.note != null && !order.note.isEmpty() ? order.note : 'Đơn hàng đã được hủy.'}">Lý do hủy</span>
                                     </div>
 
                                     <!-- Bottom Row: Address summary, Total, Action buttons -->
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3">
                                         <div class="d-flex align-items-center flex-wrap gap-2 small text-muted">
-                                            <span>Ship to: <strong class="text-dark" th:text="${order.recipientName}">Name</strong></span>
+                                            <span>Giao đến: <strong class="text-dark" th:text="${order.recipientName}">Name</strong></span>
                                             <span>•</span>
                                             <span class="fw-semibold text-dark" th:text="${order.paymentMethod}">COD</span>
                                             <span th:if="${order.carrier != null}" class="badge bg-light text-dark border font-monospace px-2 py-1" style="border-radius: 4px; font-size: 0.72rem; font-weight: 600;">
@@ -645,7 +645,7 @@
 
                                         <div class="d-flex align-items-center gap-3 ms-auto">
                                             <div class="text-end">
-                                                <span class="small text-muted me-1">Total:</span>
+                                                <span class="small text-muted me-1">Tổng thanh toán:</span>
                                                 <span class="fs-5 fw-black text-danger" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                                     0 đ
                                                 </span>
@@ -656,7 +656,7 @@
                                                 <a th:if="${order.status == 'TO_PAY' && order.paymentMethod == 'SEPAY'}" 
                                                    th:href="@{/checkout/payment/{code}(code=${order.orderCode})}" 
                                                    class="btn btn-danger btn-sm px-3 fw-bold" style="border-radius: 4px;">
-                                                    Pay Now
+                                                    Thanh Toán Ngay
                                                 </a>
 
                                                 <!-- Hủy đơn: CHỈ TO_PAY -->
@@ -665,20 +665,20 @@
                                                         class="btn btn-outline-secondary btn-sm px-3" style="border-radius: 4px;"
                                                         data-bs-toggle="modal" 
                                                         th:data-bs-target="'#cancelOrderModal-' + ${order.orderCode}">
-                                                    Cancel
+                                                    Hủy Đơn
                                                 </button>
 
                                                 <!-- Mua lại cho đơn đã giao hoặc đã hủy -->
                                                 <a th:if="${order.status == 'DELIVERED' || order.status == 'COMPLETED' || order.status == 'CANCELLED'}" 
                                                    th:href="@{/categories/blind-box}" 
                                                    class="btn btn-outline-dark btn-sm px-3 fw-bold" style="border-radius: 4px;">
-                                                    Buy Again
+                                                    Mua Lại
                                                 </a>
 
                                                 <!-- Xem chi tiết -->
                                                 <a th:href="@{/orders/{code}(code=${order.orderCode})}" 
                                                    class="btn btn-dark btn-sm px-3 fw-bold" style="border-radius: 4px;">
-                                                    Detail
+                                                    Chi Tiết
                                                 </a>
                                             </div>
                                         </div>
@@ -695,27 +695,27 @@
                                                 <form th:action="@{/orders/{code}/cancel(code=${order.orderCode})}" method="post">
                                                     <div class="modal-header border-bottom-0 pb-0">
                                                         <h5 class="modal-title fw-bold text-danger">
-                                                            <i class="bi bi-exclamation-octagon-fill me-1"></i> Cancel Order Confirmation
+                                                            <i class="bi bi-exclamation-octagon-fill me-1"></i> Xác Nhận Hủy Đơn Hàng
                                                         </h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body py-3">
-                                                        <p class="mb-2">Are you sure you want to cancel order <strong class="font-monospace text-dark" th:text="${order.orderCode}">PW-XXXX</strong>?</p>
+                                                        <p class="mb-2">Bạn có chắc chắn muốn hủy đơn hàng <strong class="font-monospace text-dark" th:text="${order.orderCode}">PW-XXXX</strong>?</p>
                                                         <div class="alert alert-warning small py-2 px-3 rounded-3 mb-3">
-                                                            Product items will be returned to stock and coupons restored.
+                                                            Các sản phẩm trong đơn sẽ được hoàn lại tồn kho và mã giảm giá (nếu có) sẽ được khôi phục.
                                                         </div>
-                                                        <label class="form-label fw-bold small text-muted" th:for="'cancelReason-' + ${order.orderCode}">Reason for cancellation:</label>
-                                                        <select class="form-select rounded-3 mb-2" name="reason" th:id="'cancelReason-' + ${order.orderCode}" aria-label="Reason for cancellation">
-                                                            <option value="Changed my mind">Changed my mind</option>
-                                                            <option value="Ordered wrong item / quantity">Ordered wrong item / quantity</option>
-                                                            <option value="Need to change shipping address">Need to change shipping address</option>
-                                                            <option value="Want to use different voucher">Want to use different voucher</option>
-                                                            <option value="Other">Other</option>
+                                                        <label class="form-label fw-bold small text-muted" th:for="'cancelReason-' + ${order.orderCode}">Lý do hủy đơn:</label>
+                                                        <select class="form-select rounded-3 mb-2" name="reason" th:id="'cancelReason-' + ${order.orderCode}" aria-label="Lý do hủy đơn">
+                                                            <option value="Thay đổi ý định mua">Thay đổi ý định mua</option>
+                                                            <option value="Đặt nhầm sản phẩm / số lượng">Đặt nhầm sản phẩm / số lượng</option>
+                                                            <option value="Cần đổi địa chỉ nhận hàng">Cần đổi địa chỉ nhận hàng</option>
+                                                            <option value="Muốn áp dụng mã giảm giá khác">Muốn áp dụng mã giảm giá khác</option>
+                                                            <option value="Lý do khác">Lý do khác</option>
                                                         </select>
                                                     </div>
                                                     <div class="modal-footer border-top-0 pt-0">
-                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Confirm Cancel</button>
+                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Hủy Đơn</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -731,9 +731,9 @@
                         <div class="pop-empty-icon-box">
                             <i class="bi bi-file-earmark-text"></i>
                         </div>
-                        <p class="pop-empty-text">You don't have any orders yet.</p>
+                        <p class="pop-empty-text">Bạn chưa có đơn hàng nào.</p>
                         <a th:href="@{/categories/blind-box}" class="btn btn-danger rounded-pill px-4 py-2 mt-3 fw-bold">
-                            Explore Blind Boxes
+                            Khám Phá Hộp Mù Ngay
                         </a>
                     </div>
                 </section>
@@ -757,15 +757,15 @@
 
                         <div class="pop-lp-banner-left">
                             <div class="pop-lp-title">
-                                <span>My Lucky Points</span>
+                                <span>Điểm May Mắn Của Tôi</span>
                                 <i class="bi bi-info-circle text-muted fs-6" role="button" title="Lucky Points Info"
                                    onclick="alert('Lucky Points được sử dụng để đổi các gói Thẻ Gợi Ý (Hint Card). Điểm danh hàng ngày hoặc lắc hộp mù trong POP NOW để tích lũy thêm điểm!')"></i>
                             </div>
                             <div class="pop-lp-notice">
-                                * Lucky Points will be deducted daily (2 points/day) during system maintenance.
+                                * Điểm may mắn sẽ được khấu trừ 2 điểm/ngày trong kỳ bảo trì hệ thống.
                             </div>
                             <a href="javascript:void(0)" class="pop-lp-link"
-                               onclick="alert('Chi tiết Lucky Points:\n- Điểm danh mỗi ngày: +10 PTS\n- Lắc hộp trong POP NOW: +5 PTS\n- Đổi 1 Thẻ Gợi Ý: 10 PTS\n- Đổi 3 Thẻ Gợi Ý: 25 PTS (Tiết kiệm 5 PTS)\n- Đổi 6 Thẻ Gợi Ý: 45 PTS (Tiết kiệm 15 PTS)')">View Details &gt;</a>
+                               onclick="alert('Chi tiết Lucky Points:\n- Điểm danh mỗi ngày: +10 PTS\n- Lắc hộp trong POP NOW: +5 PTS\n- Đổi 1 Thẻ Gợi Ý: 10 PTS\n- Đổi 3 Thẻ Gợi Ý: 25 PTS (Tiết kiệm 5 PTS)\n- Đổi 6 Thẻ Gợi Ý: 45 PTS (Tiết kiệm 15 PTS)')">Xem Chi Tiết &gt;</a>
                         </div>
 
                         <div class="pop-lp-banner-right">
@@ -778,29 +778,29 @@
                                     th:classappend="${!canCheckInToday ? 'disabled' : ''}"
                                     th:disabled="${!canCheckInToday}"
                                     onclick="handleEarnLuckyPoints()"
-                                    th:text="${canCheckInToday ? 'Earn Lucky Points' : 'Checked In Today'}">
-                                Earn Lucky Points
+                                    th:text="${canCheckInToday ? 'Điểm Danh Nhận Điểm' : 'Đã Điểm Danh Hôm Nay'}">
+                                Điểm Danh Nhận Điểm
                             </button>
                         </div>
                     </div>
 
                     <!-- REDEEM CARD Section -->
-                    <h3 class="pop-redeem-card-section-title">REDEEM CARD</h3>
+                    <h3 class="pop-redeem-card-section-title">ĐỔI THẺ GỢI Ý</h3>
                     <div class="pop-redeem-list">
                         <!-- TIER 1: 1 Card = 10 PTS -->
                         <div class="pop-redeem-row">
                             <div class="pop-redeem-row-info">
-                                <div class="pop-redeem-item-name">HINT CARD * 1</div>
-                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
+                                <div class="pop-redeem-item-name">THẺ GỢI Ý * 1</div>
+                                <div class="pop-redeem-item-sub">Hiệu lực trong 24 giờ sau khi đổi thẻ</div>
                             </div>
                             <div class="pop-redeem-row-cost">
-                                Costs Lucky Points &times; 10
+                                Tiêu tốn &times; 10 Điểm May Mắn
                             </div>
                             <div class="pop-redeem-row-action">
                                 <button type="button" class="pop-redeem-btn" id="btnRedeemTier1"
                                         th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 10}"
                                         onclick="handleRedeemPackage(1, 10)">
-                                    Redeem
+                                    Đổi Thẻ
                                 </button>
                             </div>
                         </div>
@@ -808,18 +808,18 @@
                         <!-- TIER 2: 3 Cards = 25 PTS -->
                         <div class="pop-redeem-row">
                             <div class="pop-redeem-row-info">
-                                <div class="pop-redeem-item-name">HINT CARD * 3</div>
-                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
-                                <div class="pop-redeem-item-sub2">1 redemptions allowed per period, refreshed during maintenance</div>
+                                <div class="pop-redeem-item-name">THẺ GỢI Ý * 3</div>
+                                <div class="pop-redeem-item-sub">Hiệu lực trong 24 giờ sau khi đổi thẻ</div>
+                                <div class="pop-redeem-item-sub2">Tối đa 1 lần đổi mỗi kỳ, làm mới trong đợt bảo trì</div>
                             </div>
                             <div class="pop-redeem-row-cost">
-                                Costs Lucky Points &times; 25
+                                Tiêu tốn &times; 25 Điểm May Mắn
                             </div>
                             <div class="pop-redeem-row-action">
                                 <button type="button" class="pop-redeem-btn" id="btnRedeemTier3"
                                         th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 25}"
                                         onclick="handleRedeemPackage(3, 25)">
-                                    Redeem
+                                    Đổi Thẻ
                                 </button>
                             </div>
                         </div>
@@ -827,18 +827,18 @@
                         <!-- TIER 3: 6 Cards = 45 PTS -->
                         <div class="pop-redeem-row">
                             <div class="pop-redeem-row-info">
-                                <div class="pop-redeem-item-name">HINT CARD * 6</div>
-                                <div class="pop-redeem-item-sub">Valid for 24 hours after redemption</div>
-                                <div class="pop-redeem-item-sub2">1 redemptions allowed per period, refreshed during maintenance</div>
+                                <div class="pop-redeem-item-name">THẺ GỢI Ý * 6</div>
+                                <div class="pop-redeem-item-sub">Hiệu lực trong 24 giờ sau khi đổi thẻ</div>
+                                <div class="pop-redeem-item-sub2">Tối đa 1 lần đổi mỗi kỳ, làm mới trong đợt bảo trì</div>
                             </div>
                             <div class="pop-redeem-row-cost">
-                                Costs Lucky Points &times; 45
+                                Tiêu tốn &times; 45 Điểm May Mắn
                             </div>
                             <div class="pop-redeem-row-action">
                                 <button type="button" class="pop-redeem-btn" id="btnRedeemTier6"
                                         th:disabled="${(user != null && user.luckyPoints != null ? user.luckyPoints : 0) < 45}"
                                         onclick="handleRedeemPackage(6, 45)">
-                                    Redeem
+                                    Đổi Thẻ
                                 </button>
                             </div>
                         </div>
@@ -864,10 +864,10 @@
 
                         <div class="pop-lp-banner-left">
                             <div class="pop-lp-title">
-                                <span>HINT CARD</span>
+                                <span>THẺ GỢI Ý</span>
                             </div>
                             <a href="javascript:void(0)" class="pop-lp-link"
-                               onclick="alert('Lịch sử sử dụng Thẻ Gợi Ý: Thẻ được tự động kích hoạt khi bạn bấm [DÙNG THẺ GỢI Ý] tại màn hình bóc hộp POP NOW.')">Usage Records &gt;</a>
+                               onclick="alert('Lịch sử sử dụng Thẻ GỢI Ý: Thẻ được tự động kích hoạt khi bạn bấm [DÙNG THẺ GỢI Ý] tại màn hình bóc hộp POP NOW.')">Lịch Sử Sử Dụng &gt;</a>
                         </div>
 
                         <div class="pop-lp-banner-right">
@@ -889,9 +889,9 @@
                             <div class="pop-hint-empty-icon">
                                 <i class="bi bi-file-earmark-text"></i>
                             </div>
-                            <div class="pop-hint-empty-text">It's empty here ~</div>
+                            <div class="pop-hint-empty-text">Chưa có thẻ gợi ý nào ở đây ~</div>
                             <a href="javascript:void(0)" class="pop-hint-expired-link"
-                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">View expired HINT CARDs &gt;</a>
+                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">Xem thẻ gợi ý đã hết hạn &gt;</a>
                         </div>
                     </div>
 
@@ -902,10 +902,10 @@
                             <div>
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <span class="badge bg-dark rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 11px;">
-                                        <i class="bi bi-magic text-warning me-1"></i> POP NOW EXCLUSIVE
+                                        <i class="bi bi-magic text-warning me-1"></i> POP NOW ĐỘC QUYỀN
                                     </span>
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1" style="font-size: 11px;">
-                                        Valid for 24h
+                                        Hiệu lực 24h
                                     </span>
                                 </div>
                                 <h5 class="fw-black text-dark mb-1">
@@ -924,7 +924,7 @@
 
                         <div class="text-center pt-3">
                             <a href="javascript:void(0)" class="pop-hint-expired-link"
-                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">View expired HINT CARDs &gt;</a>
+                               onclick="alert('Không có thẻ gợi ý nào đã hết hạn trong 30 ngày qua.')">Xem thẻ gợi ý đã hết hạn &gt;</a>
                         </div>
                     </div>
                 </section>
@@ -1809,14 +1809,14 @@
                     if (btn) {
                         btn.classList.add('disabled');
                         btn.disabled = true;
-                        btn.textContent = 'Checked In Today';
+                        btn.textContent = 'Đã Điểm Danh Hôm Nay';
                     }
                     alert(data.message || 'Điểm danh thành công! Bạn nhận được +10 Lucky Points.');
                 } else {
                     alert((data && data.message) ? data.message : 'Điểm danh thất bại hoặc hôm nay bạn đã điểm danh rồi!');
                     if (btn) {
                         btn.disabled = false;
-                        btn.textContent = 'Earn Lucky Points';
+                        btn.textContent = 'Điểm Danh Nhận Điểm';
                     }
                 }
             } catch (err) {
@@ -1824,7 +1824,7 @@
                 alert('Không thể kết nối đến máy chủ. Vui lòng thử lại!');
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = 'Earn Lucky Points';
+                    btn.textContent = 'Điểm Danh Nhận Điểm';
                 }
             }
         }
@@ -1910,16 +1910,16 @@
 
         // Xử lý đổi quà Member Rewards và xem chi tiết
         function showRewardDetailToast(title, requiredPoints) {
-            alert('POP MART MEMBER REWARD\n\nItem: ' + title + '\nRedemption Cost: ' + requiredPoints + ' POP Points\nCondition: 100% Authentic Limited Member Exclusive.');
+            alert('PHẦN THƯỞNG HỘI VIÊN POP WORLD\n\nQuà tặng: ' + title + '\nĐiểm đổi: ' + requiredPoints + ' Điểm POP\nĐiều kiện: 100% Chính hãng giới hạn cho hội viên.');
         }
 
         function redeemMemberReward(title, requiredPoints) {
             const currentPtsEl = document.getElementById('rewardsBigPointsNum');
             const currentPts = currentPtsEl ? parseInt(currentPtsEl.textContent.trim(), 10) || 0 : 0;
             if (currentPts < requiredPoints) {
-                alert('Insufficient POP Points!\n\nYou currently have ' + currentPts + ' Points, but "' + title + '" requires ' + requiredPoints + ' Points.\nPlace an order or write a review to earn more points!');
+                alert('Chưa đủ Điểm POP Point!\n\nHiện bạn có ' + currentPts + ' điểm, nhưng món quà "' + title + '" cần ' + requiredPoints + ' điểm.\nHãy đặt thêm đơn hàng hoặc đánh giá sản phẩm để tích lũy thêm điểm nhé!');
             } else {
-                alert('Congratulations! You have enough points (' + currentPts + ' pts) to redeem "' + title + '" (' + requiredPoints + ' pts).');
+                alert('Chúc mừng! Bạn có đủ ' + currentPts + ' điểm để đổi quà tặng "' + title + '" (' + requiredPoints + ' điểm).');
             }
         }
 
