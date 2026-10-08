@@ -200,6 +200,23 @@ public class PopNowSeriesCatalog {
                 new StandardItemDef("Record Anniversary", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Record_Anniversary_1800x1800.jpg", 100),
                 new StandardItemDef("Photo Prop Wall", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Photo_Prop_Wall_secret_1800x1800.jpg", 10)
         )));
+
+        // 12. Hirono Echoes of Silence (12 regular + 1 secret)
+        catalog.put("hirono-echoes-of-silence", new SeriesCatalogDef("hirono-echoes-of-silence", 12, List.of(
+                new StandardItemDef("The Ghost", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Shelter", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("The Fox", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Standing", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Marionette", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Monster", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Broken", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Silent", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("The Boy", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Puppet", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Memory", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Floating", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 100),
+                new StandardItemDef("Time", RarityType.SECRET, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg", 10)
+        )));
     }
 
     public Optional<SeriesCatalogDef> findCatalog(String slug, String seriesName, String productName) {
@@ -212,6 +229,7 @@ public class PopNowSeriesCatalog {
             if (combined.contains(key) ||
                     (key.contains("hirono-little-mischief") && combined.contains("mischief")) ||
                     (key.contains("hirono-the-other-one") && (combined.contains("other one") || combined.contains("the-other-one"))) ||
+                    (key.contains("hirono-echoes-of-silence") && (combined.contains("echoes") || combined.contains("silence"))) ||
                     (key.contains("fall-in-wild") && combined.contains("wild")) ||
                     (key.contains("have-a-seat") && combined.contains("seat")) ||
                     (key.contains("city-of-night") && combined.contains("night")) ||

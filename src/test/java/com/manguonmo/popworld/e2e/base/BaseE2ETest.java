@@ -59,6 +59,9 @@ public abstract class BaseE2ETest {
     protected UserCouponRepository userCouponRepository;
 
     @Autowired
+    protected WishlistRepository wishlistRepository;
+
+    @Autowired
     protected BlindBoxSlotRepository blindBoxSlotRepository;
 
     @Autowired
@@ -166,6 +169,10 @@ public abstract class BaseE2ETest {
                 blindBoxSlotRepository.saveAll(slots);
                 blindBoxSlotRepository.deleteAll(slots);
                 blindBoxItemRepository.deleteAll(blindBoxItemRepository.findByProductId(productId));
+                cartItemRepository.deleteByProductId(productId);
+                if (wishlistRepository != null) {
+                    wishlistRepository.deleteByProductId(productId);
+                }
                 productRepository.deleteById(productId);
             } catch (Exception ignored) {
             }

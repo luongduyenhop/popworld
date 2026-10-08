@@ -106,6 +106,6 @@ public class ProductMapperTest {
         assertNotNull(response);
         assertNull(response.getCategoryName());
         assertNull(response.getSeriesName());
-        assertEquals("https://placehold.co/400x400?text=No+Image", response.getMainImageUrl());
+        assertEquals("/images/placeholder.svg", response.getMainImageUrl());
     }
 }

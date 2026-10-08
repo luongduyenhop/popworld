@@ -108,7 +108,7 @@ public class Product extends BaseEntity {
                     .findFirst()
                     .orElse(images.get(0).getImageUrl());
         }
-        return "https://placehold.co/400x400?text=No+Image";
+        return "/images/placeholder.svg";
     }
 
     public String getThumbnailUrl() {

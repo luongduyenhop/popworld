@@ -266,7 +266,9 @@ public class ProductWebController {
             Model model) {
         addCommonAttributes(model);
 
-        List<Product> allProducts = productService.getAllActiveProducts();
+        List<Product> allProducts = productService.getAllActiveProducts().stream()
+                .filter(p -> p.getCategory() != null)
+                .toList();
 
         // 1. Lọc theo Category
         Category selectedCategory = null;

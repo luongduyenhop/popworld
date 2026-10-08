@@ -53,13 +53,16 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
         // 4. Dọn dẹp triệt để dữ liệu rác trên các sản phẩm không phải hộp mù (Mega & Phụ kiện)
         cleanupNonBlindBoxArtifacts(products);
 
-        // 5. Đồng bộ danh sách nhân vật (BlindBoxItem) chuẩn cho từng Series
+        // 5. Dọn dẹp triệt để các sản phẩm thử nghiệm rác từ E2E tests (IDOR, Cancelled, Unpaid, ...)
+        cleanupTestAndOrphanProducts();
+
+        // 6. Đồng bộ danh sách nhân vật (BlindBoxItem) chuẩn cho từng Series
         syncBlindBoxItemsForAllSeries(products);
 
-        // 6. Đồng bộ khay ô hộp (BlindBoxSlot) chính xác theo boxesPerSet (6, 9, 12)
+        // 7. Đồng bộ khay ô hộp (BlindBoxSlot) chính xác theo boxesPerSet (6, 9, 12)
         syncBlindBoxSlotsForAllSeries(products);
 
-        // 7. Đồng bộ đánh giá khách hàng chân thực
+        // 8. Đồng bộ đánh giá khách hàng chân thực
         syncAuthenticReviews(products, reviewers);
 
         log.info("PopWorld: Hoàn tất đồng bộ toàn diện dữ liệu chuẩn POP MART thành công!");
@@ -270,6 +273,25 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
         map.put("dimooDating", getOrCreateSeries("Dimoo - Dating Series", ips.get("dimoo"),
                 LocalDate.of(2024, 2, 14), "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1000",
                 "Những buổi hẹn hò ngọt ngào như kẹo bông của cậu bé Dimoo và những giấc mơ mây."));
+
+        Series echoesSeries = seriesRepository.findByName("Hirono - Echoes of Silence Series")
+                .or(() -> seriesRepository.findByName("Hirono Echoes of Silence Series"))
+                .orElse(null);
+        if (echoesSeries == null) {
+            echoesSeries = seriesRepository.save(Series.builder()
+                    .name("Hirono - Echoes of Silence Series")
+                    .characterIp(ips.get("hirono"))
+                    .releaseDate(LocalDate.of(2024, 5, 18))
+                    .bannerUrl("https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg")
+                    .description("Bộ sưu tập thứ 5 của Hirono mang tên Tiếng Vọng Của Sự Yên Lặng - một bản giao hưởng tĩnh lặng về sự kết nối giữa con người và thế giới xung quanh.")
+                    .build());
+        } else {
+            echoesSeries.setCharacterIp(ips.get("hirono"));
+            echoesSeries.setName("Hirono - Echoes of Silence Series");
+            echoesSeries.setBannerUrl("https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg");
+            seriesRepository.save(echoesSeries);
+        }
+        map.put("echoesOfSilence", echoesSeries);
         return map;
     }
 
@@ -431,6 +453,15 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 cat.get("blind-box"), s.get("dimooDating"), true, false,
                 "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
 
+        // 17. Hirono Echoes of Silence (12 boxes)
+        list.add(upsertProduct("Hộp Mù Hirono Echoes of Silence Series",
+                "hirono-echoes-of-silence-series",
+                "Bộ sưu tập nghệ thuật đương đại Hirono Echoes of Silence Series gồm 12 nhân vật tiêu chuẩn và 1 nhân vật bí mật Time quý hiếm. Nước sơn và chất liệu mộc mạc biểu cảm.",
+                new BigDecimal("350000"), new BigDecimal("4200000"), 120,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Hiệu ứng sơn cổ điển", "Chiều cao: 7.5cm - 9.0cm",
+                cat.get("blind-box"), s.get("echoesOfSilence"), true, true,
+                "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+
         return list;
     }
 
@@ -442,6 +473,9 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                                   boolean isFeatured, boolean isNewRelease,
                                   String mainImageUrl) {
         Product p = productRepository.findBySlug(slug).orElse(null);
+        if (p == null && "hirono-echoes-of-silence-series".equals(slug)) {
+            p = productRepository.findBySlug("hop-mu-hirono-echoes-of-silence-series").orElse(null);
+        }
         if (p == null) {
             p = Product.builder()
                     .name(name)
@@ -470,6 +504,7 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                     .build());
         } else {
             p.setName(name);
+            p.setSlug(slug);
             p.setDescription(description);
             p.setSinglePrice(singlePrice);
             p.setWholeSetPrice(wholeSetPrice);
@@ -837,8 +872,129 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 list.add(new ItemDef("Record Anniversary", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Record_Anniversary_1800x1800.jpg"));
                 list.add(new ItemDef("Photo Prop Wall", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/dimoo_dating_series_Photo_Prop_Wall_secret_1800x1800.jpg"));
                 break;
+
+            case "hirono-echoes-of-silence-series":
+            case "hop-mu-hirono-echoes-of-silence-series":
+                list.add(new ItemDef("The Ghost", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Shelter", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("The Fox", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Standing", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Marionette", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Monster", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Broken", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Silent", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("The Boy", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Puppet", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Memory", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Floating", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                list.add(new ItemDef("Time", RarityType.SECRET, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+                break;
         }
         return list;
+    }
+
+    private void cleanupTestAndOrphanProducts() {
+        List<Product> all = productRepository.findAll();
+        for (Product p : all) {
+            String slug = p.getSlug() != null ? p.getSlug().toLowerCase() : "";
+            String name = p.getName() != null ? p.getName().toLowerCase() : "";
+
+            boolean isTestDummy = slug.startsWith("popnow-idor-product")
+                    || slug.startsWith("molly-space-blind-box-")
+                    || slug.startsWith("cancelled-res-toy")
+                    || slug.startsWith("unpaid-box-toy")
+                    || slug.startsWith("popnow-series-box-")
+                    || slug.startsWith("dimoo-dating-series-blind-box-")
+                    || name.contains("idor product")
+                    || name.contains("cancelled res toy")
+                    || name.contains("unpaid box toy")
+                    || name.contains("popnow series box")
+                    || slug.equals("hop-mu-test")
+                    || name.contains("hộp mù test");
+
+            if (isTestDummy) {
+                log.info("PopWorld Seed: Đang dọn dẹp sản phẩm rác E2E: ID={}, slug={}", p.getId(), p.getSlug());
+                deleteProductSafely(p.getId());
+            }
+        }
+    }
+
+    private void deleteProductSafely(Long productId) {
+        try {
+            // 0. Xóa các vật phẩm sở hữu trong tủ đồ phát sinh từ sản phẩm kiểm thử này
+            entityManager.createQuery("DELETE FROM OwnedItem o WHERE o.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+            entityManager.createQuery("UPDATE OwnedItem o SET o.reservation = null WHERE o.reservation.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 1. Gỡ liên kết slot trong reservation
+            entityManager.createQuery("UPDATE BoxReservation r SET r.slot = null WHERE r.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 2. Gỡ liên kết currentReservation trong slot
+            entityManager.createQuery("UPDATE BlindBoxSlot s SET s.currentReservation = null WHERE s.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 3. Xóa reservation
+            entityManager.createQuery("DELETE FROM BoxReservation r WHERE r.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 4. Xóa slot
+            entityManager.createQuery("DELETE FROM BlindBoxSlot s WHERE s.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 5. Xóa blind box items
+            entityManager.createQuery("DELETE FROM BlindBoxItem i WHERE i.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 6. Xóa cart items
+            entityManager.createQuery("DELETE FROM CartItem c WHERE c.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 7. Xóa wishlist items
+            entityManager.createQuery("DELETE FROM WishlistItem w WHERE w.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 8. Xóa review
+            entityManager.createQuery("DELETE FROM Review r WHERE r.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 9. Xóa product images
+            entityManager.createQuery("DELETE FROM ProductImage pi WHERE pi.product.id = :pid")
+                    .setParameter("pid", productId)
+                    .executeUpdate();
+
+            // 10. Kiểm tra OrderItem
+            Long orderCount = entityManager.createQuery("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.product.id = :pid", Long.class)
+                    .setParameter("pid", productId)
+                    .getSingleResult();
+
+            if (orderCount != null && orderCount > 0) {
+                // Đã có đơn hàng liên kết -> Soft delete
+                entityManager.createQuery("UPDATE Product p SET p.active = false WHERE p.id = :pid")
+                        .setParameter("pid", productId)
+                        .executeUpdate();
+                log.info("Sản phẩm ID={} đã có đơn hàng -> Soft delete (active=false)", productId);
+            } else {
+                // Chưa có đơn hàng -> Xóa vĩnh viễn
+                entityManager.createQuery("DELETE FROM Product p WHERE p.id = :pid")
+                        .setParameter("pid", productId)
+                        .executeUpdate();
+                log.info("Sản phẩm ID={} chưa có đơn hàng -> Đã xóa hoàn toàn khỏi CSDL", productId);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi xóa an toàn sản phẩm ID={}: {}", productId, e.getMessage());
+        }
     }
 
     private boolean isItemReferencedInOwnedItems(Long itemId) {
