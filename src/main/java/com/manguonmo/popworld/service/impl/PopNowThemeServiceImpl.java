@@ -40,7 +40,7 @@ public class PopNowThemeServiceImpl implements PopNowThemeService {
                 .seriesName("Hirono Series")
                 .trayBgUrl("https://prod-global-biz.popmart.com/globalAdmin/1787904828277_c107a9b26eee8ea1e35e47974d0e507e.png")
                 .smallBoxImgUrl("https://prod-global-biz.popmart.com/globalAdmin/1787904828277_ec105be95fcad037caf69a67dfe02d35.png")
-                .singleBoxImgUrl("/images/popnow/hirono/single-box.png")
+                .singleBoxImgUrl("https://res.cloudinary.com/wnxp3aok/image/upload/v1791431133/popworld/popnow/hirono/single-box.jpg")
                 .trayFrontUrl("https://prod-global-biz.popmart.com/globalAdmin/1787904828277_91bb21168bdcb0b9f113d63a88f49b0f.png")
                 .trayShadowUrl("/images/popnow/tray-shadow.png")
                 .guideHandUrl("/images/popnow/hand-guide.png")

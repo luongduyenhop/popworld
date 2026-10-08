@@ -117,7 +117,7 @@ class FileStorageServiceTest {
                 "sample-image-bytes".getBytes()
         );
 
-        when(cloudinaryService.uploadImage(any())).thenReturn(
+        when(cloudinaryService.uploadImage(any(), any())).thenReturn(
                 CloudinaryUploadResult.builder()
                         .secureUrl("https://res.cloudinary.com/my-cloud/image/upload/sample.jpg")
                         .publicId("sample-id")
@@ -128,7 +128,7 @@ class FileStorageServiceTest {
 
         assertNotNull(resultPath);
         assertEquals("https://res.cloudinary.com/my-cloud/image/upload/sample.jpg", resultPath);
-        verify(cloudinaryService, times(1)).uploadImage(validImage);
+        verify(cloudinaryService, times(1)).uploadImage(validImage, "avatars");
     }
 
     @Test

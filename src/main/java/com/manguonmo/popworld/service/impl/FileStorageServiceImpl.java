@@ -62,7 +62,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         // Chiến lược 1: Nếu Cloudinary đã được cấu hình đầy đủ, ưu tiên upload lên Cloud CDN
         if (cloudName != null && !cloudName.isBlank() && apiKey != null && !apiKey.isBlank()) {
             try {
-                CloudinaryUploadResult result = cloudinaryService.uploadImage(file);
+                CloudinaryUploadResult result = cloudinaryService.uploadImage(file, safeSubFolder);
                 if (result != null && result.getSecureUrl() != null && !result.getSecureUrl().isBlank()) {
                     log.info("Đã tải ảnh lên Cloudinary thành công: {}", result.getSecureUrl());
                     return result.getSecureUrl();

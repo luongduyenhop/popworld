@@ -777,19 +777,19 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 break;
 
             case "hirono-little-mischief-series":
-                list.add(new ItemDef("Ragpicker", RarityType.REGULAR, "/images/popnow/hirono/ragpicker.png"));
-                list.add(new ItemDef("Loose Fish", RarityType.REGULAR, "/images/popnow/hirono/loose-fish.png"));
-                list.add(new ItemDef("Manacle", RarityType.REGULAR, "/images/popnow/hirono/manacle.png"));
-                list.add(new ItemDef("The Aviator", RarityType.REGULAR, "/images/popnow/hirono/the-aviator.png"));
-                list.add(new ItemDef("Protector", RarityType.REGULAR, "/images/popnow/hirono/protector.png"));
-                list.add(new ItemDef("Persona", RarityType.REGULAR, "/images/popnow/hirono/persona.png"));
-                list.add(new ItemDef("Robot", RarityType.REGULAR, "/images/popnow/hirono/robot.png"));
-                list.add(new ItemDef("Birdman", RarityType.REGULAR, "/images/popnow/hirono/birdman.png"));
-                list.add(new ItemDef("Destroyer", RarityType.REGULAR, "/images/popnow/hirono/destroyer.png"));
-                list.add(new ItemDef("Pretender", RarityType.REGULAR, "/images/popnow/hirono/pretender.png"));
-                list.add(new ItemDef("Boiling Frog", RarityType.REGULAR, "/images/popnow/hirono/boiling-frog.png"));
-                list.add(new ItemDef("Float", RarityType.REGULAR, "/images/popnow/hirono/float.png"));
-                list.add(new ItemDef("Unknown Journey", RarityType.SECRET, "/images/popnow/hirono/unknown-journey.png"));
+                list.add(new ItemDef("Ragpicker", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431128/popworld/popnow/hirono/ragpicker.png"));
+                list.add(new ItemDef("Loose Fish", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431119/popworld/popnow/hirono/loose-fish.png"));
+                list.add(new ItemDef("Manacle", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431121/popworld/popnow/hirono/manacle.png"));
+                list.add(new ItemDef("The Aviator", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431136/popworld/popnow/hirono/the-aviator.png"));
+                list.add(new ItemDef("Protector", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431126/popworld/popnow/hirono/protector.png"));
+                list.add(new ItemDef("Persona", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431122/popworld/popnow/hirono/persona.png"));
+                list.add(new ItemDef("Robot", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431130/popworld/popnow/hirono/robot.png"));
+                list.add(new ItemDef("Birdman", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431111/popworld/popnow/hirono/birdman.png"));
+                list.add(new ItemDef("Destroyer", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431114/popworld/popnow/hirono/destroyer.png"));
+                list.add(new ItemDef("Pretender", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431124/popworld/popnow/hirono/pretender.png"));
+                list.add(new ItemDef("Boiling Frog", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431112/popworld/popnow/hirono/boiling-frog.png"));
+                list.add(new ItemDef("Float", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431116/popworld/popnow/hirono/float.png"));
+                list.add(new ItemDef("Unknown Journey", RarityType.SECRET, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431139/popworld/popnow/hirono/unknown-journey.jpg"));
                 break;
 
             case "hirono-the-other-one-series":

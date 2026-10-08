@@ -43,19 +43,19 @@ public class PopNowSeriesCatalog {
     private void initCatalog() {
         // 1. Hirono Little Mischief (12 regular + 1 secret)
         catalog.put("hirono-little-mischief", new SeriesCatalogDef("hirono-little-mischief", 12, List.of(
-                new StandardItemDef("Ragpicker", RarityType.REGULAR, "/images/popnow/hirono/ragpicker.png", 100),
-                new StandardItemDef("Loose Fish", RarityType.REGULAR, "/images/popnow/hirono/loose-fish.png", 100),
-                new StandardItemDef("Manacle", RarityType.REGULAR, "/images/popnow/hirono/manacle.png", 100),
-                new StandardItemDef("The Aviator", RarityType.REGULAR, "/images/popnow/hirono/the-aviator.png", 100),
-                new StandardItemDef("Protector", RarityType.REGULAR, "/images/popnow/hirono/protector.png", 100),
-                new StandardItemDef("Persona", RarityType.REGULAR, "/images/popnow/hirono/persona.png", 100),
-                new StandardItemDef("Robot", RarityType.REGULAR, "/images/popnow/hirono/robot.png", 100),
-                new StandardItemDef("Birdman", RarityType.REGULAR, "/images/popnow/hirono/birdman.png", 100),
-                new StandardItemDef("Destroyer", RarityType.REGULAR, "/images/popnow/hirono/destroyer.png", 100),
-                new StandardItemDef("Pretender", RarityType.REGULAR, "/images/popnow/hirono/pretender.png", 100),
-                new StandardItemDef("Boiling Frog", RarityType.REGULAR, "/images/popnow/hirono/boiling-frog.png", 100),
-                new StandardItemDef("Float", RarityType.REGULAR, "/images/popnow/hirono/float.png", 100),
-                new StandardItemDef("Unknown Journey", RarityType.SECRET, "/images/popnow/hirono/unknown-journey.png", 10)
+                new StandardItemDef("Ragpicker", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431128/popworld/popnow/hirono/ragpicker.png", 100),
+                new StandardItemDef("Loose Fish", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431119/popworld/popnow/hirono/loose-fish.png", 100),
+                new StandardItemDef("Manacle", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431121/popworld/popnow/hirono/manacle.png", 100),
+                new StandardItemDef("The Aviator", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431136/popworld/popnow/hirono/the-aviator.png", 100),
+                new StandardItemDef("Protector", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431126/popworld/popnow/hirono/protector.png", 100),
+                new StandardItemDef("Persona", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431122/popworld/popnow/hirono/persona.png", 100),
+                new StandardItemDef("Robot", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431130/popworld/popnow/hirono/robot.png", 100),
+                new StandardItemDef("Birdman", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431111/popworld/popnow/hirono/birdman.png", 100),
+                new StandardItemDef("Destroyer", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431114/popworld/popnow/hirono/destroyer.png", 100),
+                new StandardItemDef("Pretender", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431124/popworld/popnow/hirono/pretender.png", 100),
+                new StandardItemDef("Boiling Frog", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431112/popworld/popnow/hirono/boiling-frog.png", 100),
+                new StandardItemDef("Float", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431116/popworld/popnow/hirono/float.png", 100),
+                new StandardItemDef("Unknown Journey", RarityType.SECRET, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791431139/popworld/popnow/hirono/unknown-journey.jpg", 10)
         )));
 
         // 2. Hirono The Other One (12 regular + 1 secret)

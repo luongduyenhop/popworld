@@ -44,6 +44,11 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public CloudinaryUploadResult uploadImage(MultipartFile file) {
+        return uploadImage(file, null);
+    }
+
+    @Override
+    public CloudinaryUploadResult uploadImage(MultipartFile file, String subFolder) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("File ảnh tải lên không được để trống.");
         }
@@ -66,8 +71,12 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         }
 
         try {
+            String targetFolder = folder;
+            if (subFolder != null && !subFolder.isBlank()) {
+                targetFolder = "popworld/" + subFolder.replaceAll("[^a-zA-Z0-9_-]", "");
+            }
             Map<String, Object> params = ObjectUtils.asMap(
-                    "folder", folder,
+                    "folder", targetFolder,
                     "resource_type", "image"
             );
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
