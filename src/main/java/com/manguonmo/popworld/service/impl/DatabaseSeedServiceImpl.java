@@ -397,7 +397,7 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 new BigDecimal("4800000"), null, 20,
                 "Hộp Quà Cao Cấp Kèm Súng Vũ Trụ", null, "Bản Hợp Tác Bản Quyền", "PVC / ABS / Kính nón bảo hiểm trong suốt", "Chiều cao: 29.5cm",
                 cat.get("mega-collection"), s.get("spaceMolly2"), true, false,
-                "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8855/68307/IMG_9225__98082.1691765433.JPG?c=2"));
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450054/popworld/products/prod_10_patrick_star.jpg"));
 
         // 11. Dimoo Retro Series (12 boxes)
         list.add(upsertProduct("Hộp Mù Dimoo Retro Series",
@@ -442,7 +442,7 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 new BigDecimal("320000"), new BigDecimal("1920000"), 100,
                 "1 Hộp lẻ / Nguyên Thùng 6 Hộp", 6, "1/72", "PVC / ABS / Bề mặt nhám mờ", "Chiều cao: 8.0cm - 9.2cm",
                 cat.get("blind-box"), s.get("crybabySadClub"), true, true,
-                "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2"));
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450058/popworld/products/prod_19_crybaby_sad_club.jpg"));
 
         // 16. Dimoo Dating Series (6 boxes)
         list.add(upsertProduct("Hộp Mù Dimoo Dating Series",
@@ -451,7 +451,7 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 new BigDecimal("300000"), new BigDecimal("1800000"), 110,
                 "1 Hộp lẻ / Nguyên Thùng 6 Hộp", 6, "1/72", "PVC / ABS", "Chiều cao: 7.8cm - 9.0cm",
                 cat.get("blind-box"), s.get("dimooDating"), true, false,
-                "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/8420/63431/IMG_4777__91468.1684134185.JPG?c=2"));
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450056/popworld/products/prod_20_dimoo_dating.jpg"));
 
         // 17. Hirono Echoes of Silence (12 boxes)
         list.add(upsertProduct("Hộp Mù Hirono Echoes of Silence Series",
