@@ -1,5 +1,7 @@
 package com.manguonmo.popworld.config;
 
+import com.manguonmo.popworld.repository.UserRepository;
+import com.manguonmo.popworld.security.filter.Admin2faFilter;
 import com.manguonmo.popworld.security.ratelimit.RateLimiterService;
 import com.manguonmo.popworld.security.ratelimit.RateLimitingFilter;
 import org.springframework.context.annotation.Bean;
@@ -20,16 +22,19 @@ public class SecurityConfig {
 
     private final RateLimiterService rateLimiterService;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @org.springframework.beans.factory.annotation.Value("${app.security.remember-me.key:${REMEMBER_ME_KEY:popworld-remember-me-secret-key-2026}}")
     private String rememberMeKey;
 
     public SecurityConfig(java.util.Optional<RateLimiterService> rateLimiterService,
-                          java.util.Optional<UserDetailsService> userDetailsService) {
+                          java.util.Optional<UserDetailsService> userDetailsService,
+                          java.util.Optional<UserRepository> userRepository) {
         this.rateLimiterService = rateLimiterService != null && rateLimiterService.isPresent()
                 ? rateLimiterService.get()
                 : new RateLimiterService();
         this.userDetailsService = userDetailsService != null ? userDetailsService.orElse(null) : null;
+        this.userRepository = userRepository != null ? userRepository.orElse(null) : null;
     }
 
     @Bean
@@ -43,7 +48,13 @@ public class SecurityConfig {
         requestHandler.setCsrfRequestAttributeName(null);
 
         http
-                .addFilterBefore(new RateLimitingFilter(rateLimiterService), CsrfFilter.class)
+                .addFilterBefore(new RateLimitingFilter(rateLimiterService), CsrfFilter.class);
+
+        if (userRepository != null) {
+            http.addFilterAfter(new Admin2faFilter(userRepository), org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class);
+        }
+
+        http
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
@@ -51,7 +62,7 @@ public class SecurityConfig {
                         )
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
-                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com; " +
+                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com https://api.qrserver.com; " +
                                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
                                         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
                                         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; " +

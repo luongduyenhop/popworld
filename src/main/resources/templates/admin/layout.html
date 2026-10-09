@@ -100,6 +100,11 @@
                 <span>Hỗ Trợ & Phản Hồi</span>
             </a>
 
+            <a th:href="@{/admin/2fa/setup}" class="admin-nav-link" th:classappend="${activeItem == '2fa' ? 'active' : ''}" title="Bảo Mật 2FA">
+                <i class="bi bi-shield-lock"></i>
+                <span>Bảo Mật 2FA</span>
+            </a>
+
             <a th:href="@{/}" target="_blank" class="admin-nav-link text-white-50 mt-2" title="Xem Cửa Hàng">
                 <i class="bi bi-shop"></i>
                 <span>Xem Cửa Hàng</span>

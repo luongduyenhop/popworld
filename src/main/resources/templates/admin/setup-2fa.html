@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: admin-head('Cài Đặt Xác Thực 2 Lớp (2FA)')}"></head>
+<body class="admin-body">
+
+<div th:replace="~{admin/layout :: admin-layout(~{::#setup2faContent}, 'Bảo Mật Hai Lớp (2FA / TOTP)', '2fa')}">
+    <div id="setup2faContent">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Alerts -->
+                <div th:if="${success}" class="alert alert-success d-flex align-items-center gap-2 mb-4">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <span th:text="${success}">Kích hoạt thành công</span>
+                </div>
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <span th:text="${error}">Lỗi xảy ra</span>
+                </div>
+
+                <!-- Card Trạng thái hiện tại -->
+                <div class="admin-card mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                                  th:classappend="${totpEnabled} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'"
+                                  style="width: 48px; height: 48px;">
+                                <i class="bi fs-4" th:classappend="${totpEnabled} ? 'bi-shield-fill-check' : 'bi-shield-exclamation'"></i>
+                            </span>
+                            <div>
+                                <h5 class="fw-bold mb-0">Trạng Thái Xác Thực Hai Yếu Tố (TOTP)</h5>
+                                <div class="small text-muted">Bảo vệ tài khoản quản trị viên trước các cuộc tấn công đánh cắp mật khẩu</div>
+                            </div>
+                        </div>
+                        <div>
+                            <span th:if="${totpEnabled}" class="badge bg-success px-3 py-2 fs-6">
+                                <i class="bi bi-check-circle me-1"></i> ĐANG BẬT
+                            </span>
+                            <span th:unless="${totpEnabled}" class="badge bg-warning text-dark px-3 py-2 fs-6">
+                                <i class="bi bi-exclamation-circle me-1"></i> ĐANG TẮT
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nếu 2FA ĐANG BẬT: Cho phép tắt nếu cần -->
+                <div th:if="${totpEnabled}" class="admin-card">
+                    <h6 class="fw-bold text-danger mb-3">Tắt Xác Thực Hai Yếu Tố</h6>
+                    <p class="text-muted small">
+                        Cảnh báo: Nếu tắt xác thực hai yếu tố, tài khoản của bạn sẽ chỉ được bảo vệ bởi mật khẩu đơn thuần.
+                    </p>
+                    <form th:action="@{/admin/2fa/disable}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3" style="max-width: 320px;">
+                            <label class="form-label small fw-bold">Nhập mã 6 số từ Authenticator để xác nhận tắt:</label>
+                            <input type="text" name="code" class="form-control" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required/>
+                        </div>
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-shield-x"></i> Xác Nhận Hủy 2FA
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Nếu 2FA ĐANG TẮT: Hướng dẫn thiết lập & Quét mã QR -->
+                <div th:unless="${totpEnabled}" class="admin-card">
+                    <h5 class="fw-bold mb-3">Thiết Lập Google Authenticator</h5>
+                    <ol class="small text-muted ps-3 mb-4">
+                        <li class="mb-2">Tải ứng dụng <strong>Google Authenticator</strong> hoặc <strong>Authy</strong> về điện thoại di động của bạn.</li>
+                        <li class="mb-2">Mở ứng dụng, chọn <em>"Quét mã QR"</em> hoặc nhập thủ công <em>Khóa bí mật</em> bên dưới.</li>
+                        <li class="mb-2">Nhập mã OTP 6 số do ứng dụng phát sinh để hoàn tất kích hoạt.</li>
+                    </ol>
+
+                    <div class="row align-items-center g-4 mb-4 p-3 bg-light rounded">
+                        <!-- QR Code Image generated via free reliable CDN or SVG -->
+                        <div class="col-sm-5 text-center">
+                            <img th:src="'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + ${qrUri}"
+                                 alt="QR Code Authenticator"
+                                 class="img-thumbnail shadow-sm"
+                                 style="width: 180px; height: 180px;"/>
+                            <div class="small text-muted mt-2">Quét mã QR bằng Authenticator</div>
+                        </div>
+
+                        <!-- Manual Secret Key -->
+                        <div class="col-sm-7">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Khóa Bí Mật (Nhập Thủ Công):</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control font-monospace bg-white text-danger fw-bold" th:value="${secretKey}" readonly id="secretKeyInput"/>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('secretKeyInput').value); alert('Đã sao chép khóa bí mật!');">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <form th:action="@{/admin/2fa/enable}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Nhập mã OTP 6 số để kích hoạt:</label>
+                                    <input type="text" name="code" class="form-control" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required style="letter-spacing: 4px; font-weight: bold;"/>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-shield-check"></i> Kích Hoạt 2FA Ngay
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

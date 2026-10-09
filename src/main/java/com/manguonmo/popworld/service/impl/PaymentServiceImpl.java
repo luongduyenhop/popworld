@@ -10,6 +10,7 @@ import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.OrderTimelineRepository;
 import com.manguonmo.popworld.service.PopNowService;
+import com.manguonmo.popworld.security.crypto.HmacSignatureVerifier;
 import lombok.extern.slf4j.Slf4j;
 import com.manguonmo.popworld.entity.PaymentTransaction;
 import com.manguonmo.popworld.repository.PaymentTransactionRepository;
@@ -34,14 +35,24 @@ public class PaymentServiceImpl implements PaymentService {
             "PROCESSING", "SHIPPING", "DELIVERED", "SHIPPED", "COMPLETED"
     );
 
-    @Value("${sepay.webhook.api-key}")
+    @Value("${sepay.webhook.api-key:}")
     private String apiKey;
+
+    @Value("${sepay.webhook.secret-key:${sepay.webhook.api-key:}}")
+    private String webhookSecretKey;
+
+    private HmacSignatureVerifier hmacSignatureVerifier;
 
     private final OrderRepository orderRepository;
     private final BoxReservationRepository boxReservationRepository;
     private final PopNowService popNowService;
     private final OrderTimelineRepository orderTimelineRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired
+    public void setHmacSignatureVerifier(HmacSignatureVerifier hmacSignatureVerifier) {
+        this.hmacSignatureVerifier = hmacSignatureVerifier;
+    }
 
     public PaymentServiceImpl(OrderRepository orderRepository,
                               BoxReservationRepository boxReservationRepository,
@@ -61,29 +72,64 @@ public class PaymentServiceImpl implements PaymentService {
         this.popNowService = popNowService;
         this.orderTimelineRepository = orderTimelineRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
+        this.hmacSignatureVerifier = new HmacSignatureVerifier();
     }
 
     @Override
     @Transactional
     public boolean processSePayWebhook(SePayWebhookRequest webhookData, String authorizationHeader) {
-        // 1. Xác thực bảo mật: API Key và Authorization Header (chống bypass nếu apiKey null/rỗng, so khớp chính xác)
-        if (apiKey == null || apiKey.trim().isEmpty() || authorizationHeader == null || authorizationHeader.trim().isEmpty()) {
-            log.warn("SePay Webhook: Truy cập trái phép hoặc thiếu API Key hợp lệ.");
-            return false;
+        return processSePayWebhook(webhookData, authorizationHeader, null, null);
+    }
+
+    @Override
+    @Transactional
+    public boolean processSePayWebhook(SePayWebhookRequest webhookData, String authorizationHeader, String rawPayload, String signatureHeader) {
+        // 1. Xác thực bảo mật: Ưu tiên Chữ ký điện tử HMAC-SHA256, Fallback sang API Key
+        boolean signatureVerified = false;
+        if (signatureHeader != null && !signatureHeader.isBlank()) {
+            HmacSignatureVerifier verifier = this.hmacSignatureVerifier != null ? this.hmacSignatureVerifier : new HmacSignatureVerifier();
+            String effectiveSecret = (webhookSecretKey != null && !webhookSecretKey.isBlank()) ? webhookSecretKey : apiKey;
+
+            boolean match = false;
+            if (rawPayload != null && !rawPayload.isBlank()) {
+                match = verifier.verifySignature(rawPayload, signatureHeader, effectiveSecret);
+            }
+            if (!match && webhookData != null) {
+                String canonical = String.format("id=%s&amount=%s&content=%s",
+                        webhookData.getId(),
+                        webhookData.getTransferAmount(),
+                        webhookData.getContent());
+                match = verifier.verifySignature(canonical, signatureHeader, effectiveSecret);
+            }
+
+            if (match) {
+                log.info("SePay Webhook: Xác thực chữ ký HMAC-SHA256 thành công.");
+                signatureVerified = true;
+            } else {
+                log.warn("SePay Webhook: Chữ ký HMAC-SHA256 không hợp lệ hoặc payload bị chỉnh sửa!");
+                return false;
+            }
         }
 
-        String providedKey = authorizationHeader.trim();
-        if (providedKey.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            providedKey = providedKey.substring(7).trim();
-        } else if (providedKey.regionMatches(true, 0, "Apikey ", 0, 7)) {
-            providedKey = providedKey.substring(7).trim();
-        }
+        if (!signatureVerified) {
+            if (apiKey == null || apiKey.trim().isEmpty() || authorizationHeader == null || authorizationHeader.trim().isEmpty()) {
+                log.warn("SePay Webhook: Truy cập trái phép hoặc thiếu API Key / Signature hợp lệ.");
+                return false;
+            }
 
-        if (!java.security.MessageDigest.isEqual(
-                providedKey.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                apiKey.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
-            log.warn("SePay Webhook: Truy cập trái phép hoặc thiếu API Key hợp lệ.");
-            return false;
+            String providedKey = authorizationHeader.trim();
+            if (providedKey.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                providedKey = providedKey.substring(7).trim();
+            } else if (providedKey.regionMatches(true, 0, "Apikey ", 0, 7)) {
+                providedKey = providedKey.substring(7).trim();
+            }
+
+            if (!java.security.MessageDigest.isEqual(
+                    providedKey.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                    apiKey.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+                log.warn("SePay Webhook: Truy cập trái phép hoặc thiếu API Key hợp lệ.");
+                return false;
+            }
         }
 
         // 2. Validate payload đầu vào

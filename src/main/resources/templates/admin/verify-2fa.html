@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Thực Bảo Mật 2FA - PopWorld Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/popmart-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-theme.css}">
+    <style>
+        body {
+            background-color: #F8F9FA;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .security-card {
+            max-width: 460px;
+            width: 100%;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            padding: 36px 32px;
+        }
+        .otp-input {
+            letter-spacing: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            height: 56px;
+            border-radius: 8px;
+            border: 2px solid #E5E7EB;
+            transition: all 0.2s ease;
+        }
+        .otp-input:focus {
+            border-color: #D2001E;
+            box-shadow: 0 0 0 3px rgba(210, 0, 30, 0.15);
+            outline: none;
+        }
+        .btn-verify {
+            background-color: #D2001E;
+            color: #FFFFFF;
+            font-weight: 600;
+            height: 48px;
+            border-radius: 8px;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .btn-verify:hover {
+            background-color: #A00017;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="security-card text-center">
+    <!-- Security Shield Icon -->
+    <div class="mb-3">
+        <span class="d-inline-flex align-items-center justify-content-center bg-danger-subtle rounded-circle" style="width: 72px; height: 72px;">
+            <i class="bi bi-shield-lock-fill text-danger fs-1"></i>
+        </span>
+    </div>
+
+    <h4 class="fw-bold mb-1">Xác Thực Hai Yếu Tố (2FA)</h4>
+    <p class="text-muted small mb-4">
+        Vui lòng mở ứng dụng <strong>Google Authenticator</strong> hoặc <strong>Authy</strong> và nhập mã 6 số để tiếp tục vào phân hệ Quản trị.
+    </p>
+
+    <!-- Alert thông báo lỗi nếu có -->
+    <div th:if="${error}" class="alert alert-danger text-start py-2 px-3 small mb-3 d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span th:text="${error}">Mã xác thực không hợp lệ</span>
+    </div>
+
+    <!-- Form nhập OTP -->
+    <form th:action="@{/admin/verify-2fa/submit}" method="post">
+        <!-- CSRF Token -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="mb-4">
+            <input type="text"
+                   name="code"
+                   class="form-control otp-input"
+                   placeholder="000000"
+                   maxlength="6"
+                   pattern="[0-9]{6}"
+                   inputmode="numeric"
+                   autocomplete="one-time-code"
+                   required
+                   autofocus/>
+            <div class="form-text text-muted small mt-2">
+                Tài khoản: <strong th:text="${adminEmail}">admin@popworld.com</strong>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-verify w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-check-circle-fill"></i>
+            Xác Nhận & Đăng Nhập
+        </button>
+    </form>
+
+    <div class="pt-3 border-top d-flex justify-content-between align-items-center small text-muted">
+        <span>Gặp sự cố xác thực?</span>
+        <form th:action="@{/logout}" method="post" class="d-inline m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-link p-0 text-danger text-decoration-none small">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

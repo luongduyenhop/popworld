@@ -68,6 +68,8 @@ class PaymentServiceImplTest {
     void setUp() {
         // Gán giá trị API Key bí mật cho trường private @Value apiKey thông qua ReflectionTestUtils
         ReflectionTestUtils.setField(paymentService, "apiKey", VALID_API_KEY);
+        ReflectionTestUtils.setField(paymentService, "webhookSecretKey", VALID_API_KEY);
+        ReflectionTestUtils.setField(paymentService, "hmacSignatureVerifier", new com.manguonmo.popworld.security.crypto.HmacSignatureVerifier());
     }
 
     // =========================================================================
@@ -865,4 +867,57 @@ class PaymentServiceImplTest {
         verify(orderTimelineRepository, times(1)).save(timelineCaptor.capture());
         assertTrue(timelineCaptor.getValue().getAction().contains("CẢNH BÁO"));
     }
+
+    // =========================================================================
+    // TEST CASE: Bảo mật - Chữ ký điện tử HMAC-SHA256 (Dual Verification)
+    // =========================================================================
+    @Test
+    @DisplayName("Bảo mật: Xác thực thành công webhook khi có chữ ký số HMAC-SHA256 hợp lệ")
+    void processSePayWebhook_ValidHmacSignature_ShouldSucceed() {
+        String orderCode = "PW-1726000000000";
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .totalAmount(new BigDecimal("250000"))
+                .status("TO_PAY")
+                .build();
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(2001L)
+                .content("Thanh toan " + orderCode)
+                .transferAmount(new BigDecimal("250000"))
+                .referenceCode("REF_HMAC_1")
+                .build();
+
+        String rawPayload = "{\"id\":2001,\"content\":\"Thanh toan PW-1726000000000\",\"transferAmount\":250000}";
+        com.manguonmo.popworld.security.crypto.HmacSignatureVerifier verifier = new com.manguonmo.popworld.security.crypto.HmacSignatureVerifier();
+        String validSig = verifier.calculateHmacSha256(rawPayload, VALID_API_KEY);
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(paymentTransactionRepository.existsByTransactionCode("2001")).thenReturn(false);
+
+        // Gọi method overload với chữ ký HMAC
+        boolean result = paymentService.processSePayWebhook(request, null, rawPayload, validSig);
+
+        assertTrue(result, "Phải xác thực thành công qua chữ ký số HMAC-SHA256 mà không cần Authorization header");
+        assertEquals("PROCESSING", order.getStatus());
+    }
+
+    @Test
+    @DisplayName("Bảo mật: Từ chối webhook khi chữ ký số HMAC-SHA256 bị sai lệch hoặc giả mạo")
+    void processSePayWebhook_InvalidHmacSignature_ShouldReturnFalse() {
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(2002L)
+                .content("Thanh toan PW-1726000000000")
+                .transferAmount(new BigDecimal("250000"))
+                .build();
+
+        String rawPayload = "{\"id\":2002,\"content\":\"Thanh toan PW-1726000000000\",\"transferAmount\":250000}";
+        String fakeSig = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
+
+        boolean result = paymentService.processSePayWebhook(request, null, rawPayload, fakeSig);
+
+        assertFalse(result, "Phải từ chối ngay lập tức khi chữ ký HMAC sai");
+        verify(orderRepository, never()).findByOrderCode(anyString());
+    }
 }
+

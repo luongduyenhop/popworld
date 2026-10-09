@@ -68,4 +68,11 @@ public class User extends BaseEntity {
     @Builder.Default
     @Column(name = "enabled")
     private Boolean enabled = true;
+
+    @Column(name = "totp_secret", length = 64)
+    private String totpSecret;
+
+    @Builder.Default
+    @Column(name = "totp_enabled")
+    private Boolean totpEnabled = false;
 }

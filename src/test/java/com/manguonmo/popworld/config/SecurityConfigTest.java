@@ -69,6 +69,9 @@ class SecurityConfigTest {
     @MockitoBean
     private WishlistService wishlistService;
 
+    @MockitoBean
+    private com.manguonmo.popworld.repository.UserRepository userRepository;
+
 
     @Test
     @DisplayName("Chưa đăng nhập truy cập /admin/** -> Redirect về /login")
@@ -228,5 +231,23 @@ class SecurityConfigTest {
                 .andExpect(header().exists("Content-Security-Policy"))
                 .andExpect(header().exists("Strict-Transport-Security"))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"));
+    }
+
+    @Test
+    @DisplayName("Admin có bật 2FA nhưng chưa xác thực OTP -> Bị chặn và chuyển hướng tới /admin/verify-2fa")
+    void whenAdminWith2fa_notVerified_shouldRedirectToVerify2fa() throws Exception {
+        User adminUser = User.builder()
+                .id(1L)
+                .email("admin@test.com")
+                .role("ADMIN")
+                .totpEnabled(true)
+                .totpSecret("JBSWY3DPEHPK3PXP")
+                .build();
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+
+        mockMvc.perform(get("/admin/dashboard")
+                        .with(user("admin@test.com").roles("ADMIN")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/verify-2fa"));
     }
 }
