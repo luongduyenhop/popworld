@@ -41,7 +41,7 @@ public class ProductApiControllerTest {
         when(productService.getAllActiveProducts()).thenReturn(List.of(p));
         when(productMapper.toResponseList(List.of(p))).thenReturn(List.of(pr));
 
-        ResponseEntity<ApiResponse<List<ProductResponse>>> response = productApiController.getAllProducts();
+        ResponseEntity<ApiResponse<List<ProductResponse>>> response = productApiController.getAllProducts(null, null);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());

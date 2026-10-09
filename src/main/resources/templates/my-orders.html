@@ -682,43 +682,6 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Modal Xác Nhận Hủy Đơn Hàng: CHỈ TO_PAY -->
-                                    <div th:if="${order.status == 'TO_PAY'}" 
-                                         class="modal fade text-start" 
-                                         th:id="'cancelOrderModal-' + ${order.orderCode}" 
-                                         tabindex="-1" 
-                                         aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content rounded-4 border-0 shadow">
-                                                <form th:action="@{/orders/{code}/cancel(code=${order.orderCode})}" method="post">
-                                                    <div class="modal-header border-bottom-0 pb-0">
-                                                        <h5 class="modal-title fw-bold text-danger">
-                                                            <i class="bi bi-exclamation-octagon-fill me-1"></i> Xác Nhận Hủy Đơn Hàng
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body py-3">
-                                                        <p class="mb-2">Bạn có chắc chắn muốn hủy đơn hàng <strong class="font-monospace text-dark" th:text="${order.orderCode}">PW-XXXX</strong>?</p>
-                                                        <div class="alert alert-warning small py-2 px-3 rounded-3 mb-3">
-                                                            Các sản phẩm trong đơn sẽ được hoàn lại tồn kho và mã giảm giá (nếu có) sẽ được khôi phục.
-                                                        </div>
-                                                        <label class="form-label fw-bold small text-muted" th:for="'cancelReason-' + ${order.orderCode}">Lý do hủy đơn:</label>
-                                                        <select class="form-select rounded-3 mb-2" name="reason" th:id="'cancelReason-' + ${order.orderCode}" aria-label="Lý do hủy đơn">
-                                                            <option value="Thay đổi ý định mua">Thay đổi ý định mua</option>
-                                                            <option value="Đặt nhầm sản phẩm / số lượng">Đặt nhầm sản phẩm / số lượng</option>
-                                                            <option value="Cần đổi địa chỉ nhận hàng">Cần đổi địa chỉ nhận hàng</option>
-                                                            <option value="Muốn áp dụng mã giảm giá khác">Muốn áp dụng mã giảm giá khác</option>
-                                                            <option value="Lý do khác">Lý do khác</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="modal-footer border-top-0 pt-0">
-                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Hủy Đơn</button>
-                                                    </div>
-                                                </form>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1020,6 +983,46 @@
     <!-- ========================================================================= -->
     <!-- MODALS: ADDRESS BOOK, ADD/EDIT ADDRESS, PROFILE, PASSWORD, REWARDS        -->
     <!-- ========================================================================= -->
+
+    <!-- 0. Order Cancellation Modals (Extracted outside cards to avoid stacking context clipping) -->
+    <th:block th:if="${orders != null}" th:each="order : ${orders}">
+        <div th:if="${order.status == 'TO_PAY'}" 
+             class="modal fade text-start" 
+             th:id="'cancelOrderModal-' + ${order.orderCode}" 
+             tabindex="-1" 
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <form th:action="@{/orders/{code}/cancel(code=${order.orderCode})}" method="post">
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-bold text-danger">
+                                <i class="bi bi-exclamation-octagon-fill me-1"></i> Xác Nhận Hủy Đơn Hàng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-3">
+                            <p class="mb-2">Bạn có chắc chắn muốn hủy đơn hàng <strong class="font-monospace text-dark" th:text="${order.orderCode}">PW-XXXX</strong>?</p>
+                            <div class="alert alert-warning small py-2 px-3 rounded-3 mb-3">
+                                Các sản phẩm trong đơn sẽ được hoàn lại tồn kho và mã giảm giá (nếu có) sẽ được khôi phục.
+                            </div>
+                            <label class="form-label fw-bold small text-muted" th:for="'cancelReason-' + ${order.orderCode}">Lý do hủy đơn:</label>
+                            <select class="form-select rounded-3 mb-2" name="reason" th:id="'cancelReason-' + ${order.orderCode}" aria-label="Lý do hủy đơn">
+                                <option value="Thay đổi ý định mua">Thay đổi ý định mua</option>
+                                <option value="Đặt nhầm sản phẩm / số lượng">Đặt nhầm sản phẩm / số lượng</option>
+                                <option value="Cần đổi địa chỉ nhận hàng">Cần đổi địa chỉ nhận hàng</option>
+                                <option value="Muốn áp dụng mã giảm giá khác">Muốn áp dụng mã giảm giá khác</option>
+                                <option value="Lý do khác">Lý do khác</option>
+                            </select>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Hủy Đơn</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </th:block>
 
     <!-- 1. Address Book Modal -->
     <div class="modal fade text-start" id="addressBookModal" tabindex="-1" aria-labelledby="addressBookModalLabel" aria-hidden="true">

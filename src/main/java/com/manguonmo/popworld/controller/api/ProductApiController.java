@@ -27,11 +27,26 @@ public class ProductApiController {
     }
 
     /**
-     * Lấy toàn bộ sản phẩm đang mở bán
+     * Lấy toàn bộ sản phẩm đang mở bán (overload tương thích ngược cho unit test)
+     */
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+        return getAllProducts(null, null);
+    }
+
+    /**
+     * Lấy danh sách sản phẩm đang mở bán (hỗ trợ phân trang an toàn)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts(
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
         List<Product> products = productService.getAllActiveProducts();
+        if (page != null && size != null && page >= 0 && size > 0) {
+            int safeSize = Math.min(size, 100);
+            int fromIndex = Math.min(page * safeSize, products.size());
+            int toIndex = Math.min(fromIndex + safeSize, products.size());
+            products = products.subList(fromIndex, toIndex);
+        }
         List<ProductResponse> responseList = productMapper.toResponseList(products);
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách sản phẩm thành công", responseList));
     }
@@ -79,11 +94,24 @@ public class ProductApiController {
     }
 
     /**
-     * Tìm kiếm sản phẩm theo từ khóa
+     * Tìm kiếm sản phẩm (overload tương thích ngược cho unit test)
+     */
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(String keyword) {
+        return searchProducts(keyword, null);
+    }
+
+    /**
+     * Tìm kiếm sản phẩm theo từ khóa (giới hạn tối đa 50 kết quả để bảo vệ tài nguyên)
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(@RequestParam String keyword) {
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(
+            @RequestParam String keyword,
+            @RequestParam(value = "limit", required = false, defaultValue = "50") Integer limit) {
+        int safeLimit = (limit != null && limit > 0) ? Math.min(limit, 100) : 50;
         List<Product> products = productService.searchProducts(keyword);
+        if (products.size() > safeLimit) {
+            products = products.subList(0, safeLimit);
+        }
         List<ProductResponse> responseList = productMapper.toResponseList(products);
         return ResponseEntity.ok(ApiResponse.success("Tìm kiếm sản phẩm thành công", responseList));
     }

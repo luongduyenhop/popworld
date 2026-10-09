@@ -41,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderTimelineRepository orderTimelineRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.manguonmo.popworld.service.InventoryService inventoryService;
+
     private static final java.util.concurrent.atomic.AtomicInteger ORDER_SEQ =
             new java.util.concurrent.atomic.AtomicInteger(100000);
 
@@ -242,7 +245,26 @@ public class OrderServiceImpl implements OrderService {
                 }
         ).toList();
 
-        orderItemRepository.saveAll(orderItems);
+        orderItemRepository.saveAll(orderItems);    
+
+        // Ghi log xuất kho vào Sổ Nhật Ký Biến Động Kho (Audit Log)
+        if (inventoryService != null) {
+            for (CartItem cartItem : selectedCartItems) {
+                try {
+                    Product prod = cartItem.getProduct();
+                    if (prod != null && prod.getId() != null) {
+                        int reqBoxes = cartItem.getRequiredStockBoxes();
+                        int curStock = prod.getStockQuantity() != null ? prod.getStockQuantity() : 0;
+                        inventoryService.recordStockLog(prod, "ORDER_DEDUCT", -reqBoxes,
+                                curStock, Math.max(0, curStock - reqBoxes),
+                                "Xuất bán đơn hàng #" + savedOrder.getOrderCode(),
+                                "Khách hàng (" + user.getEmail() + ")");
+                    }
+                } catch (Exception ex) {
+                    log.warn("Không thể ghi log xuất kho cho đơn {}: {}", savedOrder.getOrderCode(), ex.getMessage());
+                }
+            }
+        }
 
         // =========================================================================
         // BƯỚC 10: Xóa CHỈ các CartItem ĐÃ ĐẶT HÀNG (được chọn) khỏi giỏ hàng
@@ -300,6 +322,17 @@ public class OrderServiceImpl implements OrderService {
                 boolean isPopNowItem = "POP_NOW".equalsIgnoreCase(item.getPurchaseType());
                 if (!isPopNowOrder && !isPopNowItem && item.getProduct() != null && item.getProduct().getId() != null) {
                     productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                    if (inventoryService != null) {
+                        try {
+                            Product prod = item.getProduct();
+                            int curStock = prod.getStockQuantity() != null ? prod.getStockQuantity() : 0;
+                            inventoryService.recordStockLog(prod, "ORDER_CANCEL_REFUND", item.getRequiredStockBoxes(),
+                                    curStock, curStock + item.getRequiredStockBoxes(),
+                                    "Hoàn kho do khách hủy đơn #" + order.getOrderCode(), "Khách hàng");
+                        } catch (Exception ex) {
+                            log.warn("Không thể ghi log hoàn kho đơn {}: {}", order.getOrderCode(), ex.getMessage());
+                        }
+                    }
                 }
             }
         }
@@ -371,6 +404,17 @@ public class OrderServiceImpl implements OrderService {
                 boolean isPopNowItem = "POP_NOW".equalsIgnoreCase(item.getPurchaseType());
                 if (!isPopNowOrder && !isPopNowItem && item.getProduct() != null && item.getProduct().getId() != null) {
                     productRepository.addStock(item.getProduct().getId(), item.getRequiredStockBoxes());
+                    if (inventoryService != null) {
+                        try {
+                            Product prod = item.getProduct();
+                            int curStock = prod.getStockQuantity() != null ? prod.getStockQuantity() : 0;
+                            inventoryService.recordStockLog(prod, "ORDER_CANCEL_REFUND", item.getRequiredStockBoxes(),
+                                    curStock, curStock + item.getRequiredStockBoxes(),
+                                    "Hoàn kho do quản trị viên hủy đơn #" + order.getOrderCode(), "Admin");
+                        } catch (Exception ex) {
+                            log.warn("Không thể ghi log hoàn kho đơn {}: {}", order.getOrderCode(), ex.getMessage());
+                        }
+                    }
                 }
             }
         }

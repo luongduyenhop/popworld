@@ -18,4 +18,8 @@ public interface InventoryService {
     Product quickRestock(Long productId, int quantityToAdd, String note);
 
     Product adjustStock(Long productId, int newStockQuantity, String reason);
+
+    List<com.manguonmo.popworld.dto.response.InventoryLogResponse> getProductStockHistory(Long productId);
+
+    void recordStockLog(Product product, String type, int change, int oldStock, int newStock, String reason, String actor);
 }

@@ -162,7 +162,7 @@
 
         <!-- Inventory Table -->
         <div class="admin-card shadow-sm overflow-hidden mb-4">
-            <div class="table-responsive">
+            <div class="table-responsive table-responsive-scroll-5">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark text-uppercase small" style="letter-spacing: 0.5px;">
                         <tr>
@@ -240,140 +240,15 @@
                                             title="Nhập thêm hàng cộng dồn vào kho">
                                         <i class="bi bi-plus-lg me-1"></i>Nhập Kho
                                     </button>
-                                </div>
 
-                                <!-- ========================================================================= -->
-                                <!-- MODAL 1: ĐIỀU CHỈNH / KIỂM KÊ TỒN KHO THỰC TẾ                              -->
-                                <!-- ========================================================================= -->
-                                <div class="modal fade text-start" th:id="'adjustModal' + ${product.id}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-dark text-white px-3 py-2 border-0">
-                                                <h6 class="modal-title fw-bold">
-                                                    <i class="bi bi-sliders me-1 text-warning"></i>Điều Chỉnh Tồn Kho: <span th:text="${product.name}">Tên SP</span>
-                                                </h6>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form th:action="@{'/admin/inventory/' + ${product.id} + '/adjust'}" method="post">
-                                                <input type="hidden" name="threshold" th:value="${threshold}">
-                                                <div class="modal-body p-3">
-                                                    <!-- Current product info -->
-                                                    <div class="mb-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <div class="fw-bold text-dark" th:text="${product.name}">Sản phẩm</div>
-                                                            <div class="small text-muted" th:text="'Đơn giá: ' + ${#numbers.formatDecimal(product.singlePrice, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</div>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            <div class="small text-muted text-uppercase fw-semibold">Tồn kho hiện tại</div>
-                                                            <div class="h4 fw-black text-dark mb-0" th:text="${product.stockQuantity} + ' hộp'">0</div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- New exact stock quantity input -->
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">
-                                                            Số Lượng Tồn Kho Thực Tế Mới (Hộp) <span class="text-danger">*</span>
-                                                        </label>
-                                                        <input type="number" name="newStockQuantity" th:id="'stockInput_' + ${product.id}" 
-                                                               class="form-control form-control-lg fw-black text-center border-dark" 
-                                                               min="0" max="99999" th:value="${product.stockQuantity}" required>
-                                                        
-                                                        <!-- Quick preset helper buttons -->
-                                                        <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
-                                                            <span class="small text-muted fw-bold me-1">Chọn nhanh:</span>
-                                                            <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 fw-bold"
-                                                                    th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 0;'">
-                                                                0 (Hết hàng)
-                                                            </button>
-                                                            <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 fw-bold"
-                                                                    th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 3;'">
-                                                                3 (Sắp hết)
-                                                            </button>
-                                                            <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 fw-bold"
-                                                                    th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 5;'">
-                                                                5 (Sắp hết)
-                                                            </button>
-                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold"
-                                                                    th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = ' + ${threshold} + ';'">
-                                                                <span th:text="${threshold} + ' (Cận ngưỡng)'">10 (Cận ngưỡng)</span>
-                                                            </button>
-                                                            <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 fw-bold"
-                                                                    th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 25;'">
-                                                                25 (An toàn)
-                                                            </button>
-                                                        </div>
-
-                                                        <div class="form-text small mt-2 p-2 bg-warning-subtle text-dark border border-warning rounded">
-                                                            <i class="bi bi-lightbulb-fill text-warning me-1"></i>
-                                                            Nhập số lượng từ <strong>1 đến <span th:text="${threshold}">10</span> hộp</strong> để chuyển sang trạng thái <strong>SẮP HẾT HÀNG</strong>. Nhập <strong>0 hộp</strong> sẽ chuyển thành <strong>HẾT HÀNG</strong>.
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Adjustment Reason -->
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">Lý Do Điều Chỉnh / Kiểm Kê</label>
-                                                        <input type="text" name="reason" class="form-control" 
-                                                               value="Kiểm kê thực tế kho hàng" 
-                                                               placeholder="Vd: Kiểm kê định kỳ, hao hụt hư hỏng, cân đối dữ liệu kho...">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer px-3 py-2 border-top">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                                    <button type="submit" class="btn btn-dark btn-sm fw-bold">
-                                                        <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi Tồn Kho
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- ========================================================================= -->
-                                <!-- MODAL 2: NHẬP THÊM KHO (CỘNG DỒN)                                         -->
-                                <!-- ========================================================================= -->
-                                <div class="modal fade text-start" th:id="'restockModal' + ${product.id}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-danger text-white px-3 py-2 border-0">
-                                                <h6 class="modal-title fw-bold">
-                                                    <i class="bi bi-box-arrow-in-down me-1"></i>Nhập Thêm Kho: <span th:text="${product.name}">Tên SP</span>
-                                                </h6>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form th:action="@{'/admin/inventory/' + ${product.id} + '/restock'}" method="post">
-                                                <input type="hidden" name="threshold" th:value="${threshold}">
-                                                <div class="modal-body p-3">
-                                                    <div class="mb-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <div class="fw-bold" th:text="${product.name}">Sản phẩm</div>
-                                                            <div class="small text-muted" th:text="'Đơn giá: ' + ${#numbers.formatDecimal(product.singlePrice, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</div>
-                                                        </div>
-                                                        <div class="text-end">
-                                                            <div class="small text-muted text-uppercase fw-semibold">Tồn hiện tại</div>
-                                                            <div class="h4 fw-black text-dark mb-0" th:text="${product.stockQuantity} + ' hộp'">0</div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">Số Lượng Nhập Thêm (Hộp) <span class="text-danger">*</span></label>
-                                                        <input type="number" name="quantityToAdd" class="form-control form-control-lg fw-bold text-center border-danger" min="1" max="10000" value="10" required>
-                                                        <div class="form-text small">Số lượng này sẽ được cộng dồn trực tiếp vào số lượng tồn kho hiện tại.</div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">Ghi Chú Đợt Nhập Hàng</label>
-                                                        <input type="text" name="note" class="form-control" placeholder="Vd: Lô hàng bổ sung từ kho tổng POP MART tháng 10/2026...">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer px-3 py-2 border-top">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                                    <button type="submit" class="btn btn-danger btn-sm fw-bold">
-                                                        <i class="bi bi-check-lg me-1"></i>Xác Nhận Nhập Kho
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                                    <!-- Button 3: Stock Audit History -->
+                                    <button type="button" class="btn btn-sm btn-outline-secondary fw-bold text-nowrap" 
+                                            th:data-product-id="${product.id}"
+                                            th:data-product-name="${product.name}"
+                                            onclick="openStockHistory(this.getAttribute('data-product-id'), this.getAttribute('data-product-name'))"
+                                            title="Xem sổ nhật ký biến động kho">
+                                        <i class="bi bi-clock-history me-1"></i>Lịch Sử
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -381,6 +256,254 @@
                 </table>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- PRODUCT MODALS (Độc lập ngoài Table tránh xung đột Stacking Context CSS)   -->
+        <!-- ========================================================================= -->
+        <th:block th:each="product : ${products}">
+            <!-- MODAL 1: ĐIỀU CHỈNH / KIỂM KÊ TỒN KHO THỰC TẾ -->
+            <div class="modal fade text-start" th:id="'adjustModal' + ${product.id}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-dark text-white px-3 py-2 border-0">
+                            <h6 class="modal-title fw-bold">
+                                <i class="bi bi-sliders me-1 text-warning"></i>Điều Chỉnh Tồn Kho: <span th:text="${product.name}">Tên SP</span>
+                            </h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form th:action="@{'/admin/inventory/' + ${product.id} + '/adjust'}" method="post">
+                            <input type="hidden" name="threshold" th:value="${threshold}">
+                            <div class="modal-body p-3">
+                                <!-- Current product info -->
+                                <div class="mb-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark" th:text="${product.name}">Sản phẩm</div>
+                                        <div class="small text-muted" th:text="'Đơn giá: ' + ${#numbers.formatDecimal(product.singlePrice, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted text-uppercase fw-semibold">Tồn kho hiện tại</div>
+                                        <div class="h4 fw-black text-dark mb-0" th:text="${product.stockQuantity} + ' hộp'">0</div>
+                                    </div>
+                                </div>
+
+                                <!-- New exact stock quantity input -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">
+                                        Số Lượng Tồn Kho Thực Tế Mới (Hộp) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="newStockQuantity" th:id="'stockInput_' + ${product.id}" 
+                                           class="form-control form-control-lg fw-black text-center border-dark" 
+                                           min="0" max="99999" th:value="${product.stockQuantity}" required>
+                                    
+                                    <!-- Quick preset helper buttons -->
+                                    <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+                                        <span class="small text-muted fw-bold me-1">Chọn nhanh:</span>
+                                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 fw-bold"
+                                                th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 0;'">
+                                            0 (Hết hàng)
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 fw-bold"
+                                                th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 3;'">
+                                            3 (Sắp hết)
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-2 fw-bold"
+                                                th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 5;'">
+                                            5 (Sắp hết)
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold"
+                                                th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = ' + ${threshold} + ';'">
+                                            <span th:text="${threshold} + ' (Cận ngưỡng)'">10 (Cận ngưỡng)</span>
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 fw-bold"
+                                                th:onclick="'document.getElementById(\'stockInput_' + ${product.id} + '\').value = 25;'">
+                                            25 (An toàn)
+                                        </button>
+                                    </div>
+
+                                    <div class="form-text small mt-2 p-2 bg-warning-subtle text-dark border border-warning rounded">
+                                        <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                                        Nhập số lượng từ <strong>1 đến <span th:text="${threshold}">10</span> hộp</strong> để chuyển sang trạng thái <strong>SẮP HẾT HÀNG</strong>. Nhập <strong>0 hộp</strong> sẽ chuyển thành <strong>HẾT HÀNG</strong>.
+                                    </div>
+                                </div>
+
+                                <!-- Adjustment Reason -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">Lý Do Điều Chỉnh / Kiểm Kê</label>
+                                    <input type="text" name="reason" class="form-control" 
+                                           value="Kiểm kê thực tế kho hàng" 
+                                           placeholder="Vd: Kiểm kê định kỳ, hao hụt hư hỏng, cân đối dữ liệu kho...">
+                                </div>
+                            </div>
+                            <div class="modal-footer px-3 py-2 border-top">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-dark btn-sm fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi Tồn Kho
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL 2: NHẬP THÊM KHO (CỘNG DỒN) -->
+            <div class="modal fade text-start" th:id="'restockModal' + ${product.id}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-danger text-white px-3 py-2 border-0">
+                            <h6 class="modal-title fw-bold">
+                                <i class="bi bi-box-arrow-in-down me-1"></i>Nhập Thêm Kho: <span th:text="${product.name}">Tên SP</span>
+                            </h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form th:action="@{'/admin/inventory/' + ${product.id} + '/restock'}" method="post">
+                            <input type="hidden" name="threshold" th:value="${threshold}">
+                            <div class="modal-body p-3">
+                                <div class="mb-3 p-3 bg-light rounded border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold" th:text="${product.name}">Sản phẩm</div>
+                                        <div class="small text-muted" th:text="'Đơn giá: ' + ${#numbers.formatDecimal(product.singlePrice, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted text-uppercase fw-semibold">Tồn hiện tại</div>
+                                        <div class="h4 fw-black text-dark mb-0" th:text="${product.stockQuantity} + ' hộp'">0</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">Số Lượng Nhập Thêm (Hộp) <span class="text-danger">*</span></label>
+                                    <input type="number" name="quantityToAdd" class="form-control form-control-lg fw-bold text-center border-danger" min="1" max="10000" value="10" required>
+                                    <div class="form-text small">Số lượng này sẽ được cộng dồn trực tiếp vào số lượng tồn kho hiện tại.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">Ghi Chú Đợt Nhập Hàng</label>
+                                    <input type="text" name="note" class="form-control" placeholder="Vd: Lô hàng bổ sung từ kho tổng POP MART tháng 10/2026...">
+                                </div>
+                            </div>
+                            <div class="modal-footer px-3 py-2 border-top">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i>Xác Nhận Nhập Kho
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL 3: SỔ NHẬT KÝ BIẾN ĐỘNG KHO (AUDIT TRAIL LOGS)                       -->
+        <!-- ========================================================================= -->
+        <div class="modal fade text-start" id="stockHistoryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-dark text-white px-3 py-2 border-0">
+                        <h6 class="modal-title fw-bold">
+                            <i class="bi bi-clock-history me-2 text-warning"></i>Sổ Nhật Ký Biến Động Kho: <span id="historyModalProductName" class="text-white"></span>
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div id="historyLoading" class="text-center py-4">
+                            <div class="spinner-border text-danger spinner-border-sm" role="status"></div>
+                            <span class="ms-2 small text-muted">Đang tải nhật ký biến động kho...</span>
+                        </div>
+                        <div id="historyEmpty" class="text-center py-4 text-muted d-none">
+                            <i class="bi bi-journal-x fs-1 d-block mb-2 text-secondary"></i>
+                            Chưa phát sinh bản ghi biến động nào cho sản phẩm này.
+                        </div>
+                        <div id="historyTableContainer" class="table-responsive d-none">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light small text-uppercase fw-bold">
+                                    <tr>
+                                        <th style="width: 140px;">Thời Gian</th>
+                                        <th style="width: 130px;">Hành Động</th>
+                                        <th style="width: 90px;" class="text-center">Biến Động</th>
+                                        <th style="width: 100px;" class="text-center">Tồn Trước &rarr; Sau</th>
+                                        <th>Lý Do / Ghi Chú</th>
+                                        <th style="width: 100px;">Tác Nhân</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody" class="small">
+                                    <!-- Rendered dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-3 py-2 border-top">
+                        <button type="button" class="btn btn-dark btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openStockHistory(productId, productName) {
+                document.getElementById('historyModalProductName').textContent = productName || ('ID #' + productId);
+                const loading = document.getElementById('historyLoading');
+                const empty = document.getElementById('historyEmpty');
+                const container = document.getElementById('historyTableContainer');
+                const tbody = document.getElementById('historyTableBody');
+
+                loading.classList.remove('d-none');
+                empty.classList.add('d-none');
+                container.classList.add('d-none');
+                tbody.innerHTML = '';
+
+                const modalElem = document.getElementById('stockHistoryModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElem);
+                modal.show();
+
+                fetch('/admin/inventory/api/' + productId + '/history')
+                    .then(res => {
+                        if (!res.ok) throw new Error('Không thể tải lịch sử biến động');
+                        return res.json();
+                    })
+                    .then(data => {
+                        loading.classList.add('d-none');
+                        if (!data || data.length === 0) {
+                            empty.classList.remove('d-none');
+                            return;
+                        }
+
+                        container.classList.remove('d-none');
+                        data.forEach(item => {
+                            let typeBadge = '';
+                            if (item.type === 'RESTOCK') {
+                                typeBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-box-arrow-in-down me-1"></i>Nhập Kho</span>';
+                            } else if (item.type === 'ADJUST') {
+                                typeBadge = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="bi bi-sliders me-1"></i>Kiểm Kê</span>';
+                            } else if (item.type === 'ORDER_DEDUCT') {
+                                typeBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-cart-dash me-1"></i>Xuất Đơn</span>';
+                            } else if (item.type === 'ORDER_CANCEL_REFUND') {
+                                typeBadge = '<span class="badge bg-info-subtle text-dark border border-info-subtle"><i class="bi bi-arrow-return-left me-1"></i>Hoàn Kho</span>';
+                            } else {
+                                typeBadge = '<span class="badge bg-secondary">' + (item.typeDisplay || item.type) + '</span>';
+                            }
+
+                            const changeSign = item.quantityChanged > 0 ? ('+' + item.quantityChanged) : item.quantityChanged;
+                            const changeClass = item.quantityChanged > 0 ? 'text-success fw-bold' : (item.quantityChanged < 0 ? 'text-danger fw-bold' : 'text-muted');
+
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td class="text-secondary text-nowrap">${item.createdAtFormatted || ''}</td>
+                                <td>${typeBadge}</td>
+                                <td class="text-center ${changeClass}">${changeSign}</td>
+                                <td class="text-center font-monospace">${item.oldStock} &rarr; <strong>${item.newStock}</strong></td>
+                                <td class="text-break">${item.reason || '-'}</td>
+                                <td><span class="badge bg-light text-dark border">${item.actor || 'Hệ thống'}</span></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    })
+                    .catch(err => {
+                        loading.classList.add('d-none');
+                        empty.textContent = 'Lỗi khi tải lịch sử: ' + err.message;
+                        empty.classList.remove('d-none');
+                    });
+            }
+        </script>
 
     </div>
 </div>

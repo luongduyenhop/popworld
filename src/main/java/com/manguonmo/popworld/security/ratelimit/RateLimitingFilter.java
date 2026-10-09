@@ -101,6 +101,18 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                     "Bạn đã gửi yêu cầu giữ hộp quá nhiều lần (tối đa 20 lần/phút). Vui lòng thử lại sau ít phút!");
         }
 
+        // 10. Product Catalog API: Chống bot cào dữ liệu sản phẩm hàng loạt (120 req/phút)
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/products")) {
+            return new RateLimitRule("PRODUCT_API", 120, Duration.ofMinutes(1),
+                    "Yêu cầu thông tin sản phẩm vượt quá tần suất cho phép (tối đa 120 lần/phút). Vui lòng thử lại sau ít phút!");
+        }
+
+        // 11. Review API: Chống bot cào dữ liệu đánh giá sản phẩm (60 req/phút)
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/reviews")) {
+            return new RateLimitRule("REVIEW_API", 60, Duration.ofMinutes(1),
+                    "Yêu cầu thông tin đánh giá vượt quá tần suất cho phép (tối đa 60 lần/phút). Vui lòng thử lại sau ít phút!");
+        }
+
         return null;
     }
 

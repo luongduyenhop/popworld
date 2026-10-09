@@ -237,4 +237,60 @@ class RateLimitingFilterTest {
         assertTrue(blockedRes.getContentAsString().contains("giữ hộp"));
         assertTrue(blockedRes.getContentAsString().contains("\"success\":false"));
     }
+
+    @Test
+    @DisplayName("Product Catalog API: Cho phép tối đa 120 request/phút và chặn request thứ 121 với mã 429 JSON")
+    void productCatalog_shouldAllowUpTo120Requests_andBlock121st() throws ServletException, IOException {
+        String clientIp = "192.168.1.105";
+
+        for (int i = 1; i <= 120; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/products");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("GET", "/api/products");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("sản phẩm"));
+        assertTrue(blockedRes.getContentAsString().contains("\"success\":false"));
+    }
+
+    @Test
+    @DisplayName("Review API: Cho phép tối đa 60 request/phút và chặn request thứ 61 với mã 429 JSON")
+    void reviewApi_shouldAllowUpTo60Requests_andBlock61st() throws ServletException, IOException {
+        String clientIp = "192.168.1.106";
+
+        for (int i = 1; i <= 60; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/reviews/product/1");
+            req.setRemoteAddr(clientIp);
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            MockFilterChain chain = new MockFilterChain();
+
+            rateLimitingFilter.doFilter(req, res, chain);
+            assertEquals(200, res.getStatus());
+        }
+
+        MockHttpServletRequest blockedReq = new MockHttpServletRequest("GET", "/api/reviews/product/1");
+        blockedReq.setRemoteAddr(clientIp);
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        MockFilterChain blockedChain = new MockFilterChain();
+
+        rateLimitingFilter.doFilter(blockedReq, blockedRes, blockedChain);
+
+        assertEquals(429, blockedRes.getStatus());
+        assertEquals("60", blockedRes.getHeader("Retry-After"));
+        assertTrue(blockedRes.getContentAsString().contains("đánh giá"));
+        assertTrue(blockedRes.getContentAsString().contains("\"success\":false"));
+    }
 }

@@ -120,7 +120,7 @@
 
         <!-- Tickets Table -->
         <div class="admin-card shadow-sm overflow-hidden mb-4">
-            <div class="table-responsive">
+            <div class="table-responsive table-responsive-scroll-5">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark text-uppercase small" style="letter-spacing: 0.5px;">
                         <tr>
@@ -205,60 +205,64 @@
                                         <i class="bi bi-pencil-square me-1"></i>Xử Lý
                                     </button>
                                 </div>
-
-                                <!-- Process Modal -->
-                                <div class="modal fade text-start" th:id="'processModal' + ${contact.id}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-dark text-white px-3 py-2 border-0">
-                                                <h6 class="modal-title fw-bold">
-                                                    <i class="bi bi-headset me-1 text-danger"></i>Xử Lý Yêu Cầu #<span th:text="${contact.id}">1</span>
-                                                </h6>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form th:action="@{'/admin/support/' + ${contact.id} + '/process'}" method="post">
-                                                <div class="modal-body p-3">
-                                                    <div class="mb-3 p-2 bg-light rounded border">
-                                                        <div class="fw-bold" th:text="${contact.senderName}">Tên khách</div>
-                                                        <div class="small text-muted">
-                                                            Email: <span th:text="${contact.email}">email</span> | 
-                                                            SĐT: <span th:text="${contact.phone != null ? contact.phone : 'Chưa nhập'}">phone</span>
-                                                        </div>
-                                                        <div class="small mt-1 text-dark fw-bold" th:text="${contact.subject}">Tiêu đề</div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">Trạng Thái Xử Lý</label>
-                                                        <select name="isProcessed" class="form-select">
-                                                            <option value="true" th:selected="${contact.isProcessed}">ĐÃ GIẢI QUYẾT (RESOLVED)</option>
-                                                            <option value="false" th:selected="${!contact.isProcessed}">CHỜ XỬ LÝ (PENDING)</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold small text-uppercase">Ghi Chú Giải Quyết Của Admin</label>
-                                                        <textarea name="adminNote" class="form-control" rows="3" 
-                                                                  placeholder="Vd: Đã gọi điện qua hotline giải thích cho khách hàng về mã đơn hàng..." 
-                                                                  th:text="${contact.adminNote}"></textarea>
-                                                        <div class="form-text small">Ghi chú này giúp đồng nghiệp CSKH theo dõi tiến độ xử lý khi khách liên hệ lại.</div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer px-3 py-2 border-top">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                                                    <button type="submit" class="btn btn-danger btn-sm fw-bold">
-                                                        <i class="bi bi-save me-1"></i>Lưu Thay Đổi
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- PROCESS MODALS (Độc lập ngoài Table tránh xung đột Stacking Context CSS)   -->
+        <!-- ========================================================================= -->
+        <th:block th:each="contact : ${contacts}">
+            <div class="modal fade text-start" th:id="'processModal' + ${contact.id}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-dark text-white px-3 py-2 border-0">
+                            <h6 class="modal-title fw-bold">
+                                <i class="bi bi-headset me-1 text-danger"></i>Xử Lý Yêu Cầu #<span th:text="${contact.id}">1</span>
+                            </h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form th:action="@{'/admin/support/' + ${contact.id} + '/process'}" method="post">
+                            <div class="modal-body p-3">
+                                <div class="mb-3 p-2 bg-light rounded border">
+                                    <div class="fw-bold" th:text="${contact.senderName}">Tên khách</div>
+                                    <div class="small text-muted">
+                                        Email: <span th:text="${contact.email}">email</span> | 
+                                        SĐT: <span th:text="${contact.phone != null ? contact.phone : 'Chưa nhập'}">phone</span>
+                                    </div>
+                                    <div class="small mt-1 text-dark fw-bold" th:text="${contact.subject}">Tiêu đề</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">Trạng Thái Xử Lý</label>
+                                    <select name="isProcessed" class="form-select">
+                                        <option value="true" th:selected="${contact.isProcessed}">ĐÃ GIẢI QUYẾT (RESOLVED)</option>
+                                        <option value="false" th:selected="${!contact.isProcessed}">CHỜ XỬ LÝ (PENDING)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-uppercase">Ghi Chú Giải Quyết Của Admin</label>
+                                    <textarea name="adminNote" class="form-control" rows="3" 
+                                              placeholder="Vd: Đã gọi điện qua hotline giải thích cho khách hàng về mã đơn hàng..." 
+                                              th:text="${contact.adminNote}"></textarea>
+                                    <div class="form-text small">Ghi chú này giúp đồng nghiệp CSKH theo dõi tiến độ xử lý khi khách liên hệ lại.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer px-3 py-2 border-top">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                    <i class="bi bi-save me-1"></i>Lưu Thay Đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </th:block>
 
     </div>
 </div>

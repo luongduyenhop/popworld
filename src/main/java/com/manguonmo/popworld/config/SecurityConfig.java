@@ -21,6 +21,9 @@ public class SecurityConfig {
     private final RateLimiterService rateLimiterService;
     private final UserDetailsService userDetailsService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.security.remember-me.key:${REMEMBER_ME_KEY:popworld-remember-me-secret-key-2026}}")
+    private String rememberMeKey;
+
     public SecurityConfig(java.util.Optional<RateLimiterService> rateLimiterService,
                           java.util.Optional<UserDetailsService> userDetailsService) {
         this.rateLimiterService = rateLimiterService != null && rateLimiterService.isPresent()
@@ -41,6 +44,24 @@ public class SecurityConfig {
 
         http
                 .addFilterBefore(new RateLimitingFilter(rateLimiterService), CsrfFilter.class)
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com; " +
+                                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+                                        "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; " +
+                                        "connect-src 'self'; " +
+                                        "frame-ancestors 'none';")
+                        )
+                        .referrerPolicy(referrer -> referrer
+                                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        )
+                )
                 .csrf(csrf -> csrf
                         .csrfTokenRequestHandler(requestHandler)
                         .ignoringRequestMatchers("/api/payment/sepay/**")
@@ -69,9 +90,12 @@ public class SecurityConfig {
                 );
 
         if (userDetailsService != null) {
+            String effectiveKey = (rememberMeKey != null && !rememberMeKey.trim().isBlank())
+                    ? rememberMeKey.trim()
+                    : "popworld-remember-me-secret-key-2026";
             http.rememberMe(remember -> remember
                     .userDetailsService(userDetailsService)
-                    .key("popworld-remember-me-secret-key-2026")
+                    .key(effectiveKey)
                     .tokenValiditySeconds(86400 * 14)
                     .rememberMeParameter("remember-me")
             );

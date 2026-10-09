@@ -220,4 +220,13 @@ class SecurityConfigTest {
                         .with(user("user@test.com").roles("USER")))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("Kiểm tra HTTP Security Headers: CSP, HSTS và X-Content-Type-Options được trả về trên response")
+    void shouldReturnSecurityHeaders() throws Exception {
+        mockMvc.perform(get("/login").secure(true))
+                .andExpect(header().exists("Content-Security-Policy"))
+                .andExpect(header().exists("Strict-Transport-Security"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"));
+    }
 }

@@ -481,8 +481,8 @@
                         </div>
                         <div class="d-flex align-items-center gap-1">
                             <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle pop-wishlist-toggle-btn" 
-                                    th:attr="data-product-id=${product.id}"
-                                    onclick="toggleWishlist(this)" title="Yêu thích" aria-label="Yêu thích">
+                                    th:attr="data-product-id=${product.id}, data-product-name=${product.name}, data-product-price=${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${product.mainImageUrl}"
+                                    onclick="if(window.togglePopWishlist){window.togglePopWishlist(this, event);}else{toggleWishlist(this);}" title="Yêu thích" aria-label="Yêu thích">
                                 <i th:class="${isWishlisted != null and isWishlisted} ? 'bi bi-heart-fill fs-6 text-danger' : 'bi bi-heart fs-6'"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-secondary border-0 rounded-circle" 
@@ -916,48 +916,9 @@
         }
 
         // 7. Yêu thích (Wishlist) & Chia sẻ
-        async function toggleWishlist(btn) {
-            const productId = btn.getAttribute('data-product-id');
-            if (!productId) return;
-            const icon = btn.querySelector('i');
-            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
-
-                const res = await fetch('/api/wishlist/toggle', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ productId: parseInt(productId) })
-                });
-
-                if (res.status === 401 || res.redirected) {
-                    window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname);
-                    return;
-                }
-
-                const data = await res.json();
-                if (data.success) {
-                    if (data.wishlisted) {
-                        icon.className = 'bi bi-heart-fill fs-6 text-danger';
-                    } else {
-                        icon.className = 'bi bi-heart fs-6';
-                    }
-                    // Cập nhật badge số lượng trên header realtime
-                    document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
-                        badge.textContent = data.wishlistCount;
-                    });
-                } else {
-                    if (data.message && data.message.includes('đăng nhập')) {
-                        window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname);
-                    } else {
-                        alert(data.message || 'Có lỗi xảy ra');
-                    }
-                }
-            } catch (err) {
-                console.error('Lỗi khi cập nhật yêu thích:', err);
+        function toggleWishlist(btn) {
+            if (window.togglePopWishlist) {
+                return window.togglePopWishlist(btn);
             }
         }
 

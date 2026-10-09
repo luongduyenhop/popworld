@@ -193,7 +193,7 @@
                         Chưa có dữ liệu sản phẩm bán ra trong kỳ báo cáo đã chọn.
                     </div>
 
-                    <div th:unless="${#lists.isEmpty(report.topProducts)}" class="table-responsive">
+                    <div th:unless="${#lists.isEmpty(report.topProducts)}" class="table-responsive table-responsive-scroll-5">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="small text-muted text-uppercase">
                                 <tr>
@@ -247,7 +247,7 @@
             </div>
 
             <!-- Scrollable table container pinned to ~10 rows (~490px) -->
-            <div class="table-responsive admin-scrollable-table" style="max-height: 490px; overflow-y: auto;">
+            <div class="table-responsive table-responsive-scroll-5 admin-scrollable-table" style="max-height: 490px;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark text-uppercase small position-sticky top-0 shadow-sm" style="letter-spacing: 0.5px; z-index: 5;">
                         <tr>

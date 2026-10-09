@@ -1,8 +1,11 @@
 package com.manguonmo.popworld.service.impl;
 
+import com.manguonmo.popworld.dto.response.InventoryLogResponse;
 import com.manguonmo.popworld.dto.response.InventorySummaryResponse;
+import com.manguonmo.popworld.entity.InventoryLog;
 import com.manguonmo.popworld.entity.Product;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
+import com.manguonmo.popworld.repository.InventoryLogRepository;
 import com.manguonmo.popworld.repository.ProductRepository;
 import com.manguonmo.popworld.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 public class InventoryServiceImpl implements InventoryService {
 
     private final ProductRepository productRepository;
+    private final InventoryLogRepository inventoryLogRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -126,6 +131,9 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Nhập kho bổ sung cho sản phẩm #{} ({}): {} -> {} (+{}). Ghi chú: {}",
                 saved.getId(), saved.getName(), oldStock, newStock, quantityToAdd, note);
 
+        recordStockLog(saved, "RESTOCK", quantityToAdd, oldStock, newStock,
+                (note != null && !note.trim().isEmpty() ? note : "Nhập hàng bổ sung"), "Admin");
+
         return saved;
     }
 
@@ -146,6 +154,57 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Điều chỉnh kiểm kê tồn kho sản phẩm #{} ({}): {} -> {}. Lý do: {}",
                 saved.getId(), saved.getName(), oldStock, newStockQuantity, reason);
 
+        int diff = newStockQuantity - oldStock;
+        recordStockLog(saved, "ADJUST", diff, oldStock, newStockQuantity,
+                (reason != null && !reason.trim().isEmpty() ? reason : "Kiểm kê kho thực tế"), "Admin");
+
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public void recordStockLog(Product product, String type, int change, int oldStock, int newStock, String reason, String actor) {
+        if (product == null || inventoryLogRepository == null) return;
+        InventoryLog logEntity = InventoryLog.builder()
+                .product(product)
+                .type(type)
+                .quantityChanged(change)
+                .oldStock(oldStock)
+                .newStock(newStock)
+                .reason(reason != null ? reason : "")
+                .actor(actor != null ? actor : "Hệ thống")
+                .build();
+        inventoryLogRepository.save(logEntity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InventoryLogResponse> getProductStockHistory(Long productId) {
+        List<InventoryLog> logs = inventoryLogRepository.findTop50ByProductIdOrderByCreatedAtDesc(productId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        return logs.stream().map(l -> {
+            String display = switch (l.getType()) {
+                case "RESTOCK" -> "Nhập Thêm Kho";
+                case "ADJUST" -> "Kiểm Kê / Điều Chỉnh";
+                case "ORDER_DEDUCT" -> "Xuất Bán Đơn Hàng";
+                case "ORDER_CANCEL_REFUND" -> "Hoàn Kho (Hủy Đơn)";
+                default -> l.getType();
+            };
+            return InventoryLogResponse.builder()
+                    .id(l.getId())
+                    .productId(productId)
+                    .productName(l.getProduct() != null ? l.getProduct().getName() : "")
+                    .type(l.getType())
+                    .typeDisplay(display)
+                    .quantityChanged(l.getQuantityChanged())
+                    .oldStock(l.getOldStock())
+                    .newStock(l.getNewStock())
+                    .reason(l.getReason())
+                    .actor(l.getActor())
+                    .createdAt(l.getCreatedAt())
+                    .createdAtFormatted(l.getCreatedAt() != null ? l.getCreatedAt().format(formatter) : "")
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

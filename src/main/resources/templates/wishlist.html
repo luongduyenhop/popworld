@@ -382,8 +382,9 @@
                     return;
                 }
 
-                const data = await res.json();
-                if (data.success && !data.wishlisted) {
+                const result = await res.json();
+                const payload = (result && result.data) ? result.data : result;
+                if (result.success && payload && !payload.wishlisted) {
                     // Hiệu ứng mờ dần và thu nhỏ
                     if (card) {
                         card.style.transition = 'all 0.3s ease';
@@ -400,14 +401,19 @@
                     }
 
                     // Cập nhật badge
+                    const finalCount = payload.wishlistCount;
                     const pageBadge = document.getElementById('pageWishlistCountBadge');
-                    if (pageBadge) pageBadge.textContent = data.wishlistCount;
+                    if (pageBadge && typeof finalCount !== 'undefined') pageBadge.textContent = finalCount;
 
-                    document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
-                        badge.textContent = data.wishlistCount;
-                    });
+                    if (typeof finalCount !== 'undefined' && window.updateHeaderWishlistCount) {
+                        window.updateHeaderWishlistCount(finalCount);
+                    } else if (typeof finalCount !== 'undefined') {
+                        document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
+                            badge.textContent = finalCount;
+                        });
+                    }
                 } else {
-                    alert(data.message || 'Không thể xóa sản phẩm khỏi yêu thích.');
+                    alert((result && result.message) || (payload && payload.message) || 'Không thể xóa sản phẩm khỏi yêu thích.');
                 }
             } catch (err) {
                 console.error('Lỗi khi xóa khỏi wishlist:', err);

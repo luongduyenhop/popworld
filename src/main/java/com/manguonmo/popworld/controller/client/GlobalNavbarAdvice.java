@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.security.Principal;
+import java.util.Collections;
 
 @ControllerAdvice(basePackages = "com.manguonmo.popworld.controller.client")
 public class GlobalNavbarAdvice {
@@ -59,6 +60,9 @@ public class GlobalNavbarAdvice {
                     if (!model.containsAttribute("wishlistCount")) {
                         model.addAttribute("wishlistCount", wishlistService.getWishlistCount(user.getId()));
                     }
+                    if (!model.containsAttribute("wishlistProductIds")) {
+                        model.addAttribute("wishlistProductIds", wishlistService.getWishlistProductIds(user.getId()));
+                    }
                     String displayName = (user.getFullName() != null && !user.getFullName().isBlank())
                             ? user.getFullName()
                             : "POPMART MEMBER";
@@ -75,6 +79,9 @@ public class GlobalNavbarAdvice {
             }
             if (!model.containsAttribute("wishlistCount")) {
                 model.addAttribute("wishlistCount", 0);
+            }
+            if (!model.containsAttribute("wishlistProductIds")) {
+                model.addAttribute("wishlistProductIds", Collections.emptySet());
             }
         }
     }

@@ -280,6 +280,13 @@
                                 <i class="bi bi-stars"></i> SECRET <span th:text="${p.secretRatio}">1/144</span>
                             </span>
                             <span class="badge-pop-hot" th:if="${p.isFeatured}">HOT</span>
+                            <!-- Quick Wishlist Heart Button -->
+                            <button type="button" class="btn btn-sm p-0 border-0 pop-home-wishlist-btn"
+                                    th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
+                                    onclick="if(window.togglePopWishlist){window.togglePopWishlist(this, event);}"
+                                    title="Yêu thích">
+                                <i th:class="${wishlistProductIds != null and wishlistProductIds.contains(p.id)} ? 'bi bi-heart-fill text-danger fs-6' : 'bi bi-heart text-dark fs-6'"></i>
+                            </button>
                             <button type="button" class="btn btn-sm p-0 border-0 pop-home-quick-add-btn"
                                     th:if="${p.stockQuantity != null && p.stockQuantity > 0}"
                                     th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
@@ -412,6 +419,13 @@
                             <div class="pop-product-img-box position-relative" th:data-url="@{'/products/' + ${p.slug}}" onclick="window.location.href=this.dataset.url" style="cursor: pointer;">
                                 <img th:src="${p.mainImageUrl}" th:alt="${p.name}">
                                 <span class="badge-pop-new">NEW DROP</span>
+                                <!-- Quick Wishlist Heart Button -->
+                                <button type="button" class="btn btn-sm p-0 border-0 pop-home-wishlist-btn"
+                                        th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
+                                        onclick="if(window.togglePopWishlist){window.togglePopWishlist(this, event);}"
+                                        title="Yêu thích">
+                                    <i th:class="${wishlistProductIds != null and wishlistProductIds.contains(p.id)} ? 'bi bi-heart-fill text-danger fs-6' : 'bi bi-heart text-dark fs-6'"></i>
+                                </button>
                                 <button type="button" class="btn btn-sm p-0 border-0 pop-home-quick-add-btn"
                                         th:if="${p.stockQuantity != null && p.stockQuantity > 0}"
                                         th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"

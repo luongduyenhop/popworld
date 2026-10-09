@@ -93,4 +93,11 @@ public class AdminInventoryWebController {
 
         return "redirect:/admin/inventory?threshold=" + threshold;
     }
+
+    @GetMapping("/api/{id}/history")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<List<com.manguonmo.popworld.dto.response.InventoryLogResponse>> getStockHistory(
+            @PathVariable Long id) {
+        return org.springframework.http.ResponseEntity.ok(inventoryService.getProductStockHistory(id));
+    }
 }

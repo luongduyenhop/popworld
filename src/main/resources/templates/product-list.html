@@ -270,9 +270,8 @@
                                 </span>
                                 <!-- Quick Wishlist Heart Button -->
                                 <button type="button" class="btn btn-sm p-0 border-0 pop-catalog-wishlist-btn"
-                                        style="position: absolute; top: 8px; right: 8px; z-index: 3; background: rgba(255,255,255,0.9); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.12);"
-                                        th:attr="data-product-id=${p.id}"
-                                        onclick="event.stopPropagation(); toggleCatalogWishlist(this);"
+                                        th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
+                                        onclick="if(window.togglePopWishlist){window.togglePopWishlist(this, event);}else{toggleCatalogWishlist(this);}"
                                         title="Yêu thích">
                                     <i th:class="${wishlistProductIds != null and wishlistProductIds.contains(p.id)} ? 'bi bi-heart-fill text-danger fs-6' : 'bi bi-heart text-dark fs-6'"></i>
                                 </button>
@@ -461,47 +460,9 @@
             window.location.href = currentUrl.toString();
         }
 
-        async function toggleCatalogWishlist(btn) {
-            const productId = btn.getAttribute('data-product-id');
-            if (!productId) return;
-            const icon = btn.querySelector('i');
-            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
-
-                const res = await fetch('/api/wishlist/toggle', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ productId: parseInt(productId) })
-                });
-
-                if (res.status === 401 || res.redirected) {
-                    window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname + window.location.search);
-                    return;
-                }
-
-                const data = await res.json();
-                if (data.success) {
-                    if (data.wishlisted) {
-                        icon.className = 'bi bi-heart-fill text-danger fs-6';
-                    } else {
-                        icon.className = 'bi bi-heart text-dark fs-6';
-                    }
-                    document.querySelectorAll('.header-wishlist-count, #headerWishlistCount').forEach(badge => {
-                        badge.textContent = data.wishlistCount;
-                    });
-                } else {
-                    if (data.message && data.message.includes('đăng nhập')) {
-                        window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname + window.location.search);
-                    } else {
-                        alert(data.message || 'Có lỗi xảy ra');
-                    }
-                }
-            } catch (err) {
-                console.error('Lỗi toggle wishlist:', err);
+        function toggleCatalogWishlist(btn) {
+            if (window.togglePopWishlist) {
+                return window.togglePopWishlist(btn);
             }
         }
     </script>

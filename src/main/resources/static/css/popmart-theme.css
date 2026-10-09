@@ -194,6 +194,14 @@ header.sticky-top,
     transition: background-color 0.2s ease;
 }
 
+/* Content Sticky Sidebars (Checkout & Cart Order Summary) - Layered safely under Header (z-index: 500) */
+main .sticky-top,
+.pop-sticky-sidebar {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    z-index: 15 !important;
+}
+
 .pop-navbar {
     background: #FFFFFF !important;
     position: relative !important;
@@ -5460,6 +5468,31 @@ header.sticky-top,
     100% { transform: scale(1); }
 }
 
+/* Heart Pop Micro-Interaction & Header Wishlist Bounce */
+.heart-pop-anim {
+    animation: heartPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: center center;
+    display: inline-block;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.48); }
+    70% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+.pop-wishlist-bounce {
+    animation: popWishlistBounce 0.4s ease;
+}
+
+@keyframes popWishlistBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); color: var(--pop-red, #D2001E); }
+    100% { transform: scale(1); }
+}
+
+
 /* ==========================================================================
    8. PDP TRUST BADGES (4 CAM KẾT VÀNG)
    ========================================================================== */
@@ -5567,8 +5600,33 @@ header.sticky-top,
 }
 
 /* ==========================================================================
-   10. QUICK ADD TO CART BUTTON (POP MART CATALOG & HOME CARD)
+   10. QUICK ADD & WISHLIST BUTTONS (POP MART CATALOG & HOME CARD)
    ========================================================================== */
+.pop-catalog-wishlist-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.95);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.pop-catalog-wishlist-btn:hover {
+    background-color: #FFFFFF !important;
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 .pop-catalog-quick-add-btn {
     position: absolute;
     top: 42px;
@@ -5597,9 +5655,34 @@ header.sticky-top,
     color: #FFFFFF !important;
 }
 
-.pop-home-quick-add-btn {
+.pop-home-wishlist-btn {
     position: absolute;
     top: 8px;
+    right: 8px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.95);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: none;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.pop-home-wishlist-btn:hover {
+    background-color: #FFFFFF !important;
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pop-home-quick-add-btn {
+    position: absolute;
+    top: 46px;
     right: 8px;
     z-index: 3;
     background: rgba(255, 255, 255, 0.95);

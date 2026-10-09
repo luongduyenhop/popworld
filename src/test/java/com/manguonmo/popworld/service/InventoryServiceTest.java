@@ -27,6 +27,9 @@ class InventoryServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private com.manguonmo.popworld.repository.InventoryLogRepository inventoryLogRepository;
+
     @InjectMocks
     private InventoryServiceImpl inventoryService;
 
@@ -152,5 +155,34 @@ class InventoryServiceTest {
         assertEquals(1, summary10.getLowStockCount());
         assertEquals(1, summary10.getSafeStockCount());
         assertEquals(10, summary10.getLowStockThreshold());
+    }
+
+    @Test
+    @DisplayName("Tra cứu lịch sử biến động kho và format dữ liệu hiển thị chính xác")
+    void getProductStockHistory_returnsFormattedLogs() {
+        Product p = Product.builder().id(10L).name("Labubu Forest").build();
+        com.manguonmo.popworld.entity.InventoryLog logItem = com.manguonmo.popworld.entity.InventoryLog.builder()
+                .id(1L)
+                .product(p)
+                .type("RESTOCK")
+                .quantityChanged(10)
+                .oldStock(5)
+                .newStock(15)
+                .reason("Nhập hàng đợt 1")
+                .actor("Admin")
+                .build();
+
+        when(inventoryLogRepository.findTop50ByProductIdOrderByCreatedAtDesc(10L))
+                .thenReturn(List.of(logItem));
+
+        List<com.manguonmo.popworld.dto.response.InventoryLogResponse> history =
+                inventoryService.getProductStockHistory(10L);
+
+        assertEquals(1, history.size());
+        assertEquals("Nhập Thêm Kho", history.get(0).getTypeDisplay());
+        assertEquals(10, history.get(0).getQuantityChanged());
+        assertEquals(5, history.get(0).getOldStock());
+        assertEquals(15, history.get(0).getNewStock());
+        assertEquals("Admin", history.get(0).getActor());
     }
 }

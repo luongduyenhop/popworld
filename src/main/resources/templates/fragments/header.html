@@ -617,6 +617,17 @@
                 });
             };
 
+            // Helper cập nhật badge yêu thích trên Header với hiệu ứng nhún (bounce)
+            window.updateHeaderWishlistCount = function(newCount) {
+                var badges = document.querySelectorAll('.header-wishlist-count, #headerWishlistCount');
+                badges.forEach(function(b) {
+                    b.textContent = newCount;
+                    b.classList.remove('pop-wishlist-bounce');
+                    void b.offsetWidth; // Trigger reflow
+                    b.classList.add('pop-wishlist-bounce');
+                });
+            };
+
             // =========================================================================
             // 2. LIVE SEARCH AUTOCOMPLETE DROPDOWN
             // =========================================================================
@@ -785,6 +796,145 @@
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
+                }
+            };
+
+            // =========================================================================
+            // 4. GLOBAL OPTIMISTIC WISHLIST TOGGLE (Instant Feedback + Heart Pop)
+            // =========================================================================
+            window.togglePopWishlist = async function(btn, event) {
+                if (event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+                if (!btn) return;
+
+                var productId = btn.getAttribute('data-product-id');
+                if (!productId) return;
+
+                // Chống bấm liên tục (debounce)
+                if (btn.dataset.processing === 'true') return;
+                btn.dataset.processing = 'true';
+
+                var productName = btn.getAttribute('data-product-name') || 'Sản phẩm';
+                var productPrice = btn.getAttribute('data-product-price') || '';
+                var productImg = btn.getAttribute('data-product-img') || '';
+
+                var icon = btn.querySelector('i') || btn;
+                var wasWishlisted = icon.classList.contains('bi-heart-fill');
+                var optimisticNewState = !wasWishlisted;
+
+                // Lấy số lượng hiện tại từ header badge
+                var badgeEl = document.querySelector('.header-wishlist-count, #headerWishlistCount');
+                var currentCount = 0;
+                if (badgeEl) {
+                    var parsed = parseInt(badgeEl.textContent.trim(), 10);
+                    currentCount = isNaN(parsed) ? 0 : parsed;
+                }
+                var optimisticCount = optimisticNewState ? (currentCount + 1) : Math.max(0, currentCount - 1);
+
+                // 1. OPTIMISTIC UI: Cập nhật icon tức thì (< 16ms)
+                if (optimisticNewState) {
+                    icon.classList.remove('bi-heart');
+                    icon.classList.add('bi-heart-fill', 'text-danger');
+                    // Kích hoạt animation nảy tim
+                    icon.classList.remove('heart-pop-anim');
+                    void icon.offsetWidth;
+                    icon.classList.add('heart-pop-anim');
+                } else {
+                    icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
+                    icon.classList.add('bi-heart');
+                }
+
+                // 2. OPTIMISTIC BADGE: Cập nhật số lượng trên Header ngay lập tức
+                if (window.updateHeaderWishlistCount) {
+                    window.updateHeaderWishlistCount(optimisticCount);
+                }
+
+                // Hàm khôi phục trạng thái ban đầu khi có lỗi
+                function revertWishlistUI() {
+                    if (wasWishlisted) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
+                        icon.classList.add('bi-heart');
+                    }
+                    if (window.updateHeaderWishlistCount) {
+                        window.updateHeaderWishlistCount(currentCount);
+                    }
+                }
+
+                // 3. BACKGROUND API CALL
+                var csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+                var headers = { 'Content-Type': 'application/json' };
+                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                try {
+                    var res = await fetch('/api/wishlist/toggle', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ productId: parseInt(productId, 10) })
+                    });
+
+                    // Chưa đăng nhập (401 / 302 redirect)
+                    if (res.status === 401 || res.redirected) {
+                        revertWishlistUI();
+                        window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        return;
+                    }
+
+                    var result = await res.json();
+                    var payload = (result && result.data) ? result.data : result;
+                    var isSuccess = result.success !== false;
+
+                    if (isSuccess && payload && typeof payload.wishlisted !== 'undefined') {
+                        var finalWishlisted = payload.wishlisted;
+                        var finalCount = payload.wishlistCount;
+
+                        // Đồng bộ lại icon theo chuẩn dữ liệu Server trả về
+                        if (finalWishlisted) {
+                            icon.classList.remove('bi-heart');
+                            icon.classList.add('bi-heart-fill', 'text-danger');
+                        } else {
+                            icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
+                            icon.classList.add('bi-heart');
+                        }
+
+                        // Đồng bộ lại badge số lượng chính xác
+                        if (typeof finalCount !== 'undefined' && window.updateHeaderWishlistCount) {
+                            window.updateHeaderWishlistCount(finalCount);
+                        }
+
+                        // Hiển thị Toast thông báo POP MART chuẩn
+                        if (window.showPopToast) {
+                            window.showPopToast({
+                                title: finalWishlisted ? 'ĐÃ THÊM VÀO YÊU THÍCH' : 'ĐÃ XÓA KHỎI YÊU THÍCH',
+                                name: productName,
+                                price: productPrice,
+                                imageUrl: productImg,
+                                ctaText: 'XEM YÊU THÍCH',
+                                ctaUrl: '/wishlist'
+                            });
+                        }
+                    } else {
+                        // Thất bại từ server logic
+                        revertWishlistUI();
+                        var errMsg = result.message || (payload && payload.message) || 'Không thể cập nhật danh sách yêu thích.';
+                        if (errMsg.toLowerCase().includes('đăng nhập') || errMsg.toLowerCase().includes('login')) {
+                            window.location.href = '/login?continue=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        } else {
+                            alert(errMsg);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Lỗi toggle wishlist:', err);
+                    revertWishlistUI();
+                    alert('Có lỗi kết nối khi cập nhật danh sách yêu thích. Vui lòng thử lại!');
+                } finally {
+                    delete btn.dataset.processing;
                 }
             };
         })();

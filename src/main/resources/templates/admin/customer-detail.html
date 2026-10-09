@@ -183,7 +183,8 @@
                         Khách hàng chưa lưu địa chỉ nhận hàng nào trong sổ địa chỉ.
                     </div>
 
-                    <div th:if="${addresses != null and !addresses.isEmpty()}" class="row g-3">
+                    <div th:if="${addresses != null and !addresses.isEmpty()}" class="admin-list-scroll-5 pe-1">
+                        <div class="row g-3">
                         <div class="col-md-6" th:each="addr : ${addresses}">
                             <div class="p-3 rounded-3 border h-100" th:classappend="${addr.isDefault ? 'border-danger bg-danger-subtle bg-opacity-10' : 'bg-light'}">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -216,7 +217,7 @@
                         Khách hàng chưa có đơn hàng nào trong hệ thống PopWorld.
                     </div>
 
-                    <div th:if="${orders != null and !orders.isEmpty()}" class="table-responsive">
+                    <div th:if="${orders != null and !orders.isEmpty()}" class="table-responsive table-responsive-scroll-5">
                         <table class="table admin-table align-middle mb-0">
                             <thead>
                                 <tr>

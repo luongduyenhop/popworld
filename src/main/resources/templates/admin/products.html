@@ -109,7 +109,7 @@
         <!-- 3. PRODUCTS DATA TABLE (OPTIMIZED LAYOUT & ZERO HORIZONTAL CLIPPING)        -->
         <!-- ========================================================================= -->
         <div class="admin-card shadow-sm overflow-hidden mb-4">
-            <div class="table-responsive">
+            <div class="table-responsive table-responsive-scroll-5">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark text-uppercase small" style="letter-spacing: 0.5px;">
                         <tr>
@@ -171,22 +171,30 @@
                                 </div>
                             </td>
 
-                            <!-- Stock Inline Fast Editor -->
+                            <!-- Stock Status & Quick Navigation to Inventory Control -->
                             <td class="text-center text-nowrap">
-                                <form th:action="@{'/admin/products/' + ${product.id} + '/stock'}" method="post" 
-                                      class="d-inline-flex align-items-center justify-content-center gap-1 m-0">
-                                    <input type="number" name="stockQuantity" min="0" 
-                                           class="form-control form-control-sm text-center fw-bold rounded-1" 
-                                           style="width: 64px; height: 32px;" 
-                                           th:value="${product.stockQuantity}"
-                                           th:classappend="${product.stockQuantity <= 10 ? 'border-danger text-danger bg-danger-subtle' : 'border-secondary'}"
-                                           aria-label="Số lượng tồn kho"
-                                           th:title="${product.stockQuantity <= 10 ? 'Cảnh báo: Sắp hết hàng (&le;10)' : 'Tồn kho an toàn'}">
-                                    <button type="submit" class="btn btn-sm btn-outline-dark rounded-1 d-inline-flex align-items-center justify-content-center p-0" 
-                                            style="height: 32px; width: 32px;" title="Lưu số lượng tồn kho" aria-label="Cập nhật số lượng tồn kho">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                </form>
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <span th:if="${product.stockQuantity <= 0}" 
+                                          class="badge bg-danger text-white px-2 py-1 fw-bold" title="Cạn kho - Khách không thể đặt hàng">
+                                        0 hộp
+                                    </span>
+                                    <span th:if="${product.stockQuantity > 0 and product.stockQuantity <= 10}" 
+                                          class="badge bg-warning text-dark px-2 py-1 fw-bold" title="Cảnh báo: Sắp hết hàng (&le;10)">
+                                        <span th:text="${product.stockQuantity} + ' hộp'">5 hộp</span>
+                                    </span>
+                                    <span th:if="${product.stockQuantity > 10}" 
+                                          class="badge bg-light text-dark border px-2 py-1 fw-semibold" title="Tồn kho an toàn">
+                                        <span th:text="${product.stockQuantity} + ' hộp'">20 hộp</span>
+                                    </span>
+
+                                    <!-- Quick shortcut to Inventory Management -->
+                                    <a th:href="@{/admin/inventory(keyword=${product.name})}" 
+                                       class="btn btn-sm btn-light border text-secondary px-1 py-0 d-inline-flex align-items-center justify-content-center" 
+                                       style="height: 24px; width: 24px;"
+                                       title="Đến trang Kiểm Soát Tồn Kho để Nhập kho / Kiểm kê chi tiết">
+                                        <i class="bi bi-box-arrow-up-right" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                </div>
                             </td>
 
                             <!-- Active Status -->
