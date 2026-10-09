@@ -62,11 +62,11 @@ public class SecurityConfig {
                         )
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
-                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com https://api.qrserver.com; " +
+                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com https://api.qrserver.com https://qr.sepay.vn https://*.sepay.vn https://*.vietqr.io https://placehold.co https://*.googleusercontent.com; " +
                                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
                                         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
-                                        "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; " +
-                                        "connect-src 'self'; " +
+                                        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; " +
+                                        "connect-src 'self' https://qr.sepay.vn https://*.vietqr.io https://api.qrserver.com; " +
                                         "frame-ancestors 'none';")
                         )
                         .referrerPolicy(referrer -> referrer
@@ -78,8 +78,9 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/payment/sepay/**")
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**", "/wishlist", "/wishlist/**", "/api/wishlist", "/api/wishlist/**").authenticated()
+                        .requestMatchers("/cart", "/cart/**", "/api/cart/**", "/checkout", "/checkout/**", "/orders", "/orders/**", "/my-orders", "/my-orders/**", "/account", "/account/**", "/profile", "/api/orders", "/api/orders/**", "/api/popnow/**", "/popnow/pick/**", "/popnow/cabinet", "/popnow/reveal/**", "/popnow/checkout/**", "/reviews", "/reviews/**", "/api/reviews", "/api/reviews/**", "/wishlist", "/wishlist/**", "/api/wishlist", "/api/wishlist/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

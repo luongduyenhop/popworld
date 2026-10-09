@@ -24,6 +24,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = {AdminDashboardWebController.class, CartWebController.class, CheckoutWebController.class, CartApiController.class, SePayWebhookController.class})
@@ -229,6 +230,9 @@ class SecurityConfigTest {
     void shouldReturnSecurityHeaders() throws Exception {
         mockMvc.perform(get("/login").secure(true))
                 .andExpect(header().exists("Content-Security-Policy"))
+                .andExpect(header().string("Content-Security-Policy", containsString("font-src 'self' https://cdn.jsdelivr.net")))
+                .andExpect(header().string("Content-Security-Policy", containsString("https://qr.sepay.vn")))
+                .andExpect(header().string("Content-Security-Policy", containsString("https://placehold.co")))
                 .andExpect(header().exists("Strict-Transport-Security"))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"));
     }

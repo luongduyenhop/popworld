@@ -55,7 +55,7 @@ public class AccountWebController {
      * Canonical Account Hub
      * Hỗ trợ alias /orders tạm thời để duy trì tương thích cho đến khi tách riêng trang đơn hàng
      */
-    @GetMapping({"/account", "/orders"})
+    @GetMapping({"/account", "/orders", "/my-orders"})
     public String showAccountHub(@RequestParam(value = "tab", required = false) String tab,
                                  jakarta.servlet.http.HttpServletRequest request,
                                  Model model, Principal principal) {
@@ -90,7 +90,8 @@ public class AccountWebController {
             } else {
                 activeAccountTab = tabUpper;
             }
-        } else if (request != null && request.getRequestURI() != null && request.getRequestURI().startsWith("/orders")) {
+        } else if (request != null && request.getRequestURI() != null &&
+                (request.getRequestURI().startsWith("/orders") || request.getRequestURI().startsWith("/my-orders"))) {
             activeAccountTab = "ORDERS";
         }
 

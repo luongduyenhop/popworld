@@ -57,14 +57,35 @@
                         </div>
 
                         <div class="row g-4 align-items-center">
-                            <!-- Mã QR -->
+                            <!-- Mã QR Đa Tầng Dự Phòng -->
                             <div class="col-md-6 text-center">
-                                <div class="qr-card p-3 rounded-4 shadow-sm d-inline-block">
-                                    <img th:src="${qrUrl}" alt="VietQR Thanh toán PopWorld" 
-                                         class="img-fluid rounded-3" style="max-width: 250px; min-height: 250px;">
+                                <div class="qr-card p-3 rounded-4 shadow-sm d-inline-block position-relative" style="min-width: 280px; min-height: 280px;">
+                                    <div id="qrSpinner" class="position-absolute top-50 start-50 translate-middle text-center w-100">
+                                        <div class="spinner-border text-danger" role="status"></div>
+                                        <div class="small text-muted mt-2 fw-semibold">Đang tải mã VietQR...</div>
+                                    </div>
+                                    <img id="qrImage"
+                                         th:src="${qrUrl}"
+                                         th:data-sepay-url="${qrUrl}"
+                                         th:data-fallback-url="${fallbackQrUrl}"
+                                         alt="VietQR Thanh toán PopWorld" 
+                                         class="img-fluid rounded-3" 
+                                         style="max-width: 250px; min-height: 250px; display: none;"
+                                         onload="handleQrLoad(this)"
+                                         onerror="handleQrError(this)">
                                 </div>
-                                <div class="mt-2 text-muted small">
-                                    <i class="bi bi-shield-check text-success"></i> VietQR chuẩn NAPAS 24/7
+                                <div class="mt-2 d-flex justify-content-center align-items-center gap-2 flex-wrap">
+                                    <span id="qrGatewayBadge" class="badge bg-light text-dark border px-2 py-1 small">
+                                        <i class="bi bi-shield-check text-success me-1"></i> VietQR chuẩn NAPAS 24/7
+                                    </span>
+                                </div>
+                                <div class="mt-2 d-flex justify-content-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="switchQrGateway()" title="Thử máy chủ QR dự phòng nếu mạng chậm">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Đổi Cổng QR
+                                    </button>
+                                    <a id="downloadQrBtn" href="#" class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="downloadQrImage(event)" title="Tải ảnh mã QR về máy để quét từ thư viện">
+                                        <i class="bi bi-download me-1"></i> Tải Mã QR
+                                    </a>
                                 </div>
                             </div>
 
@@ -368,6 +389,76 @@
                 if (statusEl) statusEl.innerHTML = '';
                 alert("Lỗi khi kết nối máy chủ mô phỏng thanh toán: " + (err.message || err));
             });
+        }
+
+        // 3. Cơ chế xử lý hiển thị & Dự phòng Đa Tầng Mã QR
+        let currentGateway = 'sepay';
+
+        function handleQrLoad(img) {
+            const spinner = document.getElementById('qrSpinner');
+            if (spinner) spinner.style.display = 'none';
+            img.style.display = 'inline-block';
+        }
+
+        function handleQrError(img) {
+            console.warn("Lỗi tải ảnh QR từ gateway hiện tại:", img.src);
+            const fallbackUrl = img.getAttribute('data-fallback-url');
+            if (currentGateway === 'sepay' && fallbackUrl) {
+                currentGateway = 'vietqr';
+                img.src = fallbackUrl;
+                const badge = document.getElementById('qrGatewayBadge');
+                if (badge) badge.innerHTML = '<i class="bi bi-shield-check text-success me-1"></i> Cổng: VietQR NAPAS Dự Phòng';
+            } else if (currentGateway === 'vietqr') {
+                currentGateway = 'qrserver';
+                const accNo = document.getElementById('accNumber')?.innerText.trim() || '';
+                const bankCd = 'MBBank';
+                const amt = document.getElementById('transferAmount')?.innerText.trim() || '';
+                const des = document.getElementById('orderCodeContent')?.innerText.trim() || '';
+                const qrText = encodeURIComponent('STK:' + accNo + '|BANK:' + bankCd + '|AMT:' + amt + '|DES:' + des);
+                img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + qrText;
+                const badge = document.getElementById('qrGatewayBadge');
+                if (badge) badge.innerHTML = '<i class="bi bi-info-circle-fill text-primary me-1"></i> Cổng: QRServer Dự Phòng';
+            } else {
+                const spinner = document.getElementById('qrSpinner');
+                if (spinner) {
+                    spinner.innerHTML = `
+                        <div class="text-danger small p-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 d-block mb-1"></i>
+                            Không thể tải ảnh QR.<br>Vui lòng chuyển khoản theo số tài khoản bên cạnh!
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function switchQrGateway() {
+            const img = document.getElementById('qrImage');
+            const spinner = document.getElementById('qrSpinner');
+            if (!img) return;
+            if (spinner) spinner.style.display = 'block';
+            img.style.display = 'none';
+
+            const sepayUrl = img.getAttribute('data-sepay-url');
+            const fallbackUrl = img.getAttribute('data-fallback-url');
+
+            if (currentGateway === 'sepay') {
+                currentGateway = 'vietqr';
+                img.src = fallbackUrl || sepayUrl;
+                const badge = document.getElementById('qrGatewayBadge');
+                if (badge) badge.innerHTML = '<i class="bi bi-shield-check text-success me-1"></i> Cổng: VietQR NAPAS';
+            } else {
+                currentGateway = 'sepay';
+                img.src = sepayUrl;
+                const badge = document.getElementById('qrGatewayBadge');
+                if (badge) badge.innerHTML = '<i class="bi bi-shield-check text-success me-1"></i> Cổng: SePay VietQR';
+            }
+        }
+
+        function downloadQrImage(e) {
+            e.preventDefault();
+            const img = document.getElementById('qrImage');
+            if (!img || !img.src) return;
+            window.open(img.src, '_blank');
         }
         /*]]>*/
     </script>

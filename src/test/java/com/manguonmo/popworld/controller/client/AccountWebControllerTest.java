@@ -103,6 +103,23 @@ class AccountWebControllerTest {
     }
 
     @Test
+    @DisplayName("showAccountHub: URI /my-orders kích hoạt tab ORDERS mặc định")
+    void showAccountHub_WhenUriIsMyOrders_ShouldActivateOrdersTab() {
+        jakarta.servlet.http.HttpServletRequest request = org.mockito.Mockito.mock(jakarta.servlet.http.HttpServletRequest.class);
+        org.mockito.Mockito.when(request.getRequestURI()).thenReturn("/my-orders");
+        when(principal.getName()).thenReturn("test@popworld.com");
+        when(userService.getUserByEmail("test@popworld.com")).thenReturn(sampleUser);
+        when(orderService.getOrdersByUser(1L)).thenReturn(Collections.emptyList());
+        when(couponRepository.countByActiveTrue()).thenReturn(3L);
+        when(userAddressService.getAddressesByUserId(1L)).thenReturn(Collections.emptyList());
+
+        String view = accountWebController.showAccountHub(null, request, model, principal);
+
+        assertEquals("my-orders", view);
+        verify(model).addAttribute("activeAccountTab", "ORDERS");
+    }
+
+    @Test
     @DisplayName("showOrderDetailPage: Render order-success khi đơn hàng tồn tại")
     void showOrderDetailPage_WhenOrderExists_ShouldRenderOrderSuccess() {
         Order order = Order.builder()

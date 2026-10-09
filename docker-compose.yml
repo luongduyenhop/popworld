@@ -1,19 +1,83 @@
 services:
+  # ============================================================================
+  # 1. DATABASE SERVICE: MySQL 8.0 Server
+  # ============================================================================
   mysql:
     image: mysql:8.0
     container_name: "popworld-mysql"
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
     ports:
-      - "3306:3306"
-
+      - "${DB_EXTERNAL_PORT:-3306}:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=admin123
-      - MYSQL_DATABASE=popworld_db
-
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin123}
+      MYSQL_DATABASE: ${DB_NAME:-popworld_db}
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-admin123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - popworld-network
 
-    restart: always
+  # ============================================================================
+  # 2. APPLICATION SERVICE: PopWorld Spring Boot Platform
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "popworld-app"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-popworld_db}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-admin123}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      
+      # Payment Gateway & Webhook (SePay)
+      SEPAY_WEBHOOK_API_KEY: ${SEPAY_WEBHOOK_API_KEY:-popworld_secret_key_2026}
+      SEPAY_WEBHOOK_SECRET_KEY: ${SEPAY_WEBHOOK_SECRET_KEY:-popworld_secret_key_2026}
+      SEPAY_BANK_CODE: ${SEPAY_BANK_CODE:-MBBank}
+      SEPAY_ACCOUNT_NUMBER: ${SEPAY_ACCOUNT_NUMBER:-0355416208}
+      SEPAY_ACCOUNT_NAME: ${SEPAY_ACCOUNT_NAME:-POPWORLD OFFICIAL STORE}
+      
+      # Cloudinary CDN Media Storage
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-popworld/products}
+      
+      # Security & Cookies
+      REMEMBER_ME_KEY: ${REMEMBER_ME_KEY:-popworld-prod-remember-me-key-2026}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      APP_INIT_DEMO_DATA: ${APP_INIT_DEMO_DATA:-false}
+    restart: unless-stopped
+    networks:
+      - popworld-network
 
+# ==============================================================================
+# VOLUMES & NETWORKS
+# ==============================================================================
 volumes:
   mysql_data:
+    name: popworld_mysql_data
 
+networks:
+  popworld-network:
+    name: popworld_network
+    driver: bridge

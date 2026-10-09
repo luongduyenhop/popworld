@@ -302,9 +302,19 @@ public class CheckoutWebController {
                 encodedDes
         );
 
+        String fallbackQrUrl = String.format(
+                "https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                sepayBankCode,
+                sepayAccountNumber,
+                order.getTotalAmount().longValue(),
+                encodedDes,
+                URLEncoder.encode(sepayAccountName, StandardCharsets.UTF_8)
+        );
+
         model.addAttribute("order", order);
         model.addAttribute("items", items);
         model.addAttribute("qrUrl", qrUrl);
+        model.addAttribute("fallbackQrUrl", fallbackQrUrl);
         model.addAttribute("bankCode", sepayBankCode);
         model.addAttribute("accountNumber", sepayAccountNumber);
         model.addAttribute("accountName", sepayAccountName);

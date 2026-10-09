@@ -1,0 +1,32 @@
+# Thư mục build và artifact cục bộ
+target/
+*.jar
+*.war
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project/
+.classpath/
+
+# Version Control
+.git/
+.gitignore
+.gitattributes
+
+# Dữ liệu kiểm thử & ảnh chụp màn hình cục bộ
+qa_screenshots/
+uploads/
+
+# Documentation & Markdown files
+*.md
+docs/
+
+# Secret & Environment files
+.env
+*.log
+
+# Docker local compose
+docker-compose*.yml

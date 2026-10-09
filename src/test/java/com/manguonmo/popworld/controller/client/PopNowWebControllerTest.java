@@ -112,7 +112,7 @@ class PopNowWebControllerTest {
         ));
         when(popNowService.getSeriesItems(10L)).thenReturn(Collections.emptyList());
 
-        String view = controller.pickBoxPage("hirono-little-mischief", model, null);
+        String view = controller.pickBoxPage("hirono-little-mischief", redirectAttributes, model, null);
 
         assertEquals("popnow-pick", view);
         verify(model).addAttribute("product", sampleProduct);
@@ -125,9 +125,10 @@ class PopNowWebControllerTest {
     void pickBoxPage_NotFound_Redirects() {
         when(productService.getProductBySlug("non-existent")).thenReturn(Optional.empty());
 
-        String view = controller.pickBoxPage("non-existent", model, null);
+        String view = controller.pickBoxPage("non-existent", redirectAttributes, model, null);
 
         assertEquals("redirect:/popnow", view);
+        verify(redirectAttributes).addFlashAttribute(eq("errorMessage"), anyString());
     }
 
     @Test

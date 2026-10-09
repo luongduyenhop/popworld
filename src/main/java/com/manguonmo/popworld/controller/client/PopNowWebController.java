@@ -118,7 +118,9 @@ public class PopNowWebController {
      * Màn hình chọn ô hộp Pick-a-Box tương tác thực tế
      */
     @GetMapping("/pick/{slug}")
-    public String pickBoxPage(@PathVariable String slug, Model model, Principal principal) {
+    public String pickBoxPage(@PathVariable String slug,
+                              org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes,
+                              Model model, Principal principal) {
         addCommonAttributes(model);
         Optional<Product> productOpt = productService.getProductBySlug(slug);
         if (productOpt.isEmpty()) {
@@ -128,13 +130,11 @@ public class PopNowWebController {
             } catch (Exception ignored) {
             }
         }
-        if (productOpt.isEmpty()) {
+        if (productOpt.isEmpty() || !Boolean.TRUE.equals(productOpt.get().getActive())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy bộ sưu tập POP NOW hoặc sản phẩm đã ngừng mở hộp trực tuyến.");
             return "redirect:/popnow";
         }
         Product product = productOpt.get();
-        if (!Boolean.TRUE.equals(product.getActive())) {
-            return "redirect:/popnow";
-        }
 
         User currentUser = getAuthenticatedUser(principal);
         BoxReservationResponse activeReservation = null;

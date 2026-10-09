@@ -21,15 +21,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(username).orElseThrow(
                 ()-> new UsernameNotFoundException("Không tìm thấy tài khoản với email: "+ username)
         );
-        if (!user.getEnabled()){
+        if (!Boolean.TRUE.equals(user.getEnabled())) {
              throw new DisabledException("Tài khoản này đã bị vô hiệu hóa vui lòng liên hệ quản trị viên");
         }
+
+        String role = user.getRole() != null && !user.getRole().isBlank() ? user.getRole() : "ROLE_USER";
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(username)
                 .password(user.getPassword())
                 .disabled(false)
-                .authorities(user.getRole())
+                .authorities(role)
                 .build();
 
 

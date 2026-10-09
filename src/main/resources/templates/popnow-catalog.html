@@ -366,6 +366,15 @@
         </div>
     </section>
 
+    <!-- Alert Banner khi không tìm thấy series -->
+    <div class="container mt-3" th:if="${errorMessage}">
+        <div class="alert alert-warning alert-dismissible fade show rounded-0 border-0 shadow-sm" role="alert" style="background: #FFF8E1; border-left: 4px solid #F59E0B !important;">
+            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+            <span class="text-dark fw-bold" th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
     <!-- 3. Filter Bar: [ ] Local Express & Character -->
     <section class="pm-popnow-filter-bar">
         <label class="pm-local-express-check">
