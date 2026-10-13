@@ -120,6 +120,23 @@ public class PopNowThemeServiceImpl implements PopNowThemeService {
         themes.put("crybaby", crybaby);
         themes.put("dimoo", crybaby);
 
+        // 7. Nyota Series - Tone Pastel Ấm Áp & Hộp Mù Sealed PopWorld
+        PopNowSeriesTheme nyota = PopNowSeriesTheme.builder()
+                .seriesKey("nyota")
+                .seriesName("Nyota Series")
+                .trayBgUrl("https://prod-global-biz.popmart.com/globalAdmin/1781855858883_c107a9b26eee8ea1e35e47974d0e507e.png")
+                .smallBoxImgUrl("/images/popnow/small-box.png")
+                .singleBoxImgUrl("/images/popnow/small-box.png")
+                .trayFrontUrl("https://prod-global-biz.popmart.com/globalAdmin/1781855858883_91bb21168bdcb0b9f113d63a88f49b0f.png")
+                .trayShadowUrl("/images/popnow/tray-shadow.png")
+                .guideHandUrl("/images/popnow/hand-guide.png")
+                .totalSlots(12)
+                .primaryColor("#E17055")
+                .accentColor("#FDCB6E")
+                .backgroundColor("#FFFDF9")
+                .build();
+        themes.put("nyota", nyota);
+
         this.defaultTheme = monsters;
     }
 
@@ -131,6 +148,9 @@ public class PopNowThemeServiceImpl implements PopNowThemeService {
         String slug = product.getSlug() != null ? product.getSlug().toLowerCase() : "";
         String name = product.getName() != null ? product.getName().toLowerCase() : "";
 
+        if (slug.contains("nyota") || name.contains("nyota")) {
+            return themes.get("nyota");
+        }
         if (slug.contains("hirono") || name.contains("hirono")) {
             return themes.get("hirono");
         }
@@ -154,13 +174,13 @@ public class PopNowThemeServiceImpl implements PopNowThemeService {
         }
 
         // Tự động fallback linh hoạt nếu sản phẩm chưa có theme riêng:
-        // Sử dụng ảnh chính của sản phẩm làm hộp 3D và khay tiêu chuẩn PopWorld
+        // Sử dụng hộp mù nguyên seal tiêu chuẩn PopWorld và khay tiêu chuẩn
         return PopNowSeriesTheme.builder()
                 .seriesKey("default")
                 .seriesName(product.getName())
                 .trayBgUrl(defaultTheme.getTrayBgUrl())
                 .smallBoxImgUrl(defaultTheme.getSmallBoxImgUrl())
-                .singleBoxImgUrl(product.getMainImageUrl() != null ? product.getMainImageUrl() : defaultTheme.getSingleBoxImgUrl())
+                .singleBoxImgUrl(defaultTheme.getSingleBoxImgUrl())
                 .trayFrontUrl(defaultTheme.getTrayFrontUrl())
                 .trayShadowUrl(defaultTheme.getTrayShadowUrl())
                 .guideHandUrl(defaultTheme.getGuideHandUrl())
