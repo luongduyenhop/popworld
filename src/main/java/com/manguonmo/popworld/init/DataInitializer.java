@@ -44,11 +44,11 @@ public class DataInitializer implements CommandLineRunner {
         if (initDemoCatalogData) {
             log.info("PopWorld: Đồng bộ danh mục sản phẩm và khay hộp POP NOW...");
             databaseSeedService.reseedOfficialPopMartData();
-        } else {
-            // Luôn đảm bảo nhân vật cốt lõi Nyota (Official Data) có mặt mặc định trong hệ thống
-            log.info("PopWorld: Kiểm tra và nạp mặc định hệ sinh thái nhân vật Nyota...");
-            databaseSeedService.seedNyotaEcosystemIfMissing();
         }
+
+        // Luôn đảm bảo nhân vật cốt lõi Nyota (Official Data) có mặt và cập nhật ảnh mới nhất
+        log.info("PopWorld: Kiểm tra và nạp mặc định hệ sinh thái nhân vật Nyota...");
+        databaseSeedService.seedNyotaEcosystemIfMissing();
 
         log.info("PopWorld: Khởi tạo và đồng bộ tài khoản Demo hoàn tất!");
     }
