@@ -62,7 +62,7 @@ public class SecurityConfig {
                         )
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
-                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com https://api.qrserver.com https://qr.sepay.vn https://*.sepay.vn https://*.vietqr.io https://placehold.co https://*.googleusercontent.com; " +
+                                        "img-src 'self' data: blob: https://res.cloudinary.com https://*.popmart.com https://*.unsplash.com https://*.bigcommerce.com https://arttoyfamilia.com https://cdn.shopify.com https://api.qrserver.com https://qr.sepay.vn https://*.sepay.vn https://*.vietqr.io https://placehold.co https://*.googleusercontent.com; " +
                                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
                                         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
                                         "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; " +

@@ -967,67 +967,69 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 break;
 
             case "nyota-fluffy-life-series":
-                list.add(new ItemDef("Warm Blanket", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Bubble Bath", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Sweet Dream", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Soft Marshmallow", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Pajama Day", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Reading Light", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Fluffy Socks", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Snooze Afternoon", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Hugging Pillow", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Cat Nap", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Warm Milk", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Morning Stretch", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
-                list.add(new ItemDef("Starry Starlight", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg"));
+                list.add(new ItemDef("Home", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Home.jpg"));
+                list.add(new ItemDef("A Brief Escape", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_A_Brief_Escape.jpg"));
+                list.add(new ItemDef("See Love", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_See_Love.jpg"));
+                list.add(new ItemDef("Unknown Road", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Unknown_Road.jpg"));
+                list.add(new ItemDef("Our Secret", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Our_Secret.jpg"));
+                list.add(new ItemDef("Warm Sunlight", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Warm_Sunlight.jpg"));
+                list.add(new ItemDef("Daze", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Daze.jpg"));
+                list.add(new ItemDef("Little Mountain", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Little_Mountain.jpg"));
+                list.add(new ItemDef("Lost Star", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Lost_Star.jpg"));
+                list.add(new ItemDef("Calling", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Calling.jpg"));
+                list.add(new ItemDef("Brave Together", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Brave_Together.jpg"));
+                list.add(new ItemDef("Kitten Hug", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Kitten_Hug.jpg"));
+                list.add(new ItemDef("Cotton Candy Daydream", RarityType.SECRET, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Fluffy_Life_Series_Cotton_Candy_Daydream_Secret.jpg"));
                 break;
 
             case "nyota-i-am-not-alone-series":
-                list.add(new ItemDef("Shadow Companion", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Whispering Wind", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Little Guardian", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Moonlit Stroll", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Silent Listener", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Hand in Hand", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Gentle Breeze", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Warm Hearth", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Solitude Flower", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Lantern in Mist", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Soft Melody", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Cloud Friend", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
-                list.add(new ItemDef("Inner Luminescence", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg"));
+            case "nyota-i-am-the-seasons-series":
+                list.add(new ItemDef("Hidden In Autumn", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Hidden_In_Autumn.jpg"));
+                list.add(new ItemDef("Bamboo After Rain", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Bamboo_After_Rain.jpg"));
+                list.add(new ItemDef("Blue Skies Ahead", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Blue_Skies_AheadPopmart_Nyota_I_Am_The_Seasons_Series_Blue_Skies_Ahead.jpg"));
+                list.add(new ItemDef("Cloudwatcher", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Cloudwatcher.jpg"));
+                list.add(new ItemDef("Genesis", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Genesis.jpg"));
+                list.add(new ItemDef("Spring Wisteria", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Spring_Wisteria.jpg"));
+                list.add(new ItemDef("Forest Tapestry", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Forest_Tapestry.jpg"));
+                list.add(new ItemDef("Sunseeker", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Sunseeker.jpg"));
+                list.add(new ItemDef("Snowfall Bliss", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Snowfall_Bliss.jpg"));
+                list.add(new ItemDef("Life Of Leisure", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Life_Of_Leisure.jpg"));
+                list.add(new ItemDef("Autumn Glow", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Autumn_Glow.jpg"));
+                list.add(new ItemDef("Winter Frost", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/1000053307.jpg"));
+                list.add(new ItemDef("Walking Into Spring", RarityType.SECRET, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_I_Am_The_Seasons_Series_Walking_Into_Spring_Secret.jpg"));
                 break;
 
             case "nyota-growing-pains-series":
-                list.add(new ItemDef("First Stumble", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Little Armor", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Paper Airplane", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Silent Tears", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Hidden Sketch", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Rainy Window", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Small Secret", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Finding Voice", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Brave Stride", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Old Teddy", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Blooming Mind", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("First Horizon", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
-                list.add(new ItemDef("Wings of Hope", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg"));
+            case "nyota-growing-up-by-your-way-series":
+                list.add(new ItemDef("Dream", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Dream.jpg"));
+                list.add(new ItemDef("Childhood", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Childhood.jpg"));
+                list.add(new ItemDef("Feeling", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Feeling.jpg"));
+                list.add(new ItemDef("Growing Up", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Growing_Up.jpg"));
+                list.add(new ItemDef("Friends", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Friends.jpg"));
+                list.add(new ItemDef("Hidden Love", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Hidden_Love.jpg"));
+                list.add(new ItemDef("Hi", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Hi.jpg"));
+                list.add(new ItemDef("Poem", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Poem.jpg"));
+                list.add(new ItemDef("Into My Heart", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Into_My_Heart.jpg"));
+                list.add(new ItemDef("Road", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Road.jpg"));
+                list.add(new ItemDef("Time", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Time.jpg"));
+                list.add(new ItemDef("Thinking", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Thinking.jpg"));
+                list.add(new ItemDef("Fly to Your Own Mountain", RarityType.SECRET, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Fly_to_Your_Own_Mountain_secret.jpg"));
                 break;
 
             case "nyota-x-chibi-maruko-chan-series":
-                list.add(new ItemDef("My Name is Maruko", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Rest Day", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("My NO.1 Friend", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Eat Well", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("The Best Grandpa", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Daydreaming", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("I'm Rich", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Focus on Sleep", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Sooo Lucky", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Grow Taller", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("That's My Sister", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Marathons Are the Worst", RarityType.REGULAR, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
-                list.add(new ItemDef("Here Comes the Wind", RarityType.SECRET, "https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sealed_Full_Set.jpg"));
+                list.add(new ItemDef("My Name is Maruko", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_My_Name_is_Maruko.jpg"));
+                list.add(new ItemDef("The Best Grandpa", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_The_Best_Grandpa.jpg"));
+                list.add(new ItemDef("Grow Taller", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Grow_Taller.jpg"));
+                list.add(new ItemDef("Daydreaming", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Daydreaming.jpg"));
+                list.add(new ItemDef("Sooo Lucky", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Sooo_Lucky.jpg"));
+                list.add(new ItemDef("I'm Rich", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_I_m_Rich.jpg"));
+                list.add(new ItemDef("Focus on Sleep", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Focus_on_Sleep.jpg"));
+                list.add(new ItemDef("Eat Well", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Eat_Well.jpg"));
+                list.add(new ItemDef("That's My Sister", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_That_s_My_Sister.jpg"));
+                list.add(new ItemDef("Rest Day", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Rest_Day.jpg"));
+                list.add(new ItemDef("My NO.1 Friend", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_My_NO_1_Friend.jpg"));
+                list.add(new ItemDef("Marathons Are the Worst", RarityType.REGULAR, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Marathons_Are_the_Worst.jpg"));
+                list.add(new ItemDef("Here Comes the Wind", RarityType.SECRET, "https://cdn.shopify.com/s/files/1/0866/2535/4046/files/Popmart_Nyota_Chibi_Maruko_Chan_Series_Figures_Here_Comes_the_Wind_Secret.jpg"));
                 break;
         }
         return list;
@@ -1276,19 +1278,7 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 }
             }
 
-            List<BlindBoxItem> items = blindBoxItemRepository.findByProductId(p.getId());
-            for (BlindBoxItem item : items) {
-                if (item.getImageUrl() != null && item.getImageUrl().contains("cloudinary.com")) {
-                    if ("nyota-fluffy-life-series".equals(p.getSlug())) {
-                        item.setImageUrl("https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_Fluffy_Life_Series_Full_Set.jpg");
-                    } else if ("nyota-i-am-not-alone-series".equals(p.getSlug())) {
-                        item.setImageUrl("https://arttoyfamilia.com/cdn/shop/files/Popmart_Nyota_I_Am_The_Seasons_Series_Fullset.jpg");
-                    } else if ("nyota-growing-pains-series".equals(p.getSlug())) {
-                        item.setImageUrl("https://arttoyfamilia.com/cdn/shop/files/Nyota_Growing_Up_By_Your_Way_Series.jpg");
-                    }
-                    blindBoxItemRepository.save(item);
-                }
-            }
+            // BlindBoxItem đã được đồng bộ chuẩn xác với từng ảnh riêng biệt trong syncBlindBoxItemsForAllSeries
         }
 
         // 6. Đồng bộ 12 ô khay BlindBoxSlot cho từng series bóc trực tuyến POP NOW
