@@ -47,11 +47,32 @@
 
         <!-- Products Table Card -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold text-dark">
-                    <i class="bi bi-collection-play me-2 text-danger"></i>Danh Sách Series Art Toy
-                </h6>
-                <span class="badge bg-secondary rounded-pill" th:text="${#lists.size(summaries)} + ' Series'">0 Series</span>
+            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-collection-play me-2 text-danger"></i>Danh Sách Series Art Toy
+                    </h6>
+                    <span class="badge bg-secondary rounded-pill" th:text="${#lists.size(summaries)} + ' Series'">0 Series</span>
+                </div>
+
+                <!-- Search Form -->
+                <form th:action="@{/admin/popnow}" method="get" class="d-flex align-items-center gap-2" style="max-width: 380px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="search" name="keyword" class="form-control border-start-0 ps-0" 
+                               placeholder="Tìm series, nhân vật IP..." th:value="${keyword}" aria-label="Tìm kiếm series">
+                        <button class="btn btn-dark fw-bold px-3" type="submit">
+                            Tìm
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}" 
+                       th:href="@{/admin/popnow}" 
+                       class="btn btn-outline-secondary" title="Xóa từ khóa tìm kiếm" aria-label="Xóa từ khóa tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
             </div>
 
             <div class="table-responsive table-responsive-scroll-5">
@@ -71,7 +92,17 @@
                         <tr th:if="${#lists.isEmpty(summaries)}">
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-                                Chưa có sản phẩm nào trong kho hàng.
+                                <span th:if="${keyword != null and !keyword.isEmpty()}">
+                                    Không tìm thấy series nào phù hợp với từ khóa "<strong><span th:text="${keyword}"></span></strong>".
+                                    <div class="mt-2">
+                                        <a th:href="@{/admin/popnow}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Xem Tất Cả Series
+                                        </a>
+                                    </div>
+                                </span>
+                                <span th:unless="${keyword != null and !keyword.isEmpty()}">
+                                    Chưa có sản phẩm nào trong kho hàng.
+                                </span>
                             </td>
                         </tr>
                         <tr th:each="s : ${summaries}">

@@ -44,6 +44,10 @@ public class DataInitializer implements CommandLineRunner {
         if (initDemoCatalogData) {
             log.info("PopWorld: Đồng bộ danh mục sản phẩm và khay hộp POP NOW...");
             databaseSeedService.reseedOfficialPopMartData();
+        } else {
+            // Luôn đảm bảo nhân vật cốt lõi Nyota (Official Data) có mặt mặc định trong hệ thống
+            log.info("PopWorld: Kiểm tra và nạp mặc định hệ sinh thái nhân vật Nyota...");
+            databaseSeedService.seedNyotaEcosystemIfMissing();
         }
 
         log.info("PopWorld: Khởi tạo và đồng bộ tài khoản Demo hoàn tất!");
@@ -66,11 +70,19 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             userRepository.save(admin);
         } else {
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setEnabled(true);
-            admin.setRole("ROLE_ADMIN");
-            admin.setTotpEnabled(false);
-            userRepository.save(admin);
+            // Không ghi đè mật khẩu và trạng thái 2FA của Admin khi khởi động lại
+            boolean changed = false;
+            if (!"ROLE_ADMIN".equals(admin.getRole())) {
+                admin.setRole("ROLE_ADMIN");
+                changed = true;
+            }
+            if (!Boolean.TRUE.equals(admin.getEnabled())) {
+                admin.setEnabled(true);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(admin);
+            }
         }
 
         // Tài khoản Khách hàng thường Demo
@@ -110,9 +122,10 @@ public class DataInitializer implements CommandLineRunner {
                     .isDefault(false)
                     .build());
         } else {
-            member.setPassword(passwordEncoder.encode("admin123"));
-            member.setEnabled(true);
-            userRepository.save(member);
+            if (!Boolean.TRUE.equals(member.getEnabled())) {
+                member.setEnabled(true);
+                userRepository.save(member);
+            }
         }
 
         // Tài khoản Khách hàng VIP Demo
@@ -141,10 +154,18 @@ public class DataInitializer implements CommandLineRunner {
                     .isDefault(true)
                     .build());
         } else {
-            collector.setPassword(passwordEncoder.encode("admin123"));
-            collector.setEnabled(true);
-            collector.setMembershipTier("VIP");
-            userRepository.save(collector);
+            boolean changed = false;
+            if (!Boolean.TRUE.equals(collector.getEnabled())) {
+                collector.setEnabled(true);
+                changed = true;
+            }
+            if (!"VIP".equals(collector.getMembershipTier())) {
+                collector.setMembershipTier("VIP");
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(collector);
+            }
         }
 
         if (userRepository.findByEmail("thaolinh@gmail.com").isEmpty()) {

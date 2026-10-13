@@ -54,6 +54,24 @@ class AdminCouponWebControllerTest {
     }
 
     @Test
+    @DisplayName("listCoupons: Áp dụng bộ lọc tìm kiếm theo từ khóa và trạng thái ACTIVE")
+    void listCoupons_WithKeywordAndFilter_AppliesFilter() {
+        Coupon c1 = Coupon.builder().id(1L).code("POPVIP").active(true).endDate(LocalDate.now().plusDays(10)).build();
+        Coupon c2 = Coupon.builder().id(2L).code("EXP").active(false).endDate(LocalDate.now().minusDays(5)).build();
+
+        when(couponService.getAllCoupons()).thenReturn(List.of(c1, c2));
+        when(couponService.searchCoupons("POP", "ACTIVE")).thenReturn(List.of(c1));
+
+        String view = controller.listCoupons("POP", "ACTIVE", model);
+
+        assertEquals("admin/coupons", view);
+        verify(couponService).searchCoupons("POP", "ACTIVE");
+        verify(model).addAttribute("coupons", List.of(c1));
+        verify(model).addAttribute("keyword", "POP");
+        verify(model).addAttribute("currentStatus", "ACTIVE");
+    }
+
+    @Test
     @DisplayName("createCoupon: Thành công và chuyển hướng về danh sách")
     void createCoupon_Success() {
         Coupon c = Coupon.builder().code("NEWCODE").discountValue(new BigDecimal("10")).build();

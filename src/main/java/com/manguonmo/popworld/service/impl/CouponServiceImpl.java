@@ -203,6 +203,34 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public java.util.List<Coupon> searchCoupons(String keyword, String status) {
+        String cleanKeyword = (keyword != null && !keyword.trim().isBlank()) ? keyword.trim() : null;
+        java.util.List<Coupon> list = couponRepository.searchCoupons(cleanKeyword);
+
+        if (status == null || status.trim().isBlank() || "ALL".equalsIgnoreCase(status.trim())) {
+            return list;
+        }
+
+        LocalDate today = LocalDate.now();
+        String upperStatus = status.trim().toUpperCase();
+
+        return list.stream().filter(c -> {
+            boolean isActive = Boolean.TRUE.equals(c.getActive());
+            boolean isExpired = c.getEndDate() != null && c.getEndDate().isBefore(today);
+
+            if ("ACTIVE".equals(upperStatus)) {
+                return isActive && !isExpired;
+            } else if ("EXPIRED".equals(upperStatus)) {
+                return isExpired;
+            } else if ("INACTIVE".equals(upperStatus)) {
+                return !isActive;
+            }
+            return true;
+        }).toList();
+    }
+
+    @Override
     @Transactional
     public Coupon createCoupon(Coupon coupon) {
         if (coupon == null || coupon.getCode() == null || coupon.getCode().trim().isEmpty()) {

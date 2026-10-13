@@ -10,4 +10,10 @@ public interface DatabaseSeedService {
      * - Seeds authentic customer reviews and ratings
      */
     void reseedOfficialPopMartData();
+
+    /**
+     * Đồng bộ hệ sinh thái nhân vật Nyota chính hãng (Artist Gwon, 3 Series, 4 Sản phẩm, 12 slots POP NOW).
+     * Tự động nạp mặc định nếu chưa có, bảo toàn toàn quyền Xóa/Sửa cho Quản trị viên.
+     */
+    void seedNyotaEcosystemIfMissing();
 }

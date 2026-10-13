@@ -12,6 +12,8 @@ public interface PopNowAdminService {
 
     List<PopNowAdminProductSummary> getPopNowProductSummaries();
 
+    List<PopNowAdminProductSummary> getPopNowProductSummaries(String keyword);
+
     Product getProductForConfig(Long productId);
 
     List<BlindBoxItem> getItemsByProductId(Long productId);

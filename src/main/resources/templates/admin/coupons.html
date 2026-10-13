@@ -65,6 +65,73 @@
             </div>
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- FILTER & SEARCH DOCK (2-TIER CLEAN POP MART DOCK)                         -->
+        <!-- ========================================================================= -->
+        <div class="admin-card p-3 mb-4 shadow-sm">
+            <!-- Tier 1: Search Form and Action Button -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 pb-3 border-bottom">
+                <form th:action="@{/admin/coupons}" method="get" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 520px;">
+                    <input type="hidden" name="status" th:value="${currentStatus}" th:if="${currentStatus != null and currentStatus != 'ALL'}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="search" name="keyword" class="form-control border-start-0 ps-0" 
+                               placeholder="Tìm theo mã voucher, mô tả..." th:value="${keyword}" aria-label="Tìm kiếm mã khuyến mãi">
+                        <button class="btn btn-dark fw-bold px-3" type="submit">
+                            Tìm Kiếm
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}" 
+                       th:href="@{/admin/coupons(status=${currentStatus != 'ALL' ? currentStatus : null})}" 
+                       class="btn btn-outline-secondary" title="Xóa từ khóa tìm kiếm" aria-label="Xóa từ khóa tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace" th:text="${coupons.size()} + ' Voucher'">
+                        0 Voucher
+                    </span>
+                    <a th:if="${keyword != null or currentStatus != 'ALL'}"
+                       th:href="@{/admin/coupons}" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Đặt Lại Bộ Lọc
+                    </a>
+                    <button type="button" class="btn btn-danger fw-black btn-sm py-2 px-3 shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#createCouponModal">
+                        <i class="bi bi-plus-lg me-1"></i>TẠO MÃ KHUYẾN MÃI MỚI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tier 2: Status Pills Bar -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="small fw-bold text-uppercase text-secondary me-2">
+                    <i class="bi bi-funnel-fill me-1 text-danger"></i>Trạng Thái:
+                </span>
+                <a th:href="@{/admin/coupons(keyword=${keyword}, status='ALL')}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == 'ALL' ? 'btn-dark' : 'btn-outline-secondary'}">
+                    Tất Cả (<span th:text="${totalCount}">0</span>)
+                </a>
+                <a th:href="@{/admin/coupons(keyword=${keyword}, status='ACTIVE')}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == 'ACTIVE' ? 'btn-success text-white' : 'btn-outline-secondary'}">
+                    <i class="bi bi-check-circle-fill me-1"></i>Đang Hoạt Động (<span th:text="${activeCount}">0</span>)
+                </a>
+                <a th:href="@{/admin/coupons(keyword=${keyword}, status='EXPIRED')}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == 'EXPIRED' ? 'btn-danger text-white' : 'btn-outline-secondary'}">
+                    <i class="bi bi-calendar-x-fill me-1"></i>Đã Hết Hạn (<span th:text="${expiredCount}">0</span>)
+                </a>
+                <a th:href="@{/admin/coupons(keyword=${keyword}, status='INACTIVE')}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == 'INACTIVE' ? 'btn-secondary text-white' : 'btn-outline-secondary'}">
+                    <i class="bi bi-pause-circle-fill me-1"></i>Tạm Dừng
+                </a>
+            </div>
+        </div>
+
         <!-- Coupons Data Table -->
         <div class="admin-card shadow-sm overflow-hidden mb-4">
             <div class="table-responsive table-responsive-scroll-5">
@@ -84,7 +151,17 @@
                         <tr th:if="${coupons == null or coupons.isEmpty()}">
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
-                                Chưa có mã khuyến mãi nào. Hãy nhấn "TẠO MÃ KHUYẾN MÃI MỚI" để bắt đầu!
+                                <span th:if="${keyword != null or currentStatus != 'ALL'}">
+                                    Không tìm thấy mã khuyến mãi nào phù hợp với bộ lọc hiện tại.
+                                    <div class="mt-2">
+                                        <a th:href="@{/admin/coupons}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Xem Tất Cả Mã Khuyến Mãi
+                                        </a>
+                                    </div>
+                                </span>
+                                <span th:unless="${keyword != null or currentStatus != 'ALL'}">
+                                    Chưa có mã khuyến mãi nào. Hãy nhấn "TẠO MÃ KHUYẾN MÃI MỚI" để bắt đầu!
+                                </span>
                             </td>
                         </tr>
                         <tr th:each="coupon : ${coupons}">

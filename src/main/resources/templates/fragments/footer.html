@@ -7,70 +7,153 @@
 <body>
 
 <footer th:fragment="footer" class="pop-footer">
+    <!-- 1. PRE-FOOTER: TRUST & VALUE PROPOSITION BAR -->
+    <div class="pop-footer-perks border-bottom border-secondary border-opacity-25 pb-5 mb-5">
+        <div class="container">
+            <div class="row g-4 text-center text-md-start">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                        <div class="pop-perk-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                            <i class="bi bi-shield-check fs-4 text-danger"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white text-uppercase fw-bold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">100% Chính Hãng</h6>
+                            <p class="text-white-50 small mb-0" style="font-size: 12px;">Cam kết chuẩn seal POP MART &amp; Nghệ sĩ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                        <div class="pop-perk-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                            <i class="bi bi-box-seam fs-4 text-danger"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white text-uppercase fw-bold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">Đóng Gói 4 Lớp</h6>
+                            <p class="text-white-50 small mb-0" style="font-size: 12px;">Chống sốc cao cấp bảo vệ góc hộp nguyên vẹn</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                        <div class="pop-perk-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                            <i class="bi bi-lightning-charge fs-4 text-danger"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white text-uppercase fw-bold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">Bóc Hộp POP NOW</h6>
+                            <p class="text-white-50 small mb-0" style="font-size: 12px;">Lắc hộp săn Secret trực tuyến 24/7</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                        <div class="pop-perk-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                            <i class="bi bi-headset fs-4 text-danger"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white text-uppercase fw-bold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">Hỗ Trợ Chuyên Sâu</h6>
+                            <p class="text-white-50 small mb-0" style="font-size: 12px;">Hotline 1900 8899 tư vấn sưu tập Art Toy</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN FOOTER CONTENT -->
     <div class="container">
         <div class="row g-4">
-            <!-- Cột 1: Giới thiệu thương hiệu -->
-            <div class="col-lg-4 col-md-6">
+            <!-- Cột 1: Thương hiệu & Giới thiệu -->
+            <div class="col-lg-4 col-md-6 pe-lg-4">
                 <div class="mb-3">
-                    <img th:src="@{/images/logo-popworld-footer.svg}" alt="POPWORLD" height="40" style="display:inline-block;">
+                    <img th:src="@{/images/logo-popworld-footer.svg}" alt="POPWORLD FLAGSHIP STORE" height="38" style="display:inline-block;">
                 </div>
-                <p class="text-secondary small leading-relaxed">
-                    PopWorld là sàn thương mại điện tử chuyên cung cấp Art Toy, Hộp Mù (Blind Box) và Mô hình thiết kế chính hãng hàng đầu Việt Nam. Nơi thỏa mãn niềm đam mê săn lùng Secret và sưu tập nghệ thuật đương đại.
+                <p class="text-white-50 small leading-relaxed mb-3">
+                    PopWorld là nền tảng thương mại điện tử chuyên biệt về Art Toy, Blind Box và Mô hình thiết kế nghệ thuật cao cấp hàng đầu Việt Nam. Nơi kết nối cộng đồng nhà sưu tập với các tác phẩm giới hạn và trải nghiệm mở hộp độc bản.
                 </p>
-                <div class="d-flex gap-3 mt-3">
-                    <a href="#" class="text-white fs-5"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="text-white fs-5"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="text-white fs-5"><i class="bi bi-tiktok"></i></a>
-                    <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
+                <div class="mb-3">
+                    <div class="text-white small fw-bold mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Hệ thống Flagship Store:</div>
+                    <p class="text-white-50 small mb-1 ps-4">• Flagship Tràng Thi: 18 Tràng Thi, Hoàn Kiếm, Hà Nội</p>
+                    <p class="text-white-50 small mb-0 ps-4">• Flagship Sài Gòn: Vincom Center Đồng Khởi, Quận 1, TP. HCM</p>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="TikTok"><i class="bi bi-tiktok"></i></a>
+                    <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="YouTube"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
 
-            <!-- Cột 2: Khám phá thế giới Blind Box -->
-            <div class="col-lg-2 col-md-6 col-6">
+            <!-- Cột 2: Khám Phá Danh Mục -->
+            <div class="col-lg-2 col-md-3 col-6">
                 <h5>Khám Phá</h5>
                 <ul class="list-unstyled">
-                    <li class="mb-2"><a th:href="@{/categories/blind-box}">Hộp Mù Blind Box</a></li>
-                    <li class="mb-2"><a th:href="@{/categories/mega-collection}">Mega Collection 400%</a></li>
-                    <li class="mb-2"><a th:href="@{/categories/plush-doll}">Búp Bê & Vinyl Plush</a></li>
-                    <li class="mb-2"><a th:href="@{/categories/accessories}">Phụ Kiện Trưng Bày</a></li>
+                    <li><a th:href="@{/products(category='blind-box')}">Hộp Mù Blind Box</a></li>
+                    <li><a th:href="@{/products(category='mega-collection')}">Mega Space Molly 400%</a></li>
+                    <li><a th:href="@{/products(category='plush-doll')}">Búp Bê &amp; Vinyl Plush</a></li>
+                    <li><a th:href="@{/products(category='accessories')}">Phụ Kiện &amp; Display Box</a></li>
+                    <li><a th:href="@{/products(sort='newest')}">Hàng Mới Mở Bán</a></li>
+                    <li><a th:href="@{/popnow}">Phòng Đập Hộp POP NOW</a></li>
                 </ul>
             </div>
 
-            <!-- Cột 3: Chính sách đập hộp -->
-            <div class="col-lg-3 col-md-6 col-6">
-                <h5>Chính Sách Blind Box</h5>
+            <!-- Cột 3: Trải Nghiệm & Hỗ Trợ -->
+            <div class="col-lg-2 col-md-3 col-6">
+                <h5>Hỗ Trợ Khách Hàng</h5>
                 <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <a th:href="@{/order-tracking}" class="text-white fw-bold text-decoration-none">
-                            <i class="bi bi-truck text-danger me-1"></i> Tra cứu đơn hàng
-                        </a>
-                    </li>
-                    <li class="mb-2"><a href="#">Quy định xé seal hộp mù</a></li>
-                    <li class="mb-2"><a href="#">Chính sách bảo hành lỗi NSX</a></li>
-                    <li class="mb-2"><a href="#">Cam kết tỷ lệ Secret chuẩn</a></li>
-                    <li class="mb-2"><a href="#">Đóng gói chống sốc 4 lớp</a></li>
+                    <li><a th:href="@{/order-tracking}" class="text-white fw-bold"><i class="bi bi-truck text-danger me-1"></i>Tra Cứu Đơn Hàng</a></li>
+                    <li><a th:href="@{/my-orders}">Lịch Sử Mua Hàng</a></li>
+                    <li><a th:href="@{/wishlist}">Danh Sách Yêu Thích</a></li>
+                    <li><a href="#rules-seal" onclick="event.preventDefault(); alert('Quy định xé seal: Khách hàng vui lòng quay video unbox khi nhận hàng để được hỗ trợ bảo hành 100% nếu có lỗi từ nhà sản xuất.');">Quy Định Xé Seal</a></li>
+                    <li><a href="#rules-secret" onclick="event.preventDefault(); alert('Cam kết tỷ lệ Secret chuẩn từ nhà máy sản xuất (trung bình 1/72 hoặc 1/144 tùy từng series).');">Tỷ Lệ Thẻ Secret</a></li>
+                    <li><a href="#shipping" onclick="event.preventDefault(); alert('Miễn phí giao hàng hỏa tốc cho mọi đơn hàng từ 500.000 VNĐ trên toàn quốc.');">Chính Sách Vận Chuyển</a></li>
                 </ul>
             </div>
 
-            <!-- Cột 4: Đồ án môn học & Hỗ trợ -->
-            <div class="col-lg-3 col-md-6">
-                <h5>Đồ Án Mã Nguồn Mở</h5>
-                <p class="text-secondary small mb-2">
-                    <i class="bi bi-code-slash text-danger me-2"></i> <strong>Công nghệ:</strong> Java 21, Spring Boot 3, JPA, MySQL 8, Thymeleaf, Bootstrap 5.
+            <!-- Cột 4: VIP Newsletter & Thanh toán -->
+            <div class="col-lg-4 col-md-12">
+                <h5>Bản Tin VIP Collector</h5>
+                <p class="text-white-50 small mb-3">
+                    Đăng ký để nhận thông báo sớm nhất về các đợt phát hành phiên bản giới hạn (Drop Alerts) và ưu đãi độc quyền.
                 </p>
-                <p class="text-secondary small mb-2">
-                    <i class="bi bi-envelope text-danger me-2"></i> <strong>Email:</strong> support@popworld.com
-                </p>
-                <p class="text-secondary small">
-                    <i class="bi bi-geo-alt text-danger me-2"></i> <strong>Hà Nội:</strong> Tràng Thi, Hoàn Kiếm, Hà Nội
-                </p>
+                <form class="mb-4" onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã đăng ký! Bạn sẽ nhận được thông báo mở bán sớm nhất qua email.'); this.reset();">
+                    <div class="input-group">
+                        <input type="email" class="form-control form-control-sm rounded-0 border-0 px-3 bg-white text-dark" placeholder="Nhập địa chỉ email của bạn..." required style="height: 40px; font-size: 13px;">
+                        <button class="btn btn-danger rounded-0 px-3 fw-bold text-uppercase" type="submit" style="height: 40px; font-size: 12px; letter-spacing: 0.5px; background-color: #D1001F; border-color: #D1001F;">
+                            ĐĂNG KÝ
+                        </button>
+                    </div>
+                </form>
+
+                <h6 class="text-white text-uppercase small fw-bold mb-2" style="font-size: 12px; letter-spacing: 0.5px;">Phương Thức Thanh Toán Bảo Mật:</h6>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge bg-light text-dark px-2 py-2 fw-semibold border"><i class="bi bi-qr-code text-danger me-1"></i>VietQR Auto</span>
+                    <span class="badge bg-light text-dark px-2 py-2 fw-semibold border"><i class="bi bi-credit-card text-primary me-1"></i>SePay Bank</span>
+                    <span class="badge bg-light text-dark px-2 py-2 fw-semibold border"><i class="bi bi-credit-card-2-front text-success me-1"></i>Napas 24/7</span>
+                    <span class="badge bg-light text-dark px-2 py-2 fw-semibold border"><i class="bi bi-shield-lock-fill text-dark me-1"></i>256-bit SSL</span>
+                </div>
             </div>
         </div>
 
-        <!-- Bản quyền & ghi chú -->
-        <div class="pop-footer-bottom text-center text-secondary">
-            <p class="mb-1">© 2026 PopWorld Art Toy Store. Dự án Bài Tập Lớn Phát Triển Phần Mềm Mã Nguồn Mở.</p>
-            <p class="mb-0 text-muted small">Tất cả hình ảnh và bản quyền nhân vật Labubu, Molly, Skullpanda, Hirono thuộc về POP MART và các nghệ sĩ sáng tạo.</p>
+        <!-- 3. BOTTOM COPYRIGHT & LEGAL BAR -->
+        <div class="pop-footer-bottom text-secondary border-top border-secondary border-opacity-25 pt-4 mt-5">
+            <div class="row align-items-center gy-2">
+                <div class="col-md-7 text-center text-md-start">
+                    <p class="text-white-50 small mb-1 fw-bold text-uppercase" style="letter-spacing: 0.5px;">
+                        CÔNG TY CỔ PHẦN THƯƠNG MẠI &amp; NGHỆ THUẬT POPWORLD VIỆT NAM
+                    </p>
+                    <p class="text-white-50 small mb-0" style="font-size: 12px;">
+                        Mã số doanh nghiệp: 0110283948 do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp • Hotline: 1900 8899 • Email: cskh@popworld.com
+                    </p>
+                </div>
+                <div class="col-md-5 text-center text-md-end">
+                    <p class="text-white-50 small mb-0" style="font-size: 12px;">
+                        © 2026 POPWORLD Official Store. All rights reserved.
+                    </p>
+                    <p class="text-muted small mb-0" style="font-size: 11px;">
+                        Bản quyền hình ảnh nhân vật Labubu, Molly, Skullpanda, Hirono thuộc về POP MART và các nghệ sĩ.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </footer>

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface UserService {
     List<User> getAllCustomers();
+    List<User> searchCustomers(String keyword, String tier, Boolean enabled);
     CustomerStatsResponse getCustomerStats();
     User register(RegisterRequest request);
     User getUserByEmail(String email);

@@ -31,12 +31,21 @@ public class AdminPopNowWebController {
     private final PopNowAdminService popNowAdminService;
 
     @GetMapping
-    public String listPopNowProducts(Model model) {
-        List<PopNowAdminProductSummary> summaries = popNowAdminService.getPopNowProductSummaries();
+    public String listPopNowProducts(
+            @RequestParam(required = false) String keyword,
+            Model model) {
+        List<PopNowAdminProductSummary> summaries = (keyword != null && !keyword.isBlank())
+                ? popNowAdminService.getPopNowProductSummaries(keyword)
+                : popNowAdminService.getPopNowProductSummaries();
         model.addAttribute("summaries", summaries);
+        model.addAttribute("keyword", keyword);
         model.addAttribute("activeItem", "popnow");
         model.addAttribute("pageTitle", "Cấu Hình POP NOW");
         return "admin/popnow-list";
+    }
+
+    public String listPopNowProducts(Model model) {
+        return listPopNowProducts(null, model);
     }
 
     @GetMapping("/{productId}")

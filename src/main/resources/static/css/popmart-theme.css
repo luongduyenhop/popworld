@@ -416,19 +416,22 @@ main .sticky-top,
     letter-spacing: 0.01em;
 }
 
-/* Panel 2 & 3: CHARACTERS & CATEGORIES 6-Column Square #F5F5F5 Grid */
+/* Panel 2 & 3: CHARACTERS & CATEGORIES Square #F5F5F5 Grid */
 .pop-mega-tile-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 24px 18px;
-    max-width: 920px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px 18px;
+    max-width: 1120px;
     margin: 0 auto;
 }
 
 .pop-mega-square-tile {
     display: block;
+    width: 116px;
     text-decoration: none !important;
     color: #000000 !important;
+    text-align: center;
 }
 
 .pop-mega-square-box {

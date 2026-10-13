@@ -23,6 +23,7 @@ public class HealthApiController {
     public ResponseEntity<Map<String, Object>> checkHealth() {
         return ResponseEntity.ok(Map.of(
                 "status", "UP",
+                "app", "popworld",
                 "timestamp", Instant.now().toString(),
                 "service", "PopWorld Art Toy Platform",
                 "version", "0.0.1-SNAPSHOT"

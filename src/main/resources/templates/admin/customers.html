@@ -48,7 +48,88 @@
         </div>
 
         <!-- ========================================================================= -->
-        <!-- 2. CUSTOMERS DATA TABLE                                                   -->
+        <!-- 2. FILTER & SEARCH DOCK (2-TIER CLEAN POP MART DOCK)                      -->
+        <!-- ========================================================================= -->
+        <div class="admin-card p-3 mb-4 shadow-sm">
+            <!-- Tier 1: Search Form and Result Counter -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 pb-3 border-bottom">
+                <form th:action="@{/admin/customers}" method="get" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 520px;">
+                    <input type="hidden" name="tier" th:value="${currentTier}" th:if="${currentTier != null and currentTier != 'ALL'}">
+                    <input type="hidden" name="status" th:value="${currentStatus}" th:if="${currentStatus != null}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="search" name="keyword" class="form-control border-start-0 ps-0" 
+                               placeholder="Tìm theo tên, email, SĐT, mã PM-..." th:value="${keyword}" aria-label="Tìm kiếm người dùng">
+                        <button class="btn btn-dark fw-bold px-3" type="submit">
+                            Tìm Kiếm
+                        </button>
+                    </div>
+                    <a th:if="${keyword != null and !keyword.isEmpty()}" 
+                       th:href="@{/admin/customers(tier=${currentTier != 'ALL' ? currentTier : null}, status=${currentStatus})}" 
+                       class="btn btn-outline-secondary" title="Xóa từ khóa tìm kiếm" aria-label="Xóa từ khóa tìm kiếm">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </form>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace" th:text="${customers.size()} + ' Kết quả'">
+                        0 Kết quả
+                    </span>
+                    <a th:if="${keyword != null or currentTier != 'ALL' or currentStatus != null}"
+                       th:href="@{/admin/customers}" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Đặt Lại Bộ Lọc
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tier 2: Sleek Filter Pills Bar (Tier & Status) -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="small fw-bold text-uppercase text-secondary me-2">
+                    <i class="bi bi-funnel-fill me-1 text-danger"></i>Hạng:
+                </span>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier='ALL', status=${currentStatus})}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentTier == 'ALL' ? 'btn-dark' : 'btn-outline-secondary'}">
+                    Tất Cả
+                </a>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier='VIP', status=${currentStatus})}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentTier == 'VIP' ? 'btn-warning text-dark' : 'btn-outline-secondary'}">
+                    <i class="bi bi-star-fill text-warning me-1" th:if="${currentTier != 'VIP'}"></i>VIP
+                </a>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier='MEMBER', status=${currentStatus})}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentTier == 'MEMBER' ? 'btn-primary text-white' : 'btn-outline-secondary'}">
+                    Member
+                </a>
+
+                <div class="vr mx-2 text-secondary opacity-50 d-none d-md-block" style="height: 20px;"></div>
+
+                <span class="small fw-bold text-uppercase text-secondary me-2">
+                    <i class="bi bi-shield-check me-1 text-success"></i>Trạng Thái:
+                </span>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier=${currentTier})}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == null ? 'btn-dark' : 'btn-outline-secondary'}">
+                    Tất Cả
+                </a>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier=${currentTier}, status=true)}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == true ? 'btn-success text-white' : 'btn-outline-secondary'}">
+                    Hoạt Động
+                </a>
+                <a th:href="@{/admin/customers(keyword=${keyword}, tier=${currentTier}, status=false)}" 
+                   class="btn btn-sm fw-bold rounded-pill px-3 py-1 text-nowrap"
+                   th:classappend="${currentStatus == false ? 'btn-danger text-white' : 'btn-outline-secondary'}">
+                    Bị Khóa
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 3. CUSTOMERS DATA TABLE                                                   -->
         <!-- ========================================================================= -->
         <div class="admin-card">
             <div class="admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -56,9 +137,6 @@
                     <h6 class="mb-0 fw-bold">Danh Sách Tài Khoản Người Dùng & Collector</h6>
                     <small class="text-muted">Đồng bộ đầy đủ Avatar, Member Code, Điểm May Mắn (Lucky Points) và Thẻ Gợi Ý</small>
                 </div>
-                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace" th:text="${customers.size()} + ' Tài khoản'">
-                    0 Tài khoản
-                </span>
             </div>
 
             <div class="table-responsive table-responsive-scroll-5">
@@ -78,7 +156,17 @@
                         <tr th:if="${customers == null or customers.isEmpty()}">
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-people fs-1 d-block mb-2 text-secondary"></i>
-                                Chưa có khách hàng nào trong hệ thống.
+                                <span th:if="${keyword != null or currentTier != 'ALL' or currentStatus != null}">
+                                    Không tìm thấy tài khoản nào phù hợp với bộ lọc hiện tại.
+                                    <div class="mt-2">
+                                        <a th:href="@{/admin/customers}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Xem Tất Cả Khách Hàng
+                                        </a>
+                                    </div>
+                                </span>
+                                <span th:unless="${keyword != null or currentTier != 'ALL' or currentStatus != null}">
+                                    Chưa có khách hàng nào trong hệ thống.
+                                </span>
                             </td>
                         </tr>
                         <tr th:each="cust : ${customers}">

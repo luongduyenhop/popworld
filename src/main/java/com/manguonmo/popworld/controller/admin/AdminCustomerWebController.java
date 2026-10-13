@@ -31,17 +31,33 @@ public class AdminCustomerWebController {
     private final OrderService orderService;
 
     @GetMapping
-    public String listCustomers(Model model) {
-        List<User> customers = userService.getAllCustomers();
+    public String listCustomers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "ALL") String tier,
+            @RequestParam(required = false) Boolean status,
+            Model model) {
+        boolean hasFilter = (keyword != null && !keyword.isBlank()) ||
+                            (tier != null && !"ALL".equalsIgnoreCase(tier)) ||
+                            status != null;
+        List<User> customers = hasFilter 
+                ? userService.searchCustomers(keyword, tier, status)
+                : userService.getAllCustomers();
         CustomerStatsResponse stats = userService.getCustomerStats();
 
         model.addAttribute("customers", customers);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentTier", tier != null ? tier.toUpperCase() : "ALL");
+        model.addAttribute("currentStatus", status);
         model.addAttribute("totalCustomers", stats.getTotalCustomers());
         model.addAttribute("vipCount", stats.getVipCount());
         model.addAttribute("memberCount", stats.getMemberCount());
         model.addAttribute("activeNav", "customers");
 
         return "admin/customers";
+    }
+
+    public String listCustomers(Model model) {
+        return listCustomers(null, "ALL", null, model);
     }
 
     @GetMapping("/{id}")

@@ -74,6 +74,29 @@ class AdminCustomerWebControllerTest {
     }
 
     @Test
+    @DisplayName("listCustomers: Áp dụng bộ lọc tìm kiếm theo từ khóa và hạng VIP")
+    void listCustomers_WithKeywordAndFilter_AppliesFilter() {
+        User u1 = User.builder().id(1L).fullName("Nguyễn Minh Anh").membershipTier("VIP").build();
+        CustomerStatsResponse stats = CustomerStatsResponse.builder()
+                .totalCustomers(10L)
+                .vipCount(3L)
+                .memberCount(7L)
+                .build();
+
+        when(userService.searchCustomers("Anh", "VIP", true)).thenReturn(List.of(u1));
+        when(userService.getCustomerStats()).thenReturn(stats);
+
+        String view = controller.listCustomers("Anh", "VIP", true, model);
+
+        assertEquals("admin/customers", view);
+        verify(userService).searchCustomers("Anh", "VIP", true);
+        verify(model).addAttribute("customers", List.of(u1));
+        verify(model).addAttribute("keyword", "Anh");
+        verify(model).addAttribute("currentTier", "VIP");
+        verify(model).addAttribute("currentStatus", true);
+    }
+
+    @Test
     @DisplayName("viewCustomerDetail: Hiển thị chi tiết khách hàng thành công")
     void viewCustomerDetail_Success() {
         User customer = User.builder().id(5L).fullName("Test User").build();

@@ -8,6 +8,7 @@ import com.manguonmo.popworld.controller.webhook.SePayWebhookController;
 import com.manguonmo.popworld.dto.response.DashboardStatsResponse;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.mapper.CartMapper;
+import com.manguonmo.popworld.security.filter.Admin2faFilter;
 import com.manguonmo.popworld.service.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -253,5 +254,59 @@ class SecurityConfigTest {
                         .with(user("admin@test.com").roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/verify-2fa"));
+    }
+
+    @Test
+    @DisplayName("Admin có 2FA bật, chưa OTP -> Truy cập /cart bị chặn, redirect về /admin/verify-2fa")
+    void whenAdminWith2fa_notVerified_accessCart_shouldRedirectToVerify2fa() throws Exception {
+        User adminUser = User.builder()
+                .id(1L)
+                .email("admin@test.com")
+                .role("ADMIN")
+                .totpEnabled(true)
+                .totpSecret("JBSWY3DPEHPK3PXP")
+                .build();
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+
+        mockMvc.perform(get("/cart")
+                        .with(user("admin@test.com").roles("ADMIN")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/verify-2fa"));
+    }
+
+    @Test
+    @DisplayName("Admin có 2FA bật, chưa OTP -> Truy cập /account bị chặn, redirect về /admin/verify-2fa")
+    void whenAdminWith2fa_notVerified_accessAccount_shouldRedirectToVerify2fa() throws Exception {
+        User adminUser = User.builder()
+                .id(1L)
+                .email("admin@test.com")
+                .role("ADMIN")
+                .totpEnabled(true)
+                .totpSecret("JBSWY3DPEHPK3PXP")
+                .build();
+        when(userRepository.findByEmail("admin@test.com")).thenReturn(java.util.Optional.of(adminUser));
+
+        mockMvc.perform(get("/account")
+                        .with(user("admin@test.com").roles("ADMIN")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/verify-2fa"));
+    }
+
+    @Test
+    @DisplayName("ROLE_USER truy cập /cart -> KHÔNG bị Admin2faFilter chặn (không redirect sang /admin/verify-2fa)")
+    void whenRoleUser_accessCart_shouldNotBeBlockedBy2faFilter() throws Exception {
+        // CartWebController có thể redirect (ví dụ giỏ hàng trống → /products),
+        // nhưng điều quan trọng là KHÔNG bị Admin2faFilter redirect về /admin/verify-2fa
+        mockMvc.perform(get("/cart")
+                        .with(user("user@test.com").roles("USER")))
+                .andExpect(result -> {
+                    String location = result.getResponse().getRedirectedUrl();
+                    if (location != null) {
+                        org.junit.jupiter.api.Assertions.assertNotEquals(
+                                "/admin/verify-2fa", location,
+                                "ROLE_USER không nên bị Admin2faFilter chặn về /admin/verify-2fa"
+                        );
+                    }
+                });
     }
 }

@@ -35,12 +35,24 @@ public class PopNowAdminServiceImpl implements PopNowAdminService {
 
     @Override
     public List<PopNowAdminProductSummary> getPopNowProductSummaries() {
+        return getPopNowProductSummaries(null);
+    }
+
+    @Override
+    public List<PopNowAdminProductSummary> getPopNowProductSummaries(String keyword) {
         List<Product> products = productRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        String cleanKeyword = (keyword != null && !keyword.trim().isBlank()) ? keyword.trim().toLowerCase() : null;
 
         return products.stream()
                 .filter(p -> p.getCategory() != null &&
                         !"accessories".equalsIgnoreCase(p.getCategory().getSlug()) &&
                         !"mega-collection".equalsIgnoreCase(p.getCategory().getSlug()))
+                .filter(p -> {
+                    if (cleanKeyword == null) return true;
+                    boolean matchName = p.getName() != null && p.getName().toLowerCase().contains(cleanKeyword);
+                    boolean matchCat = p.getCategory() != null && p.getCategory().getName() != null && p.getCategory().getName().toLowerCase().contains(cleanKeyword);
+                    return matchName || matchCat;
+                })
                 .map(product -> {
             Long pId = product.getId();
             long totalItems = blindBoxItemRepository.findByProductId(pId).size();

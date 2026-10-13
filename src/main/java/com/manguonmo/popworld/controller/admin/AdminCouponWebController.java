@@ -23,23 +23,37 @@ public class AdminCouponWebController {
     private final CouponService couponService;
 
     @GetMapping
-    public String listCoupons(Model model) {
-        List<Coupon> coupons = couponService.getAllCoupons();
+    public String listCoupons(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            Model model) {
+        List<Coupon> allCoupons = couponService.getAllCoupons();
+        boolean hasFilter = (keyword != null && !keyword.isBlank()) ||
+                            (status != null && !"ALL".equalsIgnoreCase(status));
+        List<Coupon> filteredCoupons = hasFilter 
+                ? couponService.searchCoupons(keyword, status) 
+                : allCoupons;
 
-        long totalCount = coupons.size();
-        long activeCount = coupons.stream().filter(c -> Boolean.TRUE.equals(c.getActive())).count();
+        long totalCount = allCoupons.size();
         LocalDate today = LocalDate.now();
-        long expiredCount = coupons.stream()
+        long activeCount = allCoupons.stream().filter(c -> Boolean.TRUE.equals(c.getActive()) && (c.getEndDate() == null || !c.getEndDate().isBefore(today))).count();
+        long expiredCount = allCoupons.stream()
                 .filter(c -> c.getEndDate() != null && c.getEndDate().isBefore(today))
                 .count();
 
-        model.addAttribute("coupons", coupons);
+        model.addAttribute("coupons", filteredCoupons);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentStatus", status != null ? status.toUpperCase() : "ALL");
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("activeCount", activeCount);
         model.addAttribute("expiredCount", expiredCount);
         model.addAttribute("activeItem", "coupons");
 
         return "admin/coupons";
+    }
+
+    public String listCoupons(Model model) {
+        return listCoupons(null, "ALL", model);
     }
 
     @PostMapping

@@ -84,6 +84,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> searchCustomers(String keyword, String tier, Boolean enabled) {
+        String cleanKeyword = (keyword != null && !keyword.trim().isBlank()) ? keyword.trim() : null;
+        String cleanTier = (tier != null && !tier.trim().isBlank() && !"ALL".equalsIgnoreCase(tier.trim())) ? tier.trim() : null;
+        return userRepository.searchCustomers(cleanKeyword, cleanTier, enabled);
+    }
+
+    @Override
     public CustomerStatsResponse getCustomerStats() {
         List<User> customers = userRepository.findAll();
         long totalCustomers = customers.size();

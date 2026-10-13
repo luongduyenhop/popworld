@@ -22,6 +22,8 @@ public interface CouponService {
     // 4. Các phương thức quản trị Admin
     java.util.List<Coupon> getAllCoupons();
 
+    java.util.List<Coupon> searchCoupons(String keyword, String status);
+
     Coupon createCoupon(Coupon coupon);
 
     Coupon toggleCouponActive(Long id);

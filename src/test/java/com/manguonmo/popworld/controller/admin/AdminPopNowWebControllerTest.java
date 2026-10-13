@@ -69,6 +69,22 @@ class AdminPopNowWebControllerTest {
     }
 
     @Test
+    @DisplayName("listPopNowProducts: Tìm kiếm theo từ khóa series")
+    void listPopNowProducts_WithKeyword_AppliesFilter() {
+        List<PopNowAdminProductSummary> summaries = List.of(
+                PopNowAdminProductSummary.builder().productId(10L).productName("Dimoo Jurassic").build()
+        );
+        when(popNowAdminService.getPopNowProductSummaries("Dimoo")).thenReturn(summaries);
+
+        String view = controller.listPopNowProducts("Dimoo", model);
+
+        assertEquals("admin/popnow-list", view);
+        verify(popNowAdminService).getPopNowProductSummaries("Dimoo");
+        verify(model).addAttribute("summaries", summaries);
+        verify(model).addAttribute("keyword", "Dimoo");
+    }
+
+    @Test
     @DisplayName("productConfigDetail: Hiển thị chi tiết cấu hình mô hình và 12 slot")
     void productConfigDetail_Success() {
         when(popNowAdminService.getProductForConfig(10L)).thenReturn(sampleProduct);

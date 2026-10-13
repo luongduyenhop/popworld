@@ -190,6 +190,9 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
         map.put("mollyPainter", getOrCreateArtist("Molly Yllom",
                 "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300",
                 "Tác giả của dòng nhân vật Crybaby nổi tiếng với đôi mắt đẫm lệ, tôn vinh cảm xúc tự nhiên và sự đồng cảm của con người."));
+        map.put("gwon", getOrCreateArtist("Gwon",
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+                "Nữ họa sĩ và nhà thiết kế art toy độc lập tài năng người Hàn Quốc, 'mẹ đẻ' của cô bé Nyota mang vẻ đẹp mộng màng, giàu cảm xúc và sự chữa lành tâm hồn."));
         return map;
     }
 
@@ -224,6 +227,10 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2",
                 "https://cdn11.bigcommerce.com/s-fvv65gjhoq/images/stencil/1200x1200/products/11154/90496/IMG_2719__82920.1733668882.JPG?c=2",
                 "Cô bé giọt lệ đáng yêu, thông điệp rằng khóc không phải là yếu đuối mà là sự dũng cảm giải phóng cảm xúc."));
+        map.put("nyota", getOrCreateIp("Nyota", artists.get("gwon"),
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450059/popworld/characters/nyota_avatar.jpg",
+                "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200",
+                "Cô bé tóc ngắn đen tuyền với đôi mắt mơ màng và nốt ruồi duyên dáng dưới mi. Nyota là hiện thân của những khoảng lặng dịu êm giữa cuộc sống hiện đại, đưa người sưu tập vào hành trình khám phá thế giới nội tâm tinh tế, sự an ủi và tình yêu thương bản thân."));
         return map;
     }
 
@@ -292,6 +299,18 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
             seriesRepository.save(echoesSeries);
         }
         map.put("echoesOfSilence", echoesSeries);
+
+        // Hệ sinh thái các bộ sưu tập chính thức của Nyota (POP MART)
+        map.put("nyotaFluffyLife", getOrCreateSeries("Nyota - Fluffy Life Series", ips.get("nyota"),
+                LocalDate.of(2023, 10, 15), "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1000",
+                "Bộ sưu tập Cuộc Sống Bồng Bềnh của Nyota với chăn ấm, gối mềm, bọt xà phòng và những giấc mơ ngọt ngào."));
+        map.put("nyotaNotAlone", getOrCreateSeries("Nyota - I Am Not Alone Series", ips.get("nyota"),
+                LocalDate.of(2024, 3, 20), "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1000",
+                "Bộ sưu tập Tôi Không Đơn Độc tôn vinh những người bạn vô hình, chiếc bóng đồng hành và sự thấu cảm trong tâm hồn."));
+        map.put("nyotaGrowingPains", getOrCreateSeries("Nyota - Growing Pains Series", ips.get("nyota"),
+                LocalDate.of(2024, 8, 10), "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=1000",
+                "Những nốt trầm của sự trưởng thành, những vấp ngã đầu đời và đôi cánh hy vọng vươn lên mạnh mẽ."));
+
         return map;
     }
 
@@ -461,6 +480,42 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Hiệu ứng sơn cổ điển", "Chiều cao: 7.5cm - 9.0cm",
                 cat.get("blind-box"), s.get("echoesOfSilence"), true, true,
                 "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
+
+        // 18. Nyota's Fluffy Life Series (12 boxes - POP NOW)
+        list.add(upsertProduct("Hộp Mù Nyota's Fluffy Life Series",
+                "nyota-fluffy-life-series",
+                "Bộ hộp mù Nyota's Fluffy Life Series gồm 12 nhân vật tiêu chuẩn và 1 nhân vật bí mật Starry Starlight cực hiếm. Từng mô hình tái hiện những khoảnh khắc đời thường dịu dàng chữa lành.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 150,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Đổ nhung Flock mịn", "Chiều cao: 7.5cm - 9.0cm",
+                cat.get("blind-box"), s.get("nyotaFluffyLife"), true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+
+        // 19. Nyota I Am Not Alone Series (12 boxes - POP NOW)
+        list.add(upsertProduct("Hộp Mù Nyota I Am Not Alone Series",
+                "nyota-i-am-not-alone-series",
+                "Bộ sưu tập Nyota I Am Not Alone Series với 12 nhân vật cơ bản và mẫu bí mật Inner Luminescence mang thông điệp ấm áp rằng bạn không hề cô độc giữa thế giới rộng lớn.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 120,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS / Chi tiết phát quang dạ quang mờ", "Chiều cao: 7.8cm - 9.2cm",
+                cat.get("blind-box"), s.get("nyotaNotAlone"), true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+
+        // 20. Nyota Growing Pains Series (12 boxes - POP NOW)
+        list.add(upsertProduct("Hộp Mù Nyota Growing Pains Series",
+                "nyota-growing-pains-series",
+                "Bộ sưu tập Nyota Growing Pains Series khắc họa những cung bậc cảm xúc của tuổi trưởng thành, từ vấp ngã bỡ ngỡ đến đôi cánh hy vọng Wings of Hope.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 100,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Sơn mờ Matte", "Chiều cao: 7.5cm - 8.8cm",
+                cat.get("blind-box"), s.get("nyotaGrowingPains"), true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+
+        // 21. Mega Nyota 400% (Mega Collection)
+        list.add(upsertProduct("Mô Hình Mega Nyota 400% Silent Starlight Collector Edition",
+                "mega-nyota-400-silent-starlight",
+                "Tuyệt tác mô hình nghệ thuật cỡ lớn 400% Nyota Silent Starlight với nước sơn ngọc trai satin tinh xảo, phụ kiện đèn sao và trang phục tháo rời trong hộp vali sưu tập cao cấp.",
+                new BigDecimal("5200000"), null, 12,
+                "Hộp Vali Da Cao Cấp Kèm Thẻ NFC Xác Thực", null, "Bản Giới Hạn Sưu Tập", "PVC / ABS cao cấp / Sơn ngọc trai Satin", "Chiều cao: 30cm",
+                cat.get("mega-collection"), s.get("nyotaFluffyLife"), true, false,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450063/popworld/products/mega_nyota_400_main.jpg"));
 
         return list;
     }
@@ -889,6 +944,54 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
                 list.add(new ItemDef("Floating", RarityType.REGULAR, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
                 list.add(new ItemDef("Time", RarityType.SECRET, "https://prod-global-biz.popmart.com/globalAdmin/1785914967215_a365144942c74b86433a0af1c63446cb.jpg"));
                 break;
+
+            case "nyota-fluffy-life-series":
+                list.add(new ItemDef("Warm Blanket", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Bubble Bath", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Sweet Dream", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Soft Marshmallow", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Pajama Day", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Reading Light", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Fluffy Socks", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Snooze Afternoon", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Hugging Pillow", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Cat Nap", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Warm Milk", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Morning Stretch", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                list.add(new ItemDef("Starry Starlight", RarityType.SECRET, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+                break;
+
+            case "nyota-i-am-not-alone-series":
+                list.add(new ItemDef("Shadow Companion", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Whispering Wind", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Little Guardian", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Moonlit Stroll", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Silent Listener", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Hand in Hand", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Gentle Breeze", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Warm Hearth", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Solitude Flower", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Lantern in Mist", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Soft Melody", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Cloud Friend", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                list.add(new ItemDef("Inner Luminescence", RarityType.SECRET, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+                break;
+
+            case "nyota-growing-pains-series":
+                list.add(new ItemDef("First Stumble", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Little Armor", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Paper Airplane", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Silent Tears", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Hidden Sketch", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Rainy Window", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Small Secret", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Finding Voice", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Brave Stride", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Old Teddy", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Blooming Mind", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("First Horizon", RarityType.REGULAR, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                list.add(new ItemDef("Wings of Hope", RarityType.SECRET, "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+                break;
         }
         return list;
     }
@@ -1007,5 +1110,93 @@ public class DatabaseSeedServiceImpl implements DatabaseSeedService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    @Transactional
+    public void seedNyotaEcosystemIfMissing() {
+        CharacterIp nyota = characterIpRepository.findByName("Nyota").orElse(null);
+        boolean hasAllNyotaProducts = productRepository.findBySlug("nyota-fluffy-life-series").isPresent()
+                && productRepository.findBySlug("nyota-i-am-not-alone-series").isPresent()
+                && productRepository.findBySlug("nyota-growing-pains-series").isPresent()
+                && productRepository.findBySlug("mega-nyota-400-silent-starlight").isPresent();
+
+        if (nyota != null && hasAllNyotaProducts) {
+            log.info("PopWorld Seed: Hệ sinh thái nhân vật Nyota đã tồn tại đầy đủ trong CSDL, không ghi đè dữ liệu.");
+            return;
+        }
+
+        log.info("PopWorld Seed: Khởi tạo hệ sinh thái nhân vật Nyota chính hãng POP MART...");
+
+        // 1. Danh mục & Nghệ sĩ Gwon
+        Map<String, Category> categories = syncCategories();
+        Artist gwon = getOrCreateArtist("Gwon",
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+                "Nữ họa sĩ và nhà thiết kế art toy độc lập tài năng người Hàn Quốc, 'mẹ đẻ' của cô bé Nyota mang vẻ đẹp mộng màng, giàu cảm xúc và sự chữa lành tâm hồn.");
+
+        // 2. Character IP Nyota
+        if (nyota == null) {
+            nyota = getOrCreateIp("Nyota", gwon,
+                    "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450059/popworld/characters/nyota_avatar.jpg",
+                    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200",
+                    "Cô bé tóc ngắn đen tuyền với đôi mắt mơ màng và nốt ruồi duyên dáng dưới mi. Nyota là hiện thân của những khoảng lặng dịu êm giữa cuộc sống hiện đại, đưa người sưu tập vào hành trình khám phá thế giới nội tâm tinh tế, sự an ủi và tình yêu thương bản thân.");
+        }
+
+        // 3. Các bộ sưu tập Series của Nyota
+        Series fluffyLife = getOrCreateSeries("Nyota - Fluffy Life Series", nyota,
+                LocalDate.of(2023, 10, 15), "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1000",
+                "Bộ sưu tập Cuộc Sống Bồng Bềnh của Nyota với chăn ấm, gối mềm, bọt xà phòng và những giấc mơ ngọt ngào.");
+        Series notAlone = getOrCreateSeries("Nyota - I Am Not Alone Series", nyota,
+                LocalDate.of(2024, 3, 20), "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1000",
+                "Bộ sưu tập Tôi Không Đơn Độc tôn vinh những người bạn vô hình, chiếc bóng đồng hành và sự thấu cảm trong tâm hồn.");
+        Series growingPains = getOrCreateSeries("Nyota - Growing Pains Series", nyota,
+                LocalDate.of(2024, 8, 10), "https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=1000",
+                "Những nốt trầm của sự trưởng thành, những vấp ngã đầu đời và đôi cánh hy vọng vươn lên mạnh mẽ.");
+
+        // 4. Các sản phẩm
+        List<Product> nyotaProducts = new ArrayList<>();
+        nyotaProducts.add(upsertProduct("Hộp Mù Nyota's Fluffy Life Series",
+                "nyota-fluffy-life-series",
+                "Bộ hộp mù Nyota's Fluffy Life Series gồm 12 nhân vật tiêu chuẩn và 1 nhân vật bí mật Starry Starlight cực hiếm. Từng mô hình tái hiện những khoảnh khắc đời thường dịu dàng chữa lành.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 150,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Đổ nhung Flock mịn", "Chiều cao: 7.5cm - 9.0cm",
+                categories.get("blind-box"), fluffyLife, true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450060/popworld/products/nyota_fluffy_life_main.jpg"));
+
+        nyotaProducts.add(upsertProduct("Hộp Mù Nyota I Am Not Alone Series",
+                "nyota-i-am-not-alone-series",
+                "Bộ sưu tập Nyota I Am Not Alone Series với 12 nhân vật cơ bản và mẫu bí mật Inner Luminescence mang thông điệp ấm áp rằng bạn không hề cô độc giữa thế giới rộng lớn.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 120,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS / Chi tiết phát quang dạ quang mờ", "Chiều cao: 7.8cm - 9.2cm",
+                categories.get("blind-box"), notAlone, true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450061/popworld/products/nyota_not_alone_main.jpg"));
+
+        nyotaProducts.add(upsertProduct("Hộp Mù Nyota Growing Pains Series",
+                "nyota-growing-pains-series",
+                "Bộ sưu tập Nyota Growing Pains Series khắc họa những cung bậc cảm xúc của tuổi trưởng thành, từ vấp ngã bỡ ngỡ đến đôi cánh hy vọng Wings of Hope.",
+                new BigDecimal("320000"), new BigDecimal("3840000"), 100,
+                "1 Hộp lẻ / Nguyên Thùng 12 Hộp", 12, "1/144", "PVC / ABS cao cấp / Sơn mờ Matte", "Chiều cao: 7.5cm - 8.8cm",
+                categories.get("blind-box"), growingPains, true, true,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450062/popworld/products/nyota_growing_pains_main.jpg"));
+
+        nyotaProducts.add(upsertProduct("Mô Hình Mega Nyota 400% Silent Starlight Collector Edition",
+                "mega-nyota-400-silent-starlight",
+                "Tuyệt tác mô hình nghệ thuật cỡ lớn 400% Nyota Silent Starlight với nước sơn ngọc trai satin tinh xảo, phụ kiện đèn sao và trang phục tháo rời trong hộp vali sưu tập cao cấp.",
+                new BigDecimal("5200000"), null, 12,
+                "Hộp Vali Da Cao Cấp Kèm Thẻ NFC Xác Thực", null, "Bản Giới Hạn Sưu Tập", "PVC / ABS cao cấp / Sơn ngọc trai Satin", "Chiều cao: 30cm",
+                categories.get("mega-collection"), fluffyLife, true, false,
+                "https://res.cloudinary.com/wnxp3aok/image/upload/v1791450063/popworld/products/mega_nyota_400_main.jpg"));
+
+        // 5. Đồng bộ nhân vật BlindBoxItem cho 3 series hộp mù Nyota
+        syncBlindBoxItemsForAllSeries(nyotaProducts);
+
+        // 6. Đồng bộ 12 ô khay BlindBoxSlot cho từng series bóc trực tuyến POP NOW
+        syncBlindBoxSlotsForAllSeries(nyotaProducts);
+
+        // 7. Đồng bộ đánh giá mẫu cho các sản phẩm Nyota
+        List<User> reviewers = syncReviewerUsers();
+        syncAuthenticReviews(nyotaProducts, reviewers);
+
+        log.info("PopWorld Seed: Hoàn tất khởi tạo hệ sinh thái nhân vật Nyota thành công!");
     }
 }

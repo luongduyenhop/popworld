@@ -25,7 +25,10 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     @Query("UPDATE Coupon c SET c.usedCount = c.usedCount - 1 WHERE c.id = :couponId AND c.usedCount > 0")
     int decreaseUsedCount(@Param("couponId") Long couponId);
 
-
-
-
+    @Query("SELECT c FROM Coupon c WHERE " +
+           "(:keyword IS NULL OR :keyword = '' OR " +
+           " LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           " (c.description IS NOT NULL AND LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))) " +
+           "ORDER BY c.id DESC")
+    List<Coupon> searchCoupons(@Param("keyword") String keyword);
 }
