@@ -353,14 +353,16 @@
                             <a th:href="@{/orders}" class="pop-user-menu-item">
                                 <i class="bi bi-box-seam me-2 text-dark"></i> ĐƠN HÀNG CỦA TÔI
                             </a>
-                            <a th:href="@{/wishlist}" class="pop-user-menu-item">
-                                <i class="bi bi-heart me-2 text-danger"></i> DANH SÁCH YÊU THÍCH (<span class="header-wishlist-count" th:text="${wishlistCount != null ? wishlistCount : 0}">0</span>)
+                            <a th:href="@{/wishlist}" class="pop-user-menu-item justify-content-between">
+                                <span class="d-inline-flex align-items-center"><i class="bi bi-heart me-2 text-danger"></i> DANH SÁCH YÊU THÍCH</span>
+                                <span class="badge bg-danger text-white rounded-pill px-2 header-wishlist-count" style="font-size: 0.72rem;" th:text="${wishlistCount != null ? wishlistCount : 0}">0</span>
                             </a>
                             <a th:href="@{/popnow/cabinet}" class="pop-user-menu-item">
                                 <i class="bi bi-grid-3x3-gap me-2 text-dark"></i> TỦ ĐỒ POP NOW
                             </a>
-                            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="pop-user-menu-item text-danger fw-bold">
-                                <i class="bi bi-speedometer2 me-2"></i> TRANG QUẢN TRỊ ADMIN
+                            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" target="_blank" class="pop-user-menu-item text-danger fw-bold justify-content-between" title="Mở trang quản trị sang tab mới">
+                                <span class="d-inline-flex align-items-center"><i class="bi bi-speedometer2 me-2"></i> TRANG QUẢN TRỊ ADMIN</span>
+                                <i class="bi bi-arrow-up-right fs-6"></i>
                             </a>
                             <hr class="my-1">
                             <form th:action="@{/logout}" method="post" class="m-0 p-0">
@@ -835,7 +837,7 @@
 
                 // 1. OPTIMISTIC UI: Cập nhật icon tức thì (< 16ms)
                 if (optimisticNewState) {
-                    icon.classList.remove('bi-heart');
+                    icon.classList.remove('bi-heart', 'text-dark');
                     icon.classList.add('bi-heart-fill', 'text-danger');
                     // Kích hoạt animation nảy tim
                     icon.classList.remove('heart-pop-anim');
@@ -843,7 +845,7 @@
                     icon.classList.add('heart-pop-anim');
                 } else {
                     icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
-                    icon.classList.add('bi-heart');
+                    icon.classList.add('bi-heart', 'text-dark');
                 }
 
                 // 2. OPTIMISTIC BADGE: Cập nhật số lượng trên Header ngay lập tức
@@ -854,11 +856,11 @@
                 // Hàm khôi phục trạng thái ban đầu khi có lỗi
                 function revertWishlistUI() {
                     if (wasWishlisted) {
-                        icon.classList.remove('bi-heart');
+                        icon.classList.remove('bi-heart', 'text-dark');
                         icon.classList.add('bi-heart-fill', 'text-danger');
                     } else {
                         icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
-                        icon.classList.add('bi-heart');
+                        icon.classList.add('bi-heart', 'text-dark');
                     }
                     if (window.updateHeaderWishlistCount) {
                         window.updateHeaderWishlistCount(currentCount);
@@ -896,11 +898,11 @@
 
                         // Đồng bộ lại icon theo chuẩn dữ liệu Server trả về
                         if (finalWishlisted) {
-                            icon.classList.remove('bi-heart');
+                            icon.classList.remove('bi-heart', 'text-dark');
                             icon.classList.add('bi-heart-fill', 'text-danger');
                         } else {
                             icon.classList.remove('bi-heart-fill', 'text-danger', 'heart-pop-anim');
-                            icon.classList.add('bi-heart');
+                            icon.classList.add('bi-heart', 'text-dark');
                         }
 
                         // Đồng bộ lại badge số lượng chính xác

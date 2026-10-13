@@ -17,6 +17,13 @@
     <!-- Custom POP MART Admin Theme CSS -->
     <link rel="stylesheet" th:href="@{/css/admin-theme.css(v='1.0')}">
     
+    <!-- Favicon Suite -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/favicon-32x32.png}">
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/favicon-16x16.png}">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/apple-touch-icon.png}">
+    <link rel="shortcut icon" th:href="@{/favicon.ico}">
+    
     <script>
         (function() {
             try {
@@ -112,14 +119,21 @@
             </a>
         </div>
 
-        <div class="admin-sidebar-footer">
-            <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; font-size: 0.9rem;">
-                PW
+        <div class="admin-sidebar-footer d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                    PW
+                </div>
+                <div class="overflow-hidden">
+                    <div class="text-white small fw-bold text-truncate">Quản Trị Viên</div>
+                    <div class="text-secondary text-truncate" style="font-size: 0.72rem;">admin@popworld.com</div>
+                </div>
             </div>
-            <div class="overflow-hidden">
-                <div class="text-white small fw-bold text-truncate">Quản Trị Viên</div>
-                <div class="text-secondary" style="font-size: 0.72rem;">admin@popworld.com</div>
-            </div>
+            <form th:action="@{/logout}" method="post" class="m-0 p-0 overflow-hidden" title="Đăng xuất">
+                <button type="submit" class="btn btn-link text-white-50 p-1 border-0" title="Đăng xuất khỏi hệ thống">
+                    <i class="bi bi-box-arrow-right fs-5 text-danger"></i>
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -145,14 +159,47 @@
                     <span class="d-none d-sm-inline">Xem Cửa Hàng</span>
                 </a>
 
-                <div class="d-flex align-items-center gap-2 ps-3 border-start">
-                    <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.85rem;">
-                        A
-                    </div>
-                    <div class="d-none d-md-block text-start">
-                        <div class="small fw-bold lh-1 mb-1">Admin PopWorld</div>
-                        <span class="badge bg-black text-warning border border-warning-subtle fw-bold text-nowrap" style="font-size: 0.65rem; letter-spacing: 0.05em; padding: 2px 6px;">ROLE_ADMIN</span>
-                    </div>
+                <div class="dropdown ps-3 border-start">
+                    <a href="#" class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle text-dark" 
+                       id="adminUserDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                        <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                            A
+                        </div>
+                        <div class="d-none d-md-block text-start me-1">
+                            <div class="small fw-bold lh-1 mb-1 text-dark">Admin PopWorld</div>
+                            <span class="badge bg-black text-warning border border-warning-subtle fw-bold text-nowrap" style="font-size: 0.65rem; letter-spacing: 0.05em; padding: 2px 6px;">ROLE_ADMIN</span>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2 py-2" aria-labelledby="adminUserDropdown" style="min-width: 220px; font-size: 0.875rem;">
+                        <li class="px-3 py-2 border-bottom mb-1 bg-light rounded-top">
+                            <div class="fw-bold text-dark text-truncate" th:text="${#authentication != null ? #authentication.name : 'admin@popworld.com'}">admin@popworld.com</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Quyền: Quản Trị Viên</div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center gap-2" th:href="@{/account}" target="_blank">
+                                <i class="bi bi-person text-secondary"></i> Tài Khoản Cá Nhân
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center gap-2" th:href="@{/admin/2fa/setup}">
+                                <i class="bi bi-shield-lock text-secondary"></i> Cài Đặt 2FA
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center gap-2" th:href="@{/}" target="_blank">
+                                <i class="bi bi-shop text-secondary"></i> Xem Cửa Hàng
+                                <i class="bi bi-arrow-up-right ms-auto text-muted" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0 p-0">
+                                <button type="submit" class="dropdown-item py-2 text-danger fw-bold d-flex align-items-center gap-2 border-0 bg-transparent w-100">
+                                    <i class="bi bi-box-arrow-right text-danger"></i> Đăng Xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </header>
