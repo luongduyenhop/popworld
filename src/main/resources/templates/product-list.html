@@ -270,7 +270,10 @@
                                 </span>
                                 <!-- Quick Wishlist Heart Button -->
                                 <button type="button" class="btn btn-sm p-0 border-0 pop-catalog-wishlist-btn"
-                                        th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
+                                        th:data-product-id="${p.id}"
+                                        th:data-product-name="${p.name}"
+                                        th:data-product-price="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'"
+                                        th:data-product-img="${p.mainImageUrl}"
                                         onclick="if(window.togglePopWishlist){window.togglePopWishlist(this, event);}else{toggleCatalogWishlist(this);}"
                                         title="Yêu thích">
                                     <i th:class="${wishlistProductIds != null and wishlistProductIds.contains(p.id)} ? 'bi bi-heart-fill text-danger fs-6' : 'bi bi-heart text-dark fs-6'"></i>
@@ -278,7 +281,10 @@
                                 <!-- Quick Add Single Box to Cart Button -->
                                 <button type="button" class="btn btn-sm p-0 border-0 pop-catalog-quick-add-btn"
                                         th:if="${p.stockQuantity != null && p.stockQuantity > 0}"
-                                        th:attr="data-product-id=${p.id}, data-product-name=${p.name}, data-product-price=${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${p.mainImageUrl}"
+                                        th:data-product-id="${p.id}"
+                                        th:data-product-name="${p.name}"
+                                        th:data-product-price="${#numbers.formatDecimal(p.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'"
+                                        th:data-product-img="${p.mainImageUrl}"
                                         onclick="event.stopPropagation(); window.quickAddToCart(this);"
                                         title="Thêm nhanh hộp đơn vào giỏ hàng">
                                     <i class="bi bi-bag-plus text-dark fs-6"></i>

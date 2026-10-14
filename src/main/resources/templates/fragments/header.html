@@ -262,11 +262,11 @@
                 </ul>
 
                 <!-- Right Utility Cluster: Search Capsule + Headset + Heart + Cart + User Account -->
-                <div class="d-flex align-items-center gap-3 my-2 my-lg-0">
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-lg-3 my-2 my-lg-0 w-100 w-lg-auto justify-content-between justify-content-lg-end">
                     <!-- Search Capsule Pill with Live Autocomplete -->
-                    <div class="position-relative" id="popHeaderSearchWrapper">
+                    <div class="position-relative w-100 w-lg-auto mb-2 mb-lg-0 flex-grow-1 flex-lg-grow-0" id="popHeaderSearchWrapper">
                         <form class="m-0" th:action="@{/search}" method="get" role="search" id="popHeaderSearchForm">
-                            <div class="pop-search-capsule">
+                            <div class="pop-search-capsule w-100" style="max-width: 100%;">
                                 <input class="pop-search-input-clean" type="search" name="keyword" id="popHeaderSearchInput"
                                        placeholder="Labubu, Molly..." th:value="${keyword}" aria-label="Tìm kiếm sản phẩm" autocomplete="off">
                                 <button type="submit" class="pop-search-submit-btn" title="Tìm kiếm" aria-label="Tìm kiếm">

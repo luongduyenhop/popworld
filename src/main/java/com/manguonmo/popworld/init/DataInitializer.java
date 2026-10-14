@@ -70,8 +70,16 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             userRepository.save(admin);
         } else {
-            // Không ghi đè mật khẩu và trạng thái 2FA của Admin khi khởi động lại
+            // Không ghi đè mật khẩu và trạng thái 2FA của Admin khi khởi động lại, trừ khi mật khẩu chưa được băm BCrypt
             boolean changed = false;
+            if (admin.getPassword() == null || 
+                (!admin.getPassword().startsWith("$2a$") && 
+                 !admin.getPassword().startsWith("$2b$") && 
+                 !admin.getPassword().startsWith("$2y$"))) {
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                changed = true;
+                log.warn("PopWorld Security: Đã tự động chuẩn hóa mật khẩu BCrypt cho tài khoản admin@popworld.com");
+            }
             if (!"ROLE_ADMIN".equals(admin.getRole())) {
                 admin.setRole("ROLE_ADMIN");
                 changed = true;

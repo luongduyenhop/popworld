@@ -278,7 +278,10 @@
 
                     <!-- Add to Cart AJAX Button -->
                     <button type="button" class="btn wishlist-btn-add"
-                            th:attr="data-product-id=${product.id}, data-product-name=${product.name}, data-product-price=${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫', data-product-img=${product.mainImageUrl}"
+                            th:data-product-id="${product.id}"
+                            th:data-product-name="${product.name}"
+                            th:data-product-price="${#numbers.formatDecimal(product.singlePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'"
+                            th:data-product-img="${product.mainImageUrl}"
                             onclick="addWishlistItemToCart(this)">
                         <i class="bi bi-bag-plus me-1"></i> THÊM VÀO GIỎ
                     </button>
