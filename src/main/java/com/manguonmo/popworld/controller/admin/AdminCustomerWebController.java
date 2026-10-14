@@ -33,7 +33,9 @@ public class AdminCustomerWebController {
     private final UserService userService;
     private final UserAddressService userAddressService;
     private final OrderService orderService;
-    private final PointSettingService pointSettingService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private PointSettingService pointSettingService;
 
     @GetMapping
     public String listCustomers(

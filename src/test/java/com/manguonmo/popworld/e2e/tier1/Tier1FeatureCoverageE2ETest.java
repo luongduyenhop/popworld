@@ -32,7 +32,7 @@ public class Tier1FeatureCoverageE2ETest extends BaseE2ETest {
                 "Cau Giay",
                 "Dich Vong",
                 "123 Xuan Thuy",
-                "COD",
+                "SEPAY",
                 null
         );
 

@@ -48,4 +48,12 @@ public class OrderItem extends BaseEntity {
         int qty = (this.quantity != null) ? this.quantity : 0;
         return "WHOLE_SET".equalsIgnoreCase(this.purchaseType) ? qty * BOXES_PER_WHOLE_SET : qty;
     }
+
+    public String getProductName() {
+        return (this.product != null) ? this.product.getName() : "Sản phẩm Art Toy";
+    }
+
+    public String getProductImage() {
+        return (this.product != null) ? this.product.getMainImageUrl() : null;
+    }
 }

@@ -58,12 +58,16 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Email đã được đăng ký, vui lòng chọn email khác hoặc đăng nhập");
         }
         password = passwordEncoder.encode(password);
+        String rawPhone = request.getPhone() != null ? request.getPhone().trim().replaceAll("\\s+", "") : null;
+        if (rawPhone != null && rawPhone.isEmpty()) {
+            rawPhone = null;
+        }
         User user = User.builder()
-                .fullName(request.getFullName())
+                .fullName(request.getFullName().trim())
                 .email(email)
                 .role("ROLE_USER")
                 .password(password)
-                .phone(request.getPhone())
+                .phone(rawPhone)
                 .enabled(true)
                 .membershipTier("MEMBER")
                 .build();

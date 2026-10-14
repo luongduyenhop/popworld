@@ -2,6 +2,7 @@ package com.manguonmo.popworld.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -20,6 +21,8 @@ public class RegisterRequest {
     @Email(message = "Định dạng email không hợp lệ")
     private String email;
 
+    @Pattern(regexp = "^$|^(?:0|\\+84)(?:3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\\d{7}$",
+            message = "Số điện thoại không đúng định dạng (yêu cầu 10 số của các nhà mạng Việt Nam, ví dụ: 0987654321)")
     private String phone;
 
     @NotBlank(message = "Mật khẩu không được để trống")

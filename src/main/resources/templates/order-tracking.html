@@ -116,8 +116,8 @@
                         </div>
                     </div>
 
-                    <!-- Call To Action: Cảnh báo & Nút Tiếp Tục Thanh Toán Cho Đơn TO_PAY -->
-                    <div th:if="${order.status == 'TO_PAY'}" 
+                    <!-- Call To Action: Cảnh báo & Nút Tiếp Tục Thanh Toán Cho Đơn TO_PAY Online -->
+                    <div th:if="${order.status == 'TO_PAY' and order.paymentMethod != 'COD'}" 
                          class="alert alert-warning border-warning-subtle d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 mx-4 mt-4 mb-0 rounded-3">
                         <div>
                             <div class="fw-bold text-dark fs-6">
@@ -322,7 +322,11 @@
                                                  alt="Thumbnail" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-dark" th:text="${item.productName}">Tên sản phẩm</div>
+                                            <div class="fw-bold text-dark" th:text="${item.product != null ? item.product.name : (item.productName != null ? item.productName : 'Sản phẩm Art Toy')}">Tên sản phẩm</div>
+                                            <div class="small text-muted mt-1">
+                                                <span class="badge bg-light text-secondary border" 
+                                                      th:text="${item.purchaseType == 'SINGLE_BOX' ? 'Hộp Lẻ (Blind Box)' : 'Nguyên Set (Full Box)'}">Hộp Lẻ</span>
+                                            </div>
                                         </td>
                                         <td class="text-center fw-bold" th:text="${item.quantity}">1</td>
                                         <td class="text-end" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'POINT', 0, 'POINT')} + ' đ'">0 đ</td>

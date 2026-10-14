@@ -212,7 +212,14 @@ public class OrderServiceImpl implements OrderService {
             pointsDiscount = calculatePointsDiscount(pointsToUse);
             BigDecimal maxAllowedDiscount = calculateMaxAllowedPointsDiscount(subtotal);
             if (pointsDiscount.compareTo(maxAllowedDiscount) > 0) {
-                throw new BadRequestException("Điểm thưởng chỉ được giảm tối đa cho đơn hàng này (tối đa " + maxAllowedDiscount.intValue() + " đ)!");
+                int percent = 20;
+                if (pointSettingService != null) {
+                    PointSetting s = pointSettingService.getSetting();
+                    if (s != null && s.getMaxRedeemPercent() != null) {
+                        percent = s.getMaxRedeemPercent();
+                    }
+                }
+                throw new BadRequestException("Điểm thưởng chỉ được giảm tối đa " + percent + "% giá trị tiền hàng (tối đa " + maxAllowedDiscount.intValue() + " đ)!");
             }
 
             finalPointsUsed = pointsToUse;
@@ -236,6 +243,10 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         // BƯỚC 9: Khởi tạo và Lưu Order vào CSDL
         // =========================================================================
+        boolean isCod = "COD".equalsIgnoreCase(paymentMethod);
+        String initialStatus = isCod ? "PROCESSING" : "TO_PAY";
+        LocalDateTime expiration = isCod ? null : LocalDateTime.now().plusMinutes(15);
+
         Order newOrder = Order.builder()
                 .orderCode(orderCode)
                 .user(user)
@@ -253,8 +264,8 @@ public class OrderServiceImpl implements OrderService {
                 .pointsDiscount(pointsDiscount)
                 .totalAmount(totalAmount)
                 .paymentMethod(paymentMethod != null ? paymentMethod : "COD")
-                .status("TO_PAY")
-                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .status(initialStatus)
+                .expiresAt(expiration)
                 .coupon(appliedCoupon)
                 .build();
 
@@ -318,9 +329,13 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         // BƯỚC 11: Trả về đối tượng Order đã lưu thành công
         // =========================================================================
-        recordTimeline(savedOrder, null, "TO_PAY", "Đặt hàng thành công", 
+        String timelineNote = isCod 
+                ? "Phương thức: COD (Thanh toán khi nhận hàng) | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Đơn hàng đang được bộ phận kho tiếp nhận và chuẩn bị đóng gói."
+                : "Phương thức: Chuyển khoản VietQR SePay | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Chờ thanh toán trong 15 phút.";
+
+        recordTimeline(savedOrder, null, initialStatus, "Đặt hàng thành công", 
                 (user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getEmail()), 
-                "Phương thức thanh toán: " + savedOrder.getPaymentMethod() + " | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ");
+                timelineNote);
         return savedOrder;
     }
 

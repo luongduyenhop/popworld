@@ -26,7 +26,7 @@ public class Tier2StateTransitionsE2ETest extends BaseE2ETest {
         Order order = orderService.createOrder(
                 user.getId(), "Nguyen Van A", "0987654321",
                 "Ha Noi", "Cau Giay", "Dich Vong", "123 Xuan Thuy",
-                "COD", null
+                "SEPAY", null
         );
 
         // Hủy lần 1 thành công
@@ -95,7 +95,7 @@ public class Tier2StateTransitionsE2ETest extends BaseE2ETest {
         Order order = orderService.createOrder(
                 user.getId(), "Nguyen Van A", "0987654321",
                 "Ha Noi", "Cau Giay", "Dich Vong", "123 Xuan Thuy",
-                "COD", null
+                "SEPAY", null
         );
 
         // Đơn đang ở TO_PAY -> admin đóng gói phải bị từ chối
@@ -115,7 +115,7 @@ public class Tier2StateTransitionsE2ETest extends BaseE2ETest {
         Order order = orderService.createOrder(
                 user.getId(), "Nguyen Van A", "0987654321",
                 "Ha Noi", "Cau Giay", "Dich Vong", "123 Xuan Thuy",
-                "COD", null
+                "SEPAY", null
         );
 
         // Đơn đang ở TO_PAY -> admin chuyển giao hàng phải bị từ chối

@@ -43,7 +43,7 @@ public class Tier3CrossFeatureCombinationsE2ETest extends BaseE2ETest {
         cartService.addToCart(user1.getId(), lowStockProduct.getId(), "SINGLE_BOX", 2);
         Order order = orderService.createOrder(
                 user1.getId(), "User 1", "0987654321", "Ha Noi", "Cau Giay", "Dich Vong", "123 Xuan Thuy",
-                "COD", couponCode
+                "SEPAY", couponCode
         );
 
         assertNotNull(order);

@@ -141,7 +141,7 @@ class OrderServiceTest {
         assertEquals(sampleUser, createdOrder.getUser());
         assertEquals("Nguyen Van A", createdOrder.getRecipientName());
         assertEquals("0987654321", createdOrder.getRecipientPhone());
-        assertEquals("TO_PAY", createdOrder.getStatus());
+        assertEquals("PROCESSING", createdOrder.getStatus());
         assertEquals("COD", createdOrder.getPaymentMethod());
 
         // Kiểm tra tiền: Subtotal 200.000đ + Ship 30.000đ - Discount 0đ = 230.000đ
