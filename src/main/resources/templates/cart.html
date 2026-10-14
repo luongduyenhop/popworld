@@ -341,11 +341,11 @@
         </div>
 
         <!-- Mobile Sticky Checkout Bar (Fixed above bottom nav for 1-thumb checkout) -->
-        <div class="pop-cart-mobile-sticky-bar d-lg-none" id="cartMobileStickyBar" th:if="${cart.items != null && !cart.items.isEmpty()}">
+        <div class="pop-cart-mobile-sticky-bar d-lg-none" id="cartMobileStickyBar" th:if="${cart != null && cart.items != null && !cart.items.isEmpty()}">
             <div class="d-flex align-items-center justify-content-between px-3 py-2">
                 <div class="d-flex align-items-center gap-2">
                     <input class="popmart-checkbox" type="checkbox" id="selectAllCheckboxMobile"
-                           th:checked="${selectedCount != null && selectedCount > 0 && selectedCount == cart.items.size()}"
+                           th:checked="${cart != null && cart.items != null && selectedCount != null && selectedCount > 0 && selectedCount == cart.items.size()}"
                            onchange="toggleSelectAllMobile(this)">
                     <label for="selectAllCheckboxMobile" class="small fw-bold text-dark mb-0" style="font-size: 11px;">Tất cả</label>
                 </div>
