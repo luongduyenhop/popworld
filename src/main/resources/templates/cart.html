@@ -128,7 +128,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light cart-page-body">
 
     <!-- Header Fragment -->
     <header th:replace="~{fragments/header :: header}"></header>
@@ -224,10 +224,10 @@
                             </span>
                         </div>
 
-                        <!-- Thông tin sản phẩm -->
-                        <div class="flex-grow-1 min-w-0 pe-4">
+                        <!-- Thông tin sản phẩm (pe-5 đảm bảo khoảng cách an toàn với nút thùng rác, chống đè chữ) -->
+                        <div class="flex-grow-1 min-w-0 pe-5">
                             <h6 class="fw-bold mb-1">
-                                <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none text-truncate d-block" th:text="${item.product.name}">
+                                <a th:href="@{'/products/' + ${item.product.slug}}" class="text-dark text-decoration-none text-truncate d-block pe-1" th:text="${item.product.name}">
                                     Tên sản phẩm
                                 </a>
                             </h6>
@@ -337,6 +337,30 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Mobile Sticky Checkout Bar (Fixed above bottom nav for 1-thumb checkout) -->
+        <div class="pop-cart-mobile-sticky-bar d-lg-none" id="cartMobileStickyBar" th:if="${cart.items != null && !cart.items.isEmpty()}">
+            <div class="d-flex align-items-center justify-content-between px-3 py-2">
+                <div class="d-flex align-items-center gap-2">
+                    <input class="popmart-checkbox" type="checkbox" id="selectAllCheckboxMobile"
+                           th:checked="${selectedCount != null && selectedCount > 0 && selectedCount == cart.items.size()}"
+                           onchange="toggleSelectAllMobile(this)">
+                    <label for="selectAllCheckboxMobile" class="small fw-bold text-dark mb-0" style="font-size: 11px;">Tất cả</label>
+                </div>
+                <div class="text-end me-2">
+                    <div class="text-muted" style="font-size: 10px;">Tổng cộng:</div>
+                    <div class="fw-black text-danger fs-6 lh-1" id="stickyMobileTotal"
+                         th:text="${#numbers.formatDecimal(totalAmount != null ? totalAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                        0 đ
+                    </div>
+                </div>
+                <a th:href="@{/checkout}" class="btn btn-danger rounded-0 fw-bold px-3 py-2 text-nowrap" id="stickyMobileCheckoutBtn"
+                   style="background: #D2001E; border-color: #D2001E; font-size: 13px;"
+                   th:classappend="${selectedCount == 0} ? 'disabled opacity-50' : ''">
+                    MUA HÀNG (<span id="stickyMobileCount" th:text="${selectedCount}">0</span>)
+                </a>
             </div>
         </div>
     </main>
@@ -452,6 +476,36 @@
             const selectAllCb = document.getElementById('selectAllCheckbox');
             if (selectAllCb) {
                 selectAllCb.checked = (count === items.length && items.length > 0);
+            }
+
+            // Đồng bộ thanh Mobile Sticky Checkout Bar
+            const stickyMobileTotal = document.getElementById('stickyMobileTotal');
+            if (stickyMobileTotal) stickyMobileTotal.textContent = formatVND(subtotal);
+
+            const stickyMobileCount = document.getElementById('stickyMobileCount');
+            if (stickyMobileCount) stickyMobileCount.textContent = count;
+
+            const stickyMobileBtn = document.getElementById('stickyMobileCheckoutBtn');
+            if (stickyMobileBtn) {
+                if (count === 0) {
+                    stickyMobileBtn.classList.add('disabled', 'opacity-50');
+                } else if (inFlightCount === 0) {
+                    stickyMobileBtn.classList.remove('disabled', 'opacity-50');
+                }
+            }
+
+            const selectAllCbMobile = document.getElementById('selectAllCheckboxMobile');
+            if (selectAllCbMobile) {
+                selectAllCbMobile.checked = (count === items.length && items.length > 0);
+            }
+        }
+
+        // Xử lý khi click "Select all" trên Mobile Sticky Bar
+        function toggleSelectAllMobile(mobileCb) {
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if (selectAllCb) {
+                selectAllCb.checked = mobileCb.checked;
+                toggleSelectAll(selectAllCb);
             }
         }
 
