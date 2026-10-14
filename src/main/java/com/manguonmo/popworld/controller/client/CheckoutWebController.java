@@ -7,6 +7,8 @@ import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderItem;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.entity.UserAddress;
+import com.manguonmo.popworld.entity.PointSetting;
+import com.manguonmo.popworld.service.PointSettingService;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
 import com.manguonmo.popworld.exception.ResourceNotFoundException;
@@ -48,6 +50,8 @@ public class CheckoutWebController {
     private final UserService userService;
     private final CouponRepository couponRepository;
     private final UserAddressService userAddressService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private PointSettingService pointSettingService;
 
     @Value("${sepay.bank-code:MBBank}")
     private String sepayBankCode;
@@ -126,10 +130,20 @@ public class CheckoutWebController {
                 .findFirst()
                 .orElse(addresses.isEmpty() ? null : addresses.get(0));
 
-        // Điểm thưởng & mức tối đa được dùng (tối đa 20% merchandise subtotal, 1 point = 100 VND)
+        // Điểm thưởng & cấu hình linh hoạt
         int currentPoints = user.getRewardPoints() != null ? user.getRewardPoints() : 0;
-        int maxPointsFromSubtotal = subtotal.multiply(new BigDecimal("0.20")).divideToIntegralValue(BigDecimal.valueOf(100)).intValue();
-        int maxPointsUsable = Math.max(0, Math.min(currentPoints, maxPointsFromSubtotal));
+        PointSetting pointSetting = pointSettingService != null ? pointSettingService.getSetting() : null;
+        boolean pointEnabled = pointSetting != null ? Boolean.TRUE.equals(pointSetting.getEnabled()) : true;
+        int earnRate = pointSetting != null && pointSetting.getEarnRate() != null ? pointSetting.getEarnRate() : 10000;
+        int redeemRate = pointSetting != null && pointSetting.getRedeemRate() != null ? pointSetting.getRedeemRate() : 100;
+        int maxRedeemPercent = pointSetting != null && pointSetting.getMaxRedeemPercent() != null ? pointSetting.getMaxRedeemPercent() : 20;
+
+        int maxPointsUsable = 0;
+        if (pointEnabled) {
+            maxPointsUsable = pointSettingService != null
+                    ? pointSettingService.calculateMaxPointsUsable(subtotal, currentPoints)
+                    : Math.max(0, Math.min(currentPoints, subtotal.multiply(BigDecimal.valueOf(maxRedeemPercent)).divideToIntegralValue(BigDecimal.valueOf(redeemRate * 100L)).intValue()));
+        }
 
         model.addAttribute("user", user);
         model.addAttribute("cartItems", selectedItems);
@@ -140,6 +154,10 @@ public class CheckoutWebController {
         model.addAttribute("defaultAddress", defaultAddress);
         model.addAttribute("userPoints", currentPoints);
         model.addAttribute("maxPointsUsable", maxPointsUsable);
+        model.addAttribute("pointEnabled", pointEnabled);
+        model.addAttribute("pointEarnRate", earnRate);
+        model.addAttribute("pointRedeemRate", redeemRate);
+        model.addAttribute("pointMaxPercent", maxRedeemPercent);
 
         return "checkout";
     }

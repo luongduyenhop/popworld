@@ -1,18 +1,22 @@
 package com.manguonmo.popworld.controller.admin;
 
+import com.manguonmo.popworld.dto.request.PointSettingUpdateRequest;
 import com.manguonmo.popworld.dto.response.CustomerStatsResponse;
 import com.manguonmo.popworld.dto.response.PointTransactionResponse;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.entity.UserAddress;
 import com.manguonmo.popworld.service.OrderService;
+import com.manguonmo.popworld.service.PointSettingService;
 import com.manguonmo.popworld.service.UserAddressService;
 import com.manguonmo.popworld.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -29,6 +33,7 @@ public class AdminCustomerWebController {
     private final UserService userService;
     private final UserAddressService userAddressService;
     private final OrderService orderService;
+    private final PointSettingService pointSettingService;
 
     @GetMapping
     public String listCustomers(
@@ -51,9 +56,32 @@ public class AdminCustomerWebController {
         model.addAttribute("totalCustomers", stats.getTotalCustomers());
         model.addAttribute("vipCount", stats.getVipCount());
         model.addAttribute("memberCount", stats.getMemberCount());
+        model.addAttribute("pointSetting", pointSettingService != null ? pointSettingService.getSetting() : null);
         model.addAttribute("activeNav", "customers");
 
         return "admin/customers";
+    }
+
+    @PostMapping("/point-settings")
+    public String updatePointSettings(
+            @Valid @ModelAttribute PointSettingUpdateRequest request,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().get(0).getDefaultMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", "Dữ liệu không hợp lệ: " + errorMsg);
+            return "redirect:/admin/customers";
+        }
+        try {
+            if (pointSettingService != null) {
+                pointSettingService.updateSetting(request);
+                redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật cấu hình điểm thưởng thành công!");
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi cập nhật cấu hình điểm thưởng: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật cấu hình: " + e.getMessage());
+        }
+        return "redirect:/admin/customers";
     }
 
     public String listCustomers(Model model) {

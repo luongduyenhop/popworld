@@ -46,6 +46,9 @@ public class ProductWebController {
     private final PopNowService popNowService;
     private final WishlistService wishlistService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.manguonmo.popworld.service.PointSettingService pointSettingService;
+
     public ProductWebController(ProductService productService,
                                 CategoryService categoryService,
                                 CharacterIpService characterIpService,
@@ -167,7 +170,9 @@ public class ProductWebController {
                 .toList();
         model.addAttribute("regularCharacters", regularCharacters);
 
-        long estimatedPoints = product.getSinglePrice() != null ? product.getSinglePrice().longValue() / 1000 : 0;
+        long estimatedPoints = pointSettingService != null
+                ? pointSettingService.calculatePointsEarned(product.getSinglePrice())
+                : (product.getSinglePrice() != null ? product.getSinglePrice().longValue() / 10000 : 0);
         model.addAttribute("estimatedPoints", estimatedPoints);
 
         return "product-detail";

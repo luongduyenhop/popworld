@@ -44,7 +44,22 @@
                         <i class="bi bi-person-check-fill"></i>
                     </div>
                 </div>
+        </div>
+
+        <!-- Cảnh báo nếu cơ chế điểm thưởng đang tạm tắt -->
+        <div th:if="${pointSetting != null && !pointSetting.enabled}" class="alert alert-warning border border-warning-subtle shadow-sm rounded-4 d-flex align-items-center justify-content-between p-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-pause-circle-fill fs-5"></i>
+                </div>
+                <div>
+                    <strong class="d-block text-dark">Chương trình Điểm Thưởng đang tạm tắt</strong>
+                    <span class="small text-muted">Khách hàng hiện không thể tích hoặc sử dụng điểm thưởng khi thanh toán đơn hàng.</span>
+                </div>
             </div>
+            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#pointSettingModal">
+                <i class="bi bi-gear-fill me-1"></i> Bật Lại Ngay
+            </button>
         </div>
 
         <!-- ========================================================================= -->
@@ -136,6 +151,14 @@
                 <div>
                     <h6 class="mb-0 fw-bold">Danh Sách Tài Khoản Người Dùng & Collector</h6>
                     <small class="text-muted">Đồng bộ đầy đủ Avatar, Member Code, Điểm May Mắn (Lucky Points) và Thẻ Gợi Ý</small>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-warning fw-bold text-dark d-flex align-items-center gap-2 shadow-sm rounded-pill px-3 py-2" data-bs-toggle="modal" data-bs-target="#pointSettingModal">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Cấu Hình Điểm Thưởng</span>
+                        <span th:if="${pointSetting != null && pointSetting.enabled}" class="badge bg-success text-white ms-1" style="font-size: 0.72rem;">BẬT</span>
+                        <span th:if="${pointSetting != null && !pointSetting.enabled}" class="badge bg-danger text-white ms-1" style="font-size: 0.72rem;">TẮT</span>
+                    </button>
                 </div>
             </div>
 
@@ -362,6 +385,119 @@
             </div>
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- 5. MODAL CẤU HÌNH ĐIỂM THƯỞNG (LOYALTY POINT SETTINGS)                    -->
+        <!-- ========================================================================= -->
+        <div class="modal fade" id="pointSettingModal" tabindex="-1" aria-labelledby="pointSettingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <form th:action="@{/admin/customers/point-settings}" method="post" id="pointSettingForm">
+                        <div class="modal-header bg-dark text-white p-3 px-4">
+                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="pointSettingModalLabel">
+                                <i class="bi bi-gift text-warning"></i> Cấu Hình Điểm Thưởng Khách Hàng (Loyalty Points)
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <!-- Toggle Bật/Tắt -->
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border mb-4">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">Kích Hoạt Chương Trình Điểm Thưởng</h6>
+                                    <small class="text-muted">Khi tắt, khách hàng sẽ không thể tích hoặc dùng điểm để giảm giá đơn hàng.</small>
+                                </div>
+                                <div class="form-check form-switch fs-4">
+                                    <input class="form-check-input" type="checkbox" name="enabled" value="true" role="switch" id="settingEnabled"
+                                           th:checked="${pointSetting != null ? pointSetting.enabled : true}">
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Tỷ lệ tích điểm -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-dark">
+                                        <i class="bi bi-cash-coin text-success me-1"></i> Tỷ Lệ Tích Điểm (VNĐ / 1 điểm)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" name="earnRate" id="inputEarnRate" class="form-control fw-bold font-monospace"
+                                               min="1000" step="1000" required
+                                               th:value="${pointSetting != null ? pointSetting.earnRate : 10000}">
+                                        <span class="input-group-text bg-white text-muted">đ = 1 điểm</span>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Số tiền chi tiêu đơn hàng để nhận 1 điểm (Mặc định: 10.000 đ).</small>
+                                </div>
+
+                                <!-- Tỷ lệ quy đổi tiêu điểm -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-dark">
+                                        <i class="bi bi-tag-fill text-danger me-1"></i> Giá Trị Quy Đổi (VNĐ / 1 điểm)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" name="redeemRate" id="inputRedeemRate" class="form-control fw-bold font-monospace"
+                                               min="1" max="10000" step="10" required
+                                               th:value="${pointSetting != null ? pointSetting.redeemRate : 100}">
+                                        <span class="input-group-text bg-white text-muted">đ / 1 điểm</span>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Số tiền được giảm khi tiêu 1 điểm lúc checkout (Mặc định: 100 đ).</small>
+                                </div>
+
+                                <!-- Giới hạn phần trăm giảm tối đa -->
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-dark">
+                                        <i class="bi bi-pie-chart-fill text-primary me-1"></i> Mức Giảm Tối Đa Trên Tiền Hàng (%)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" name="maxRedeemPercent" id="inputMaxPercent" class="form-control fw-bold font-monospace"
+                                               min="0" max="100" step="1" required
+                                               th:value="${pointSetting != null ? pointSetting.maxRedeemPercent : 20}">
+                                        <span class="input-group-text bg-white text-muted">%</span>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Giới hạn tỷ lệ giảm tối đa trên tiền hàng để kiểm soát chi phí khuyến mại (Mặc định: 20%).</small>
+                                </div>
+                            </div>
+
+                            <!-- Alert Chống Chênh Lệch Ngược (Anti-Arbitrage) -->
+                            <div id="arbitrageAlert" class="alert alert-danger py-2 px-3 small mt-3 d-none">
+                                <i class="bi bi-shield-slash-fill me-1"></i> <strong>Cảnh báo tài chính:</strong> Tỷ lệ tích điểm không được nhỏ hơn tỷ lệ quy đổi! Nếu không, khách có thể tích lũy điểm có giá trị lớn hơn số tiền họ đã trả.
+                            </div>
+
+                            <!-- Live Calculator Preview Box -->
+                            <div class="card border rounded-3 p-3 bg-light mt-3">
+                                <h6 class="fw-bold small mb-2 text-dark d-flex align-items-center gap-1">
+                                    <i class="bi bi-calculator text-primary"></i> Mô Phỏng Trực Quan (Live Preview) — Ví Dụ Đơn 500.000 đ
+                                </h6>
+                                <div class="row g-2 small">
+                                    <div class="col-md-4">
+                                        <div class="p-2 border rounded bg-white">
+                                            <span class="text-muted d-block" style="font-size: 0.72rem;">Điểm tích khi mua:</span>
+                                            <strong class="text-success fs-6" id="previewEarnedPoints">50</strong> <span class="text-muted">điểm</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-2 border rounded bg-white">
+                                            <span class="text-muted d-block" style="font-size: 0.72rem;">Giảm tối đa (VNĐ):</span>
+                                            <strong class="text-danger fs-6" id="previewMaxDiscount">100.000</strong> <span class="text-muted">đ</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-2 border rounded bg-white">
+                                            <span class="text-muted d-block" style="font-size: 0.72rem;">Số điểm tiêu tối đa:</span>
+                                            <strong class="text-primary fs-6" id="previewMaxPoints">1.000</strong> <span class="text-muted">điểm</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-white border-top p-3 px-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy Bỏ</button>
+                            <button type="submit" class="btn btn-warning fw-bold text-dark rounded-pill px-4" id="btnSubmitPointSetting">
+                                <i class="bi bi-check-circle-fill me-1"></i> Lưu Cấu Hình
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const modalEl = document.getElementById('resetPasswordListModal');
@@ -450,6 +586,47 @@
                             if (mismatchAlert) mismatchAlert.classList.remove('d-none');
                         }
                     });
+                }
+
+                // Live Preview cho Modal Cấu Hình Điểm Thưởng
+                const inputEarnRate = document.getElementById('inputEarnRate');
+                const inputRedeemRate = document.getElementById('inputRedeemRate');
+                const inputMaxPercent = document.getElementById('inputMaxPercent');
+                const arbitrageAlert = document.getElementById('arbitrageAlert');
+                const btnSubmitPointSetting = document.getElementById('btnSubmitPointSetting');
+                const previewEarnedPoints = document.getElementById('previewEarnedPoints');
+                const previewMaxDiscount = document.getElementById('previewMaxDiscount');
+                const previewMaxPoints = document.getElementById('previewMaxPoints');
+
+                function updatePointPreview() {
+                    if (!inputEarnRate || !inputRedeemRate || !inputMaxPercent) return;
+                    const earn = parseInt(inputEarnRate.value, 10) || 10000;
+                    const redeem = parseInt(inputRedeemRate.value, 10) || 100;
+                    const percent = parseInt(inputMaxPercent.value, 10) || 20;
+
+                    const sampleOrder = 500000;
+                    const earned = Math.floor(sampleOrder / Math.max(1, earn));
+                    const maxDiscount = Math.floor(sampleOrder * (percent / 100));
+                    const maxPoints = Math.floor(maxDiscount / Math.max(1, redeem));
+
+                    if (previewEarnedPoints) previewEarnedPoints.textContent = Number(earned).toLocaleString('vi-VN');
+                    if (previewMaxDiscount) previewMaxDiscount.textContent = Number(maxDiscount).toLocaleString('vi-VN');
+                    if (previewMaxPoints) previewMaxPoints.textContent = Number(maxPoints).toLocaleString('vi-VN');
+
+                    if (earn < redeem) {
+                        if (arbitrageAlert) arbitrageAlert.classList.remove('d-none');
+                        if (btnSubmitPointSetting) btnSubmitPointSetting.disabled = true;
+                    } else {
+                        if (arbitrageAlert) arbitrageAlert.classList.add('d-none');
+                        if (btnSubmitPointSetting) btnSubmitPointSetting.disabled = false;
+                    }
+                }
+
+                if (inputEarnRate && inputRedeemRate && inputMaxPercent) {
+                    inputEarnRate.addEventListener('input', updatePointPreview);
+                    inputRedeemRate.addEventListener('input', updatePointPreview);
+                    inputMaxPercent.addEventListener('input', updatePointPreview);
+                    updatePointPreview();
                 }
             });
         </script>

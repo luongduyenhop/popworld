@@ -44,6 +44,44 @@ public class OrderServiceImpl implements OrderService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.manguonmo.popworld.service.InventoryService inventoryService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.manguonmo.popworld.service.PointSettingService pointSettingService;
+
+    private int calculateEarnedPoints(BigDecimal amount) {
+        if (pointSettingService != null) {
+            return pointSettingService.calculatePointsEarned(amount);
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) return 0;
+        return amount.divideToIntegralValue(BigDecimal.valueOf(10000)).intValue();
+    }
+
+    private BigDecimal calculatePointsDiscount(int points) {
+        if (pointSettingService != null) {
+            return pointSettingService.calculatePointsDiscount(points);
+        }
+        return BigDecimal.valueOf(points * 100L);
+    }
+
+    private BigDecimal calculateMaxAllowedPointsDiscount(BigDecimal subtotal) {
+        if (pointSettingService != null) {
+            PointSetting setting = pointSettingService.getSetting();
+            if (setting == null || !Boolean.TRUE.equals(setting.getEnabled())) {
+                return BigDecimal.ZERO;
+            }
+            int percent = setting.getMaxRedeemPercent() != null ? setting.getMaxRedeemPercent() : 20;
+            return subtotal.multiply(BigDecimal.valueOf(percent)).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        }
+        return subtotal.multiply(new BigDecimal("0.20"));
+    }
+
+    private boolean isPointSystemEnabled() {
+        if (pointSettingService != null) {
+            PointSetting setting = pointSettingService.getSetting();
+            return setting != null && Boolean.TRUE.equals(setting.getEnabled());
+        }
+        return true;
+    }
+
     private static final java.util.concurrent.atomic.AtomicInteger ORDER_SEQ =
             new java.util.concurrent.atomic.AtomicInteger(100000);
 
@@ -156,22 +194,25 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // =========================================================================
-        // BƯỚC 6: Xử lý điểm thưởng (Reward Points: 10.000 VND = 1 point, 1 point = 100 VND, max 20% subtotal)
+        // BƯỚC 6: Xử lý điểm thưởng (Reward Points theo cấu hình linh hoạt)
         // =========================================================================
-        int pointsEarned = subtotal.divideToIntegralValue(BigDecimal.valueOf(10000)).intValue();
+        int pointsEarned = calculateEarnedPoints(subtotal);
         int finalPointsUsed = 0;
         BigDecimal pointsDiscount = BigDecimal.ZERO;
 
         if (pointsToUse != null && pointsToUse > 0) {
+            if (!isPointSystemEnabled()) {
+                throw new BadRequestException("Tính năng sử dụng điểm thưởng hiện đang tạm đóng!");
+            }
             int currentPoints = user.getRewardPoints() != null ? user.getRewardPoints() : 0;
             if (pointsToUse > currentPoints) {
                 throw new BadRequestException("Số điểm sử dụng (" + pointsToUse + ") vượt quá số điểm hiện có (" + currentPoints + ") của bạn!");
             }
 
-            pointsDiscount = BigDecimal.valueOf(pointsToUse * 100L);
-            BigDecimal maxAllowedDiscount = subtotal.multiply(new BigDecimal("0.20"));
+            pointsDiscount = calculatePointsDiscount(pointsToUse);
+            BigDecimal maxAllowedDiscount = calculateMaxAllowedPointsDiscount(subtotal);
             if (pointsDiscount.compareTo(maxAllowedDiscount) > 0) {
-                throw new BadRequestException("Điểm thưởng chỉ được giảm tối đa 20% giá trị tiền hàng (tối đa " + maxAllowedDiscount.intValue() + " đ)!");
+                throw new BadRequestException("Điểm thưởng chỉ được giảm tối đa cho đơn hàng này (tối đa " + maxAllowedDiscount.intValue() + " đ)!");
             }
 
             finalPointsUsed = pointsToUse;
@@ -731,7 +772,7 @@ public class OrderServiceImpl implements OrderService {
                 .shippingFee(BigDecimal.ZERO)
                 .discountAmount(BigDecimal.ZERO)
                 .totalAmount(price)
-                .pointsEarned(price.divideToIntegralValue(BigDecimal.valueOf(10000)).intValue())
+                .pointsEarned(calculateEarnedPoints(price))
                 .pointsUsed(0)
                 .pointsDiscount(BigDecimal.ZERO)
                 .status("TO_PAY")
