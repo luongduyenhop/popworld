@@ -98,7 +98,7 @@
 
             <!-- Desktop Navigation Links & Hover Mega-Menus (Hidden on Mobile) -->
             <div class="collapse navbar-collapse position-static d-none d-lg-flex" id="navbarMain">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 gap-xl-3 align-items-lg-center position-static">
+                <ul class="navbar-nav me-auto mb-0 gap-1 gap-xl-3 align-items-lg-center position-static flex-nowrap">
 
                     <!-- 1. NEW & FEATURED (Mega-Menu Panel 1: 3x2 Promotional Banner Cards) -->
                     <li class="nav-item pop-nav-mega-item" id="nav-item-new-featured">
@@ -298,11 +298,11 @@
                 </ul>
 
                 <!-- Right Utility Cluster: Search Capsule + Headset + Heart + Cart + User Account -->
-                <div class="d-flex flex-wrap align-items-center gap-2 gap-lg-3 my-2 my-lg-0 w-100 w-lg-auto justify-content-between justify-content-lg-end">
+                <div class="d-flex align-items-center gap-2 gap-xl-3 my-0 ms-auto flex-nowrap">
                     <!-- Search Capsule Pill with Live Autocomplete -->
-                    <div class="position-relative w-100 w-lg-auto mb-2 mb-lg-0 flex-grow-1 flex-lg-grow-0" id="popHeaderSearchWrapper">
+                    <div class="position-relative flex-shrink-1" id="popHeaderSearchWrapper">
                         <form class="m-0" th:action="@{/search}" method="get" role="search" id="popHeaderSearchForm">
-                            <div class="pop-search-capsule w-100" style="max-width: 100%;">
+                            <div class="pop-search-capsule">
                                 <input class="pop-search-input-clean" type="search" name="keyword" id="popHeaderSearchInput"
                                        placeholder="Labubu, Molly..." th:value="${keyword}" aria-label="Tìm kiếm sản phẩm" autocomplete="off">
                                 <button type="submit" class="pop-search-submit-btn" title="Tìm kiếm" aria-label="Tìm kiếm">
