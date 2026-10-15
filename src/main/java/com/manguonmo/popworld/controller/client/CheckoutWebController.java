@@ -1,30 +1,19 @@
 package com.manguonmo.popworld.controller.client;
 
 import com.manguonmo.popworld.dto.request.AddressRequest;
-import com.manguonmo.popworld.dto.response.ApiResponse;
-import com.manguonmo.popworld.entity.CartItem;
-import com.manguonmo.popworld.entity.Order;
-import com.manguonmo.popworld.entity.OrderItem;
-import com.manguonmo.popworld.entity.User;
-import com.manguonmo.popworld.entity.UserAddress;
-import com.manguonmo.popworld.entity.PointSetting;
-import com.manguonmo.popworld.service.PointSettingService;
+import com.manguonmo.popworld.entity.*;
 import com.manguonmo.popworld.exception.BadRequestException;
 import com.manguonmo.popworld.exception.OutOfStockException;
-import com.manguonmo.popworld.exception.ResourceNotFoundException;
 import com.manguonmo.popworld.repository.CouponRepository;
-import com.manguonmo.popworld.service.CartService;
-import com.manguonmo.popworld.service.CategoryService;
-import com.manguonmo.popworld.service.CharacterIpService;
-import com.manguonmo.popworld.service.OrderService;
-import com.manguonmo.popworld.service.UserAddressService;
-import com.manguonmo.popworld.service.UserService;
+import com.manguonmo.popworld.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -33,8 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Controller xử lý toàn bộ luồng Đặt hàng (Checkout) & Thanh toán (Payment)
@@ -269,7 +256,7 @@ public class CheckoutWebController {
                 }
             }
 
-            if ("SEPAY".equalsIgnoreCase(paymentMethod)) {
+            if ("SEPAY".equalsIgnoreCase(order.getPaymentMethod()) && order.getTotalAmount() != null && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
                 return "redirect:/checkout/payment/" + order.getOrderCode();
             } else {
                 return "redirect:/checkout/success/" + order.getOrderCode();
@@ -295,6 +282,11 @@ public class CheckoutWebController {
         Order order = orderService.getOrderByCode(orderCode);
         if (order == null) {
             return "redirect:/cart";
+        }
+
+        // Đơn hàng 0 đ hoặc không ở trạng thái TO_PAY thì chuyển thẳng đến màn hình kết quả đặt hàng thành công
+        if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0 || !"TO_PAY".equalsIgnoreCase(order.getStatus())) {
+            return "redirect:/checkout/success/" + order.getOrderCode();
         }
 
         if (principal == null) {

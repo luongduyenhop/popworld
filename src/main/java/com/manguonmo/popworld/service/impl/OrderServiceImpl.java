@@ -243,9 +243,15 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         // BƯỚC 9: Khởi tạo và Lưu Order vào CSDL
         // =========================================================================
+        boolean isZeroAmount = totalAmount.compareTo(BigDecimal.ZERO) <= 0;
         boolean isCod = "COD".equalsIgnoreCase(paymentMethod);
-        String initialStatus = isCod ? "PROCESSING" : "TO_PAY";
-        LocalDateTime expiration = isCod ? null : LocalDateTime.now().plusMinutes(15);
+        boolean canProcessImmediately = isZeroAmount || isCod;
+
+        String initialStatus = canProcessImmediately ? "PROCESSING" : "TO_PAY";
+        LocalDateTime expiration = canProcessImmediately ? null : LocalDateTime.now().plusMinutes(15);
+        String finalPaymentMethod = isZeroAmount 
+                ? (paymentMethod != null && !paymentMethod.isBlank() ? paymentMethod : "FREE") 
+                : (paymentMethod != null && !paymentMethod.isBlank() ? paymentMethod : "COD");
 
         Order newOrder = Order.builder()
                 .orderCode(orderCode)
@@ -263,7 +269,7 @@ public class OrderServiceImpl implements OrderService {
                 .pointsUsed(finalPointsUsed)
                 .pointsDiscount(pointsDiscount)
                 .totalAmount(totalAmount)
-                .paymentMethod(paymentMethod != null ? paymentMethod : "COD")
+                .paymentMethod(finalPaymentMethod)
                 .status(initialStatus)
                 .expiresAt(expiration)
                 .coupon(appliedCoupon)
@@ -329,9 +335,14 @@ public class OrderServiceImpl implements OrderService {
         // =========================================================================
         // BƯỚC 11: Trả về đối tượng Order đã lưu thành công
         // =========================================================================
-        String timelineNote = isCod 
-                ? "Phương thức: COD (Thanh toán khi nhận hàng) | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Đơn hàng đang được bộ phận kho tiếp nhận và chuẩn bị đóng gói."
-                : "Phương thức: Chuyển khoản VietQR SePay | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Chờ thanh toán trong 15 phút.";
+        String timelineNote;
+        if (isZeroAmount) {
+            timelineNote = "Đơn hàng 0 đ (Áp dụng ưu đãi 100%) | Đơn hàng đang được bộ phận kho tiếp nhận và chuẩn bị đóng gói.";
+        } else if (isCod) {
+            timelineNote = "Phương thức: COD (Thanh toán khi nhận hàng) | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Đơn hàng đang được bộ phận kho tiếp nhận và chuẩn bị đóng gói.";
+        } else {
+            timelineNote = "Phương thức: Chuyển khoản VietQR SePay | Đơn giá trị: " + savedOrder.getTotalAmount() + " đ. Chờ thanh toán trong 15 phút.";
+        }
 
         recordTimeline(savedOrder, null, initialStatus, "Đặt hàng thành công", 
                 (user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getEmail()), 

@@ -230,6 +230,63 @@ class OrderServiceTest {
     }
 
     // =========================================================================
+    // TEST CASE 2B: Đơn hàng 0đ (do áp mã giảm giá hoặc điểm) chuyển thẳng PROCESSING và expiresAt = null dù chọn SEPAY
+    // =========================================================================
+    @Test
+    @DisplayName("Tạo đơn hàng 0đ: Tự động chuyển trạng thái PROCESSING và expiresAt null dù chọn thanh toán SEPAY")
+    void createOrder_Success_ZeroAmount_TransitionsToProcessingWithoutExpiration() {
+        // --- 1. ARRANGE ---
+        CartItem cartItem = CartItem.builder()
+                .id(99L)
+                .user(sampleUser)
+                .product(sampleProductSingle)
+                .purchaseType("SINGLE_BOX")
+                .quantity(1) // 200.000đ
+                .build();
+        List<CartItem> cartList = List.of(cartItem);
+
+        Coupon freeCoupon = Coupon.builder()
+                .id(99L)
+                .code("FREE100")
+                .discountType("PERCENT")
+                .discountValue(new BigDecimal("100"))
+                .minOrderAmount(new BigDecimal("100000"))
+                .maxDiscountAmount(new BigDecimal("500000"))
+                .endDate(LocalDate.now().plusDays(7))
+                .active(true)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(cartItemRepository.findByUserIdAndIsSelectedTrue(1L)).thenReturn(cartList);
+        when(couponService.calculateDiscount(eq("FREE100"), eq(1L), any(BigDecimal.class)))
+                .thenReturn(CouponDiscountResponse.builder()
+                        .couponCode("FREE100")
+                        .discountAmount(new BigDecimal("230000"))
+                        .build());
+        when(couponService.applyCoupon(eq("FREE100"), eq(1L), any(BigDecimal.class)))
+                .thenReturn(freeCoupon);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // --- 2. ACT ---
+        Order createdOrder = orderService.createOrder(
+                1L, "Nguyen Van A", "0987654321",
+                "TP. Hồ Chí Minh", "Quận 1", "Bến Nghé",
+                "Số 45 Lê Duẩn", "SEPAY", "FREE100"
+        );
+
+        // --- 3. ASSERT ---
+        assertNotNull(createdOrder);
+        assertBigDecimalEquals("0", createdOrder.getTotalAmount());
+        assertEquals("PROCESSING", createdOrder.getStatus(), "Đơn 0đ phải được chuyển thẳng sang PROCESSING thay vì TO_PAY");
+        assertNull(createdOrder.getExpiresAt(), "Đơn 0đ không được có thời hạn hủy đơn 15 phút (expiresAt = null)");
+        assertEquals("SEPAY", createdOrder.getPaymentMethod());
+
+        verify(orderRepository).save(any(Order.class));
+        verify(orderItemRepository).saveAll(anyList());
+        verify(cartItemRepository).deleteAll(cartList);
+    }
+
+    // =========================================================================
     // TEST CASE 3: Coupon hết hạn hoặc không đủ điều kiện đơn hàng tối thiểu
     // =========================================================================
     @Test

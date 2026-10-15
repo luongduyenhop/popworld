@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
@@ -264,7 +265,7 @@ public class PopNowWebController {
 
         try {
             Order order = orderService.createOrderForReservation(user.getId(), reservationCode, paymentMethod);
-            if ("SEPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+            if ("SEPAY".equalsIgnoreCase(order.getPaymentMethod()) && order.getTotalAmount() != null && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
                 return "redirect:/checkout/payment/" + order.getOrderCode();
             } else {
                 return "redirect:/checkout/success/" + order.getOrderCode();
