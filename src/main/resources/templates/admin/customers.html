@@ -419,7 +419,7 @@
                                     </label>
                                     <div class="input-group">
                                         <input type="number" name="earnRate" id="inputEarnRate" class="form-control fw-bold font-monospace"
-                                               min="1000" step="1000" required
+                                               min="1000" step="1" required
                                                th:value="${pointSetting != null ? pointSetting.earnRate : 10000}">
                                         <span class="input-group-text bg-white text-muted">đ = 1 điểm</span>
                                     </div>
@@ -433,7 +433,7 @@
                                     </label>
                                     <div class="input-group">
                                         <input type="number" name="redeemRate" id="inputRedeemRate" class="form-control fw-bold font-monospace"
-                                               min="1" max="10000" step="10" required
+                                               min="1" max="10000" step="1" required
                                                th:value="${pointSetting != null ? pointSetting.redeemRate : 100}">
                                         <span class="input-group-text bg-white text-muted">đ / 1 điểm</span>
                                     </div>
