@@ -6,9 +6,11 @@ import com.manguonmo.popworld.entity.BoxReservation;
 import com.manguonmo.popworld.entity.Order;
 import com.manguonmo.popworld.entity.OrderTimeline;
 import com.manguonmo.popworld.entity.ReservationStatus;
+import com.manguonmo.popworld.entity.User;
 import com.manguonmo.popworld.repository.BoxReservationRepository;
 import com.manguonmo.popworld.repository.OrderRepository;
 import com.manguonmo.popworld.repository.OrderTimelineRepository;
+import com.manguonmo.popworld.service.ContactService;
 import com.manguonmo.popworld.service.PopNowService;
 import com.manguonmo.popworld.security.crypto.HmacSignatureVerifier;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,14 @@ public class PaymentServiceImpl implements PaymentService {
     private final PopNowService popNowService;
     private final OrderTimelineRepository orderTimelineRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired(required = false)
+    private ContactService contactService;
+
+    @Autowired(required = false)
+    public void setContactService(ContactService contactService) {
+        this.contactService = contactService;
+    }
 
     @Autowired
     public void setHmacSignatureVerifier(HmacSignatureVerifier hmacSignatureVerifier) {
@@ -224,6 +234,9 @@ public class PaymentServiceImpl implements PaymentService {
                         .build());
             }
 
+            // Tự động tạo Ticket CSKH đối soát hoàn tiền
+            createOverpaidSupportTicket(order, transferAmount, txCode, webhookData.getContent() != null ? webhookData.getContent() : webhookData.getDescription());
+
             if (boxReservationRepository != null && popNowService != null) {
                 Optional<BoxReservation> resOpt = boxReservationRepository.findByOrderCode(orderCode);
                 if (resOpt.isPresent()) {
@@ -327,6 +340,11 @@ public class PaymentServiceImpl implements PaymentService {
         String txStatus = isOverpaid ? "OVERPAID" : "FULL";
         savePaymentTransaction(targetOrder, webhookData, txCode, transferAmount, txStatus);
 
+        if (isOverpaid) {
+            BigDecimal overpaidAmount = newPaid.subtract(expectedAmount);
+            createOverpaidSupportTicket(targetOrder, overpaidAmount, referenceCode, webhookData.getContent() != null ? webhookData.getContent() : webhookData.getDescription());
+        }
+
         if (orderTimelineRepository != null) {
             String action = isOverpaid ? "Xác nhận thanh toán (Phát hiện chuyển thừa tiền)" : "Xác nhận thanh toán SePay thành công";
             String timelineNote = isOverpaid
@@ -370,6 +388,61 @@ public class PaymentServiceImpl implements PaymentService {
             } catch (Exception e) {
                 log.warn("SePay Webhook: Không thể lưu PaymentTransaction: {}", e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Tự động tạo Ticket hỗ trợ cho bộ phận CSKH khi phát hiện khách hàng chuyển thừa tiền qua SePay.
+     *
+     * @param order          Đơn hàng liên quan
+     * @param overpaidAmount Số tiền chuyển thừa (VNĐ)
+     * @param txCode         Mã giao dịch ngân hàng / SePay
+     * @param rawContent     Nội dung chuyển khoản gốc từ webhook
+     */
+    private void createOverpaidSupportTicket(Order order, BigDecimal overpaidAmount, String txCode, String rawContent) {
+        if (contactService == null || order == null || overpaidAmount == null || overpaidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        try {
+            User user = order.getUser();
+            String senderName = (order.getRecipientName() != null && !order.getRecipientName().isBlank())
+                    ? order.getRecipientName()
+                    : (user != null && user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : "Khách hàng");
+
+            String email = (user != null && user.getEmail() != null && !user.getEmail().isBlank())
+                    ? user.getEmail()
+                    : "cskh@popworld.com";
+
+            String phone = (order.getRecipientPhone() != null && !order.getRecipientPhone().isBlank())
+                    ? order.getRecipientPhone()
+                    : (user != null && user.getPhone() != null ? user.getPhone() : "");
+
+            Long userId = user != null ? user.getId() : null;
+
+            String subject = "[HOÀN TIỀN] Khách chuyển thừa " + overpaidAmount.stripTrailingZeros().toPlainString() + " đ - Đơn hàng " + order.getOrderCode();
+            String category = "HOAN_TIEN";
+
+            String message = String.format(
+                    "Hệ thống tự động phát hiện khách hàng thanh toán thừa tiền qua cổng SePay.\n" +
+                    "- Mã đơn hàng: %s\n" +
+                    "- Số tiền thanh toán thừa: %s đ\n" +
+                    "- Mã giao dịch ngân hàng: %s\n" +
+                    "- Nội dung chuyển khoản: %s\n" +
+                    "- Số điện thoại khách: %s\n" +
+                    "Yêu cầu bộ phận CSKH chủ động liên hệ khách hàng để đối soát, xác nhận số tài khoản ngân hàng và thực hiện hoàn tiền thừa.",
+                    order.getOrderCode(),
+                    overpaidAmount.stripTrailingZeros().toPlainString(),
+                    (txCode != null && !txCode.isBlank()) ? txCode : "N/A",
+                    (rawContent != null && !rawContent.isBlank()) ? rawContent : "N/A",
+                    (!phone.isBlank()) ? phone : "Chưa cập nhật"
+            );
+
+            contactService.submitContact(senderName, email, phone, subject, category, message, userId);
+            log.info("SePay Webhook: Đã tự động tạo Ticket CSKH hoàn tiền cho đơn hàng {}. Số tiền thừa: {} đ, Mã GD: {}",
+                    order.getOrderCode(), overpaidAmount, txCode);
+        } catch (Exception e) {
+            log.error("SePay Webhook: Lỗi khi tự động tạo Ticket CSKH hoàn tiền cho đơn {}: {}", order.getOrderCode(), e.getMessage());
         }
     }
 }

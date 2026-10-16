@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -58,6 +58,9 @@ class PaymentServiceImplTest {
     @Mock
     private PaymentTransactionRepository paymentTransactionRepository;
 
+    @Mock
+    private ContactService contactService;
+
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
@@ -70,6 +73,7 @@ class PaymentServiceImplTest {
         ReflectionTestUtils.setField(paymentService, "apiKey", VALID_API_KEY);
         ReflectionTestUtils.setField(paymentService, "webhookSecretKey", VALID_API_KEY);
         ReflectionTestUtils.setField(paymentService, "hmacSignatureVerifier", new com.manguonmo.popworld.security.crypto.HmacSignatureVerifier());
+        paymentService.setContactService(contactService);
     }
 
     // =========================================================================
@@ -918,6 +922,100 @@ class PaymentServiceImplTest {
 
         assertFalse(result, "Phải từ chối ngay lập tức khi chữ ký HMAC sai");
         verify(orderRepository, never()).findByOrderCode(anyString());
+    }
+
+    // =========================================================================
+    // TEST CASES: Tự động tạo Ticket CSKH khi khách chuyển thừa tiền qua SePay
+    // =========================================================================
+
+    @Test
+    @DisplayName("Thanh toán thừa tiền lần đầu: Tự động tạo Ticket CSKH với số tiền thừa chính xác")
+    void processSePayWebhook_OverpaidFirstTime_ShouldCreateSupportTicket() {
+        String orderCode = "PW-1726000008888";
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .recipientName("Tran Van B")
+                .recipientPhone("0912345678")
+                .totalAmount(new BigDecimal("300000"))
+                .status("TO_PAY")
+                .build();
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(3001L)
+                .content("Thanh toan don " + orderCode)
+                .transferAmount(new BigDecimal("350000")) // Thừa 50.000 đ
+                .referenceCode("REF_OVERPAID_1")
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result);
+        assertEquals("PROCESSING", order.getStatus());
+        assertEquals(new BigDecimal("350000"), order.getPaidAmount());
+
+        // Kiểm tra contactService.submitContact được gọi với số tiền thừa 50.000 đ
+        ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> categoryCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(contactService, times(1)).submitContact(
+                eq("Tran Van B"),
+                eq("cskh@popworld.com"),
+                eq("0912345678"),
+                subjectCaptor.capture(),
+                categoryCaptor.capture(),
+                messageCaptor.capture(),
+                isNull()
+        );
+
+        assertTrue(subjectCaptor.getValue().contains("50000"));
+        assertTrue(subjectCaptor.getValue().contains(orderCode));
+        assertEquals("HOAN_TIEN", categoryCaptor.getValue());
+        assertTrue(messageCaptor.getValue().contains("50000"));
+    }
+
+    @Test
+    @DisplayName("Chuyển thêm tiền vào đơn đã thanh toán: Tự động tạo Ticket CSKH hoàn tiền")
+    void processSePayWebhook_OverpaidOnAlreadyPaidOrder_ShouldCreateSupportTicket() {
+        String orderCode = "PW-1726000007777";
+        Order order = Order.builder()
+                .orderCode(orderCode)
+                .recipientName("Le Thi C")
+                .recipientPhone("0987654321")
+                .totalAmount(new BigDecimal("500000"))
+                .paidAmount(new BigDecimal("500000"))
+                .status("PROCESSING")
+                .build();
+
+        SePayWebhookRequest request = SePayWebhookRequest.builder()
+                .id(3002L)
+                .content("Chuyen khoan tiep " + orderCode)
+                .transferAmount(new BigDecimal("100000")) // Chuyển thêm 100.000 đ khi đơn đã xong
+                .referenceCode("REF_OVERPAID_2")
+                .build();
+
+        when(orderRepository.findByOrderCode(orderCode)).thenReturn(Optional.of(order));
+
+        boolean result = paymentService.processSePayWebhook(request, VALID_AUTH_HEADER);
+
+        assertTrue(result);
+
+        ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
+        verify(contactService, times(1)).submitContact(
+                eq("Le Thi C"),
+                eq("cskh@popworld.com"),
+                eq("0987654321"),
+                subjectCaptor.capture(),
+                eq("HOAN_TIEN"),
+                anyString(),
+                isNull()
+        );
+
+        assertTrue(subjectCaptor.getValue().contains("100000"));
+        assertTrue(subjectCaptor.getValue().contains(orderCode));
     }
 }
 
